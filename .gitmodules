@@ -1,0 +1,3 @@
+[submodule "gdpc"]
+	path = gdpc
+	url = git@github.com:Niels-NTG/gdpc.git

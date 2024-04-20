@@ -77,7 +77,7 @@ class WaveFunctionCollapse:
             self.stateSpaceSize[0] * self.stateSpaceSize[1] * self.stateSpaceSize[2]
         )
 
-    def collapseWithRetry(self, maxRetries=10, reinit: Union[Callable, None] = None) -> int:
+    def collapseWithRetry(self, maxRetries=100, reinit: Union[Callable, None] = None) -> int:
         attempts = 0
 
         if reinit:

@@ -29,7 +29,6 @@ def initialize():
     structureFolders = dict()
     loadStructureFiles()
 
-    tileSize = ivec3(9, 9, 9)
 
     global buildarea
     buildarea = interface.getBuildArea().toRect()
@@ -37,6 +36,7 @@ def initialize():
     editor = Editor()
     editor.loadWorldSlice(rect=buildarea, cache=True)
 
+    tileSize = ivec3(5, 5, 5)
     # TODO implement algorithm to find and define an suitable build volume
     # TODO system should be able to define multiple different build volumes for each
     #   settlement type

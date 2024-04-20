@@ -25,18 +25,12 @@ class Wall(Structure):
         zForward=[
             ('center', 0),
             ('corner', 0),
-            ('corner', 1),
             ('wall', 0),
-            ('wall', 1),
-            ('wall', 2),
         ],
         zBackward=[
             ('center', 0),
-            ('corner', 2),
             ('corner', 3),
             ('wall', 0),
-            ('wall', 2),
-            ('wall', 3),
         ]
     )
 

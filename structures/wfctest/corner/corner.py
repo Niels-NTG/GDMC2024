@@ -18,8 +18,6 @@ class Corner(Structure):
             ('center', 0),
             ('corner', 1),
             ('wall', 1),
-            ('wall', 2),
-            ('wall', 3),
         ],
         zForward=[
             ('air', 0),
@@ -28,8 +26,6 @@ class Corner(Structure):
             ('center', 0),
             ('corner', 3),
             ('wall', 0),
-            ('wall', 2),
-            ('wall', 3),
         ]
     )
 

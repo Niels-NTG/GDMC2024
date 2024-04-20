@@ -188,7 +188,7 @@ class WaveFunctionCollapse:
             lastZ = self.stateSpaceSize[2] - 1
             self.collapseCellToState((x, 0, 0), StructureRotation(structureName='air', rotation=0))
             self.collapseCellToState((x, 0, lastZ), StructureRotation(structureName='air', rotation=0))
-        for z in range(self.stateSpaceSize[1]):
+        for z in range(self.stateSpaceSize[2]):
             lastX = self.stateSpaceSize[0] - 1
             self.collapseCellToState((0, 0, z), StructureRotation(structureName='air', rotation=0))
             self.collapseCellToState((lastX, 0, z), StructureRotation(structureName='air', rotation=0))

@@ -35,6 +35,9 @@ def initialize():
     interface.runCommand(
         'fill 72 -60 105 102 -50 135 minecraft:air'
     )
+    interface.runCommand(
+        'kill @e[type=minecraft:item]'
+    )
 
     global buildarea
     buildarea = interface.getBuildArea()

@@ -5,7 +5,7 @@ import numpy as np
 from glm import ivec3
 
 from StructureFolder import StructureFolder
-from gdpc.gdpc import Editor
+from gdpc.gdpc import Editor, vector_tools, Block
 from gdpc.gdpc import interface
 
 global rng
@@ -29,19 +29,25 @@ def initialize():
     structureFolders = dict()
     loadStructureFiles()
 
+    interface.runCommand(
+        'setbuildarea 72 -60 105 102 -50 135'
+    )
+    interface.runCommand(
+        'fill 72 -60 105 102 -50 135 minecraft:air'
+    )
 
     global buildarea
-    buildarea = interface.getBuildArea().toRect()
+    buildarea = interface.getBuildArea()
     global editor
     editor = Editor()
-    editor.loadWorldSlice(rect=buildarea, cache=True)
+    editor.loadWorldSlice(rect=buildarea.toRect(), cache=True)
 
     tileSize = ivec3(5, 5, 5)
     # TODO implement algorithm to find and define an suitable build volume
     # TODO system should be able to define multiple different build volumes for each
     #   settlement type
     global buildVolume
-    buildVolume = buildarea.toBox(offsetY=-60, sizeY=60)
+    buildVolume = buildarea
 
     global volumeGrid
     volumeGrid = buildVolume.size // tileSize

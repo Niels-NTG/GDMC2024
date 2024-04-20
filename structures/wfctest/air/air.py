@@ -15,25 +15,25 @@ class Air(Structure):
             ('wall', 2),
             ('corner', 1),
             ('corner', 2),
-            ('air', 0),
+            ('air', -1),
         ],
         xBackward=[
             ('wall', 0),
             ('corner', 0),
             ('corner', 3),
-            ('air', 0),
+            ('air', -1),
         ],
         zForward=[
             ('wall', 3),
             ('corner', 2),
             ('corner', 3),
-            ('air', 0),
+            ('air', -1),
         ],
         zBackward=[
             ('wall', 1),
             ('corner', 0),
             ('corner', 1),
-            ('air', 0),
+            ('air', -1),
         ]
     )
 

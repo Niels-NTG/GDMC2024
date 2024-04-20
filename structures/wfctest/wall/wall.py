@@ -12,10 +12,10 @@ class Wall(Structure):
     adjecencies = StructureAdjacency(
         name='wall',
         xForward=[
-            ('air', 0),
+            ('air', -1),
         ],
         xBackward=[
-            ('center', 0),
+            ('center', -1),
             ('corner', 1),
             ('corner', 2),
             ('wall', 1),
@@ -23,12 +23,12 @@ class Wall(Structure):
             ('wall', 3),
         ],
         zForward=[
-            ('center', 0),
+            ('center', -1),
             ('corner', 0),
             ('wall', 0),
         ],
         zBackward=[
-            ('center', 0),
+            ('center', -1),
             ('corner', 3),
             ('wall', 0),
         ]

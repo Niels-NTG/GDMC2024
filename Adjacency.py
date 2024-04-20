@@ -71,7 +71,10 @@ def createRotationList(rotationTuples: Union[List[Tuple[str, int]] | None]) -> L
     if rotationTuples is None or len(rotationTuples) == 0:
         return rotationList
     for rotationTuple in rotationTuples:
-        rotationList.append(StructureRotation(structureName=rotationTuple[0], rotation=rotationTuple[1]))
+        if rotationTuple[1] == -1:
+            rotationList.extend(getAllRotations(structureName=rotationTuple[0]))
+        else:
+            rotationList.append(StructureRotation(structureName=rotationTuple[0], rotation=rotationTuple[1]))
     return rotationList
 
 

@@ -12,7 +12,7 @@ class Center(Structure):
     adjecencies = StructureAdjacency(
         name='center',
         xForward=[
-            ('center', 0),
+            ('center', -1),
             ('corner', 0),
             ('corner', 3),
             ('wall', 0),
@@ -20,7 +20,7 @@ class Center(Structure):
             ('wall', 3),
         ],
         xBackward=[
-            ('center', 0),
+            ('center', -1),
             ('corner', 1),
             ('corner', 2),
             ('wall', 1),
@@ -28,7 +28,7 @@ class Center(Structure):
             ('wall', 3),
         ],
         zForward=[
-            ('center', 0),
+            ('center', -1),
             ('corner', 0),
             ('corner', 1),
             ('wall', 0),
@@ -36,7 +36,7 @@ class Center(Structure):
             ('wall', 2),
         ],
         zBackward=[
-            ('center', 0),
+            ('center', -1),
             ('corner', 2),
             ('corner', 3),
             ('wall', 0),

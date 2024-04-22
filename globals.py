@@ -45,7 +45,7 @@ def initialize():
     editor = Editor()
     editor.loadWorldSlice(rect=buildarea.toRect(), cache=True)
 
-    tileSize = ivec3(5, 5, 5)
+    tileSize = ivec3(5, 8, 5)
     # TODO implement algorithm to find and define an suitable build volume
     # TODO system should be able to define multiple different build volumes for each
     #   settlement type
@@ -67,7 +67,7 @@ def initialize():
 
 
 def loadStructureFiles():
-    namespace = 'wfctest'
+    namespace = 'library'
     for structureFolder in Path('.').glob(f'structures/{namespace}/*/'):
         if structureFolder.is_dir():
             structureName = structureFolder.name

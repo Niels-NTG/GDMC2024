@@ -5,7 +5,7 @@ import numpy as np
 from glm import ivec3
 
 from StructureFolder import StructureFolder
-from gdpc.gdpc import Editor, vector_tools, Block
+from gdpc.gdpc import Editor
 from gdpc.gdpc import interface
 
 global rng
@@ -30,10 +30,10 @@ def initialize():
     loadStructureFiles()
 
     interface.runCommand(
-        'setbuildarea 72 -60 105 102 -50 135'
+        'setbuildarea 21 -60 164 101 -52 244'
     )
     interface.runCommand(
-        'fill 72 -60 105 102 -50 135 minecraft:air'
+        'fill 21 -60 164 101 -52 244 minecraft:air'
     )
     interface.runCommand(
         'kill @e[type=minecraft:item]'

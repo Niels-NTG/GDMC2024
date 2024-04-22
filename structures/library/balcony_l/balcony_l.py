@@ -18,6 +18,7 @@ class BalconyL(Structure):
             ('wall_r_book', 2),
             ('t_junction', 2),
             ('wall_seat', 0),
+            ('corner_inner', 0),
         ],
         zForward=[
             ('balcony_r', 0),

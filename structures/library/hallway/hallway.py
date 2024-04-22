@@ -27,17 +27,17 @@ class Hallway(Structure):
             ('air', -1),
             ('wall_l_book', 3),
             ('wall_r_book', 3),
-            # ('stairs', 0),
-            # ('stairs', 2),
-            # ('stairs', 3),
+            ('stairs', 0),
+            ('stairs', 2),
+            ('stairs', 3),
         ],
         zBackward=[
             ('air', -1),
             ('wall_l_book', 1),
             ('wall_r_book', 1),
-            # ('stairs', 0),
-            # ('stairs', 2),
-            # ('stairs', 1),
+            ('stairs', 0),
+            ('stairs', 2),
+            ('stairs', 1),
         ]
     )
 

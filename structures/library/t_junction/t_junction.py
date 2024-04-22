@@ -14,7 +14,7 @@ class TJunction(Structure):
         xForward=[
             ('hallway', 0),
             ('hallway', 2),
-            # ('stairs', 0),
+            ('stairs', 0),
             ('t_junction', 2),
         ],
         xBackward=[

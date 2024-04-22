@@ -12,28 +12,18 @@ class CornerInner(Structure):
     adjecencies = StructureAdjacency(
         name='corner_inner',
         xForward=[
-            ('wall', 2),
-            ('corner', 1),
-            ('corner', 2),
-            ('air', -1),
+            ('balcony_l', 0),
+            ('corner_inner', 1),
         ],
         xBackward=[
-            ('wall', 0),
-            ('corner', 0),
-            ('corner', 3),
-            ('air', -1),
+            ('wall_r_book', 3),
         ],
         zForward=[
-            ('wall', 3),
-            ('corner', 2),
-            ('corner', 3),
-            ('air', -1),
+            ('corner_inner', 3),
+            ('balcony_r', 1),
         ],
         zBackward=[
-            ('wall', 1),
-            ('corner', 0),
-            ('corner', 1),
-            ('air', -1),
+            ('wall_l_book', 2),
         ]
     )
 

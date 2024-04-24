@@ -135,35 +135,48 @@ class WaveFunctionCollapse:
         # Update cell to new collapsed state
         self.stateSpace[x][y][z] = remainingStates
 
-        def computeNeighbourStates(axis: str) -> Set[StructureRotation]:
-            allowedStates: Set[StructureRotation] = set()
-            for s in self.stateSpace[x][y][z]:
-                allowedStates = allowedStates.union(set(self.structureAdjacencies[s.structureName].adjacentStructures(
-                    axis,
-                    s.rotation
-                )))
-            return allowedStates
-
         if x > 0:
-            neighbourRemainingStates = computeNeighbourStates("xBackward").intersection(self.stateSpace[x - 1][y][z])
+            neighbourRemainingStates = self.computeNeighbourStates(
+                cellIndex, 'xBackward'
+            ).intersection(self.stateSpace[x - 1][y][z])
             self.propagate(cellIndex=(x - 1, y, z), remainingStates=neighbourRemainingStates)
         if x < self.stateSpaceSize[0] - 1:
-            neighbourRemainingStates = computeNeighbourStates("xForward").intersection(self.stateSpace[x + 1][y][z])
+            neighbourRemainingStates = self.computeNeighbourStates(
+                cellIndex, 'xForward'
+            ).intersection(self.stateSpace[x + 1][y][z])
             self.propagate(cellIndex=(x + 1, y, z), remainingStates=neighbourRemainingStates)
 
         if y > 0:
-            neighbourRemainingStates = computeNeighbourStates("yBackward").intersection(self.stateSpace[x][y - 1][z])
+            neighbourRemainingStates = self.computeNeighbourStates(
+                cellIndex, 'yBackward'
+            ).intersection(self.stateSpace[x][y - 1][z])
             self.propagate(cellIndex=(x, y - 1, z), remainingStates=neighbourRemainingStates)
         if y < self.stateSpaceSize[1] - 1:
-            neighbourRemainingStates = computeNeighbourStates("yForward").intersection(self.stateSpace[x][y + 1][z])
+            neighbourRemainingStates = self.computeNeighbourStates(
+                cellIndex, 'yForward'
+            ).intersection(self.stateSpace[x][y + 1][z])
             self.propagate(cellIndex=(x, y + 1, z), remainingStates=neighbourRemainingStates)
 
         if z > 0:
-            neighbourRemainingStates = computeNeighbourStates("zBackward").intersection(self.stateSpace[x][y][z - 1])
+            neighbourRemainingStates = self.computeNeighbourStates(
+                cellIndex, 'zBackward'
+            ).intersection(self.stateSpace[x][y][z - 1])
             self.propagate(cellIndex=(x, y, z - 1), remainingStates=neighbourRemainingStates)
         if z < self.stateSpaceSize[2] - 1:
-            neighbourRemainingStates = computeNeighbourStates("zForward").intersection(self.stateSpace[x][y][z + 1])
+            neighbourRemainingStates = self.computeNeighbourStates(
+                cellIndex, 'zForward'
+            ).intersection(self.stateSpace[x][y][z + 1])
             self.propagate(cellIndex=(x, y, z + 1), remainingStates=neighbourRemainingStates)
+
+    def computeNeighbourStates(self, cellIndex: Tuple[int, int, int], axis: str) -> Set[StructureRotation]:
+        x, y, z = cellIndex
+        allowedStates: Set[StructureRotation] = set()
+        for s in self.stateSpace[x][y][z]:
+            allowedStates = allowedStates.union(set(self.structureAdjacencies[s.structureName].adjacentStructures(
+                axis,
+                s.rotation
+            )))
+        return allowedStates
 
     def getCollapsedState(self, buildVolumeOffset: ivec3 = ivec3(0, 0, 0)) -> Iterator[Structure]:
         if not self.isCollapsed():

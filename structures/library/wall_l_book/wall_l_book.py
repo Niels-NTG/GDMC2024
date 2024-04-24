@@ -27,6 +27,7 @@ class WallLBook(Structure):
         xBackward=[
             ('wall_r_book', 2),
             ('balcony_r', 2),
+            ('corner_inner', 0),
         ],
         zForward=[
             ('wall_r_book', 0),

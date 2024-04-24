@@ -121,8 +121,6 @@ class WaveFunctionCollapse:
             f'This cell should have been set to {structureToCollapse} or {set()} but is {self.stateSpace[x][y][z]}'
 
     def propagate(self, cellIndex: Tuple[int, int, int], remainingStates: Set[StructureRotation]):
-        if len(remainingStates) == 0:
-            return
         x, y, z = cellIndex
         if not remainingStates.issubset(self.stateSpace[x][y][z]):
             raise Exception(

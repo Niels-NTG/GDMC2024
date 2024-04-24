@@ -198,11 +198,12 @@ class WaveFunctionCollapse:
             yield list(self.stateSpace[x][y][z])[0]    
 
     def collapseVolumeEdgeToAir(self):
-        for x in range(self.stateSpaceSize[0]):
-            lastZ = self.stateSpaceSize[2] - 1
-            self.collapseCellToState((x, 0, 0), StructureRotation(structureName='air', rotation=0))
-            self.collapseCellToState((x, 0, lastZ), StructureRotation(structureName='air', rotation=0))
-        for z in range(self.stateSpaceSize[2]):
-            lastX = self.stateSpaceSize[0] - 1
-            self.collapseCellToState((0, 0, z), StructureRotation(structureName='air', rotation=0))
-            self.collapseCellToState((lastX, 0, z), StructureRotation(structureName='air', rotation=0))
+        for y in range(self.stateSpaceSize[1]):
+            for x in range(self.stateSpaceSize[0]):
+                lastZ = self.stateSpaceSize[2] - 1
+                self.collapseCellToState((x, y, 0), StructureRotation(structureName='air', rotation=0))
+                self.collapseCellToState((x, y, lastZ), StructureRotation(structureName='air', rotation=0))
+            for z in range(self.stateSpaceSize[2]):
+                lastX = self.stateSpaceSize[0] - 1
+                self.collapseCellToState((0, y, z), StructureRotation(structureName='air', rotation=0))
+                self.collapseCellToState((lastX, y, z), StructureRotation(structureName='air', rotation=0))

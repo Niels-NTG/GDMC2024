@@ -20,6 +20,14 @@ class BalconyR(Structure):
             ('wall_seat', 0),
             ('corner_inner', 3),
         ],
+        yForward=[
+            ('air', -1),
+            ('balcony_r', 0),
+        ],
+        yBackward=[
+            ('air', -1),
+            ('balcony_r', 0),
+        ],
         zForward=[
             ('balcony_l', 0),
             ('balcony_corner', 3),

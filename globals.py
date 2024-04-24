@@ -4,6 +4,7 @@ from copy import deepcopy
 import numpy as np
 from glm import ivec3
 
+import Adjacency
 from StructureFolder import StructureFolder
 from gdpc.gdpc import Editor
 from gdpc.gdpc import interface
@@ -28,6 +29,12 @@ def initialize():
     global structureFolders
     structureFolders = dict()
     loadStructureFiles()
+
+    global adjacencies
+    adjacencies = dict()
+    for name, structureFolder in structureFolders.items():
+        adjacencies[name] = deepcopy(structureFolder.structureClass.adjecencies)
+    Adjacency.checkSymmetry(adjacencies)
 
     interface.runCommand(
         'setbuildarea 21 -60 164 101 -52 244'
@@ -56,14 +63,6 @@ def initialize():
     volumeGrid = buildVolume.size // tileSize
     # TODO set to flat grid for now
     volumeGrid.y = 1
-
-    global adjacencies
-    adjacencies = dict()
-    for name, structureFolder in structureFolders.items():
-        adjacencies[name] = deepcopy(structureFolder.structureClass.adjecencies)
-
-    global nodeList
-    nodeList = set()
 
 
 def loadStructureFiles():

@@ -21,6 +21,8 @@ class WallLBook(Structure):
             ('stairs', 1),
             ('stairs', 2),
             ('stairs', 3),
+            ('corner_outer', 0),
+            ('corner_outer', 3),
         ],
         xBackward=[
             ('wall_r_book', 2),
@@ -34,7 +36,7 @@ class WallLBook(Structure):
             ('t_junction', 0),
             ('wall_seat', 2),
             ('corner_outer', 1),
-            ('corner_inner', 3),
+            ('corner_inner', 2),
         ]
     )
 

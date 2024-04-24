@@ -1,5 +1,9 @@
+import functools
 from dataclasses import dataclass, replace
-from typing import List, Tuple, Optional, Union
+from typing import List, Tuple, Optional, Union, Dict
+
+
+AXES: list[str] = ['xForward', 'xBackward', 'yForward', 'yBackward', 'zForward', 'zBackward']
 
 
 @dataclass(frozen=True)
@@ -42,7 +46,7 @@ class StructureAdjacency:
     def adjacentStructures(self, axis: str, selfRotation: int) -> List[StructureRotation]:
         selfRotation = selfRotation % 4
 
-        if axis not in ['xForward', 'xBackward', 'yForward', 'yBackward', 'zForward', 'zBackward']:
+        if axis not in AXES:
             raise ValueError(f'Invalid axis "{axis}"')
 
         match axis:
@@ -80,3 +84,49 @@ def createRotationList(rotationTuples: Union[List[Tuple[str, int]] | None]) -> L
 
 def getAllRotations(structureName: str) -> List[StructureRotation]:
     return [StructureRotation(structureName, r) for r in range(4)]
+
+
+@functools.cache
+def getOppositeAxis(axis: str) -> str:
+    match axis:
+        case 'xForward':
+            return 'xBackward'
+        case 'xBackward':
+            return 'xForward'
+        case 'yForward':
+            return 'yBackward'
+        case 'yBackward':
+            return 'yForward'
+        case 'zForward':
+            return 'zBackward'
+        case 'zBackward':
+            return 'zForward'
+    raise ValueError(f'axis "{axis}" has no opposite. Axis is invalid!')
+
+
+def checkSymmetry(adjacencies: Dict[str, StructureAdjacency]):
+    SELF_ROTATION = 0
+    for structureName in adjacencies.keys():
+        adjacency = adjacencies[structureName]
+
+        for axis in AXES:
+            rules: List[StructureRotation] = getattr(adjacency, axis)
+            for rule in rules:
+                if rule.structureName not in adjacencies:
+                    raise KeyError(f'{rule.structureName} in rules for {structureName} is not a valid structure!')
+
+                otherAdjecency = adjacencies[rule.structureName]
+                oppositeAxis = getOppositeAxis(axis)
+
+                otherRules: List[StructureRotation] = otherAdjecency.adjacentStructures(oppositeAxis, rule.rotation)
+
+                matchingRules = list(
+                    filter(lambda r: r.structureName == structureName and r.rotation == SELF_ROTATION, otherRules)
+                )
+
+                if len(matchingRules) == 0:
+                    raise Exception(f'No symmetrical rule found for {structureName}.{axis}.{rule} in '
+                                    f'{rule.structureName} with rules {otherRules}!')
+                elif len(matchingRules) > 1:
+                    raise Exception(f'Too many symmetrical rules found for {structureName}.{axis}.{rule}: '
+                                    f'{matchingRules}!')

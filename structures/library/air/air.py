@@ -41,6 +41,18 @@ class Air(Structure):
             ('corner_outer', 1),
             ('corner_outer', 2),
         ],
+        yForward=[
+            ('air', -1),
+            ('balcony_r', -1),
+            ('balcony_l', -1),
+            ('balcony_corner', -1),
+        ],
+        yBackward=[
+            ('air', -1),
+            ('balcony_r', -1),
+            ('balcony_l', -1),
+            ('balcony_corner', -1),
+        ],
         zForward=[
             ('air', -1),
             ('balcony_l', 3),

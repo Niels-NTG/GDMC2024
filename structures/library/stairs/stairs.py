@@ -16,13 +16,19 @@ class Stairs(Structure):
             ('wall_l_book', 2),
             ('wall_r_book', 2),
             ('wall_seat', 0),
-            ('wall_l_book', 2),
-            ('wall_r_book', 2),
             ('corner_outer', 0),
             ('corner_outer', 3),
+            ('hallway', 1),
+            ('hallway', 3),
         ],
         xBackward=[
             ('t_junction', 0),
+        ],
+        yForward=[
+            ('stairs', 0),
+        ],
+        yBackward=[
+            ('stairs', 0),
         ],
         zForward=[
             ('air', -1),

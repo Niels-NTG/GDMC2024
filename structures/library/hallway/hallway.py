@@ -12,16 +12,10 @@ class Hallway(Structure):
     adjecencies = StructureAdjacency(
         name='hallway',
         xForward=[
-            # ('hallway', 0),
-            # ('hallway', 2),
             ('t_junction', 2),
-            # ('stairs', 0),
         ],
         xBackward=[
-            # ('hallway', 0),
-            # ('hallway', 2),
             ('t_junction', 0),
-            # ('stairs', 2),
         ],
         zForward=[
             ('air', -1),
@@ -30,6 +24,9 @@ class Hallway(Structure):
             ('stairs', 0),
             ('stairs', 2),
             ('stairs', 3),
+            ('corner_outer', 0),
+            ('corner_outer', 1),
+            ('wall_seat', 1),
         ],
         zBackward=[
             ('air', -1),
@@ -38,6 +35,9 @@ class Hallway(Structure):
             ('stairs', 0),
             ('stairs', 2),
             ('stairs', 1),
+            ('corner_outer', 2),
+            ('corner_outer', 3),
+            ('wall_seat', 3),
         ]
     )
 

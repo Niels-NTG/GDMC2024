@@ -103,7 +103,7 @@ class WaveFunctionCollapse:
             assert len(nextCellsToCollapse) > 0
             x, y, z = globals.rng.choice(nextCellsToCollapse)
 
-            stateSuperposition = set(self.stateSpace[x][y][z])
+            stateSuperposition = self.stateSpace[x][y][z]
             collapsedState = self.getRandomStateFromSuperposition(stateSuperposition)
             self.collapseCellToState((x, y, z), collapsedState)
         return True
@@ -135,7 +135,7 @@ class WaveFunctionCollapse:
         # Update cell to new collapsed state
         self.stateSpace[x][y][z] = remainingStates
 
-        def computeNeighbourStates(axis: str):
+        def computeNeighbourStates(axis: str) -> Set[StructureRotation]:
             allowedStates: Set[StructureRotation] = set()
             for s in self.stateSpace[x][y][z]:
                 allowedStates = allowedStates.union(set(self.structureAdjacencies[s.structureName].adjacentStructures(
@@ -150,12 +150,14 @@ class WaveFunctionCollapse:
         if x < self.stateSpaceSize[0] - 1:
             neighbourRemainingStates = computeNeighbourStates("xForward").intersection(self.stateSpace[x + 1][y][z])
             self.propagate(cellIndex=(x + 1, y, z), remainingStates=neighbourRemainingStates)
+
         if y > 0:
             neighbourRemainingStates = computeNeighbourStates("yBackward").intersection(self.stateSpace[x][y - 1][z])
             self.propagate(cellIndex=(x, y - 1, z), remainingStates=neighbourRemainingStates)
         if y < self.stateSpaceSize[1] - 1:
             neighbourRemainingStates = computeNeighbourStates("yForward").intersection(self.stateSpace[x][y + 1][z])
             self.propagate(cellIndex=(x, y + 1, z), remainingStates=neighbourRemainingStates)
+
         if z > 0:
             neighbourRemainingStates = computeNeighbourStates("zBackward").intersection(self.stateSpace[x][y][z - 1])
             self.propagate(cellIndex=(x, y, z - 1), remainingStates=neighbourRemainingStates)

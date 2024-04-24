@@ -91,7 +91,6 @@ class Structure:
 
     @functools.cached_property
     def box(self) -> Box:
-        # noinspection PyTypeChecker
         return Box(
             size=ivec3(
                 self.structureFile.sizeX,
@@ -102,7 +101,6 @@ class Structure:
 
     @property
     def boxInWorldSpace(self) -> Box:
-        # noinspection PyTypeChecker
         return Box(
             offset=self.position,
             size=ivec3(
@@ -155,7 +153,6 @@ class Structure:
         # for connector in node.connectorSlots:
         #     if connector.transitionStructure is None:
         #         continue
-        #     # noinspection PyTypeChecker
         #     placeStructure(
         #         connector.transitionStructure.file,
         #         position=self.position, rotate=(connector.rotation + self.rotation) % 4, mirror=None,

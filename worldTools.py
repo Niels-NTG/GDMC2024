@@ -279,7 +279,6 @@ def is2DPositionContainedInNodes(
     pos: ivec2,
     exludeRect: Rect = None
 ) -> bool:
-    # noinspection PyTypeChecker
     if exludeRect and exludeRect.contains(pos):
         return True
     for node in globals.nodeList:
@@ -334,7 +333,6 @@ def getEntitiesPerGrid(
         end=area.toRect().end,
         stride=gridSize,
     ):
-        # noinspection PyTypeChecker
         searchBox = Box(
             offset=ivec3(subArea.offset.x, area.offset.y, subArea.offset.y),
             size=ivec3(subArea.size.x, area.size.y, subArea.size.y),

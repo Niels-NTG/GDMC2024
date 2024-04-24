@@ -86,7 +86,6 @@ def loop2DwithRects(
         for y in range(begin.y, end.y, stride.y):
             newRectOffset = ivec2(x, y)
             newRectSize = stride
-            # noinspection PyTypeChecker
             newRect = Rect(
                 offset=newRectOffset,
                 size=newRectSize
@@ -105,7 +104,6 @@ def mergeRects(
     for rect in rectList:
         rectStarts.append(rect.begin)
         rectEnds.append(rect.end)
-    # noinspection PyTypeChecker
     rect = Rect(
         offset=glm.min(rectStarts),
     )

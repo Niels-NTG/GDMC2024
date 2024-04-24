@@ -11,7 +11,7 @@ wfc = WaveFunctionCollapse(
 
 def reinit():
     wfc.collapseVolumeEdgeToAir()
-    wfc.collapseRandomCell()
+    wfc.collapseRandomCell(atY=0)
 
 
 def isValid():

@@ -23,6 +23,7 @@ class WaveFunctionCollapse:
 
         if not self.stateSpaceSize >= (1, 1, 1):
             raise ValueError('State space size should be at least (1, 1, 1)')
+        print('WFC state space {}x{}x{}'.format(*self.stateSpaceSize))
 
         self.structureAdjacencies = globals.adjacencies
         self.superPosition = set(
@@ -68,8 +69,11 @@ class WaveFunctionCollapse:
         # TODO implement weighting
         return globals.rng.choice(list(cellSuperPosition))
 
-    def getRandomUncollapsedCellIndex(self) -> Tuple[int, int, int]:
-        nextCellsToCollapse = list(self.getUncollapsedCellIndicies())
+    def getRandomUncollapsedCellIndex(self, atY: int | None) -> Tuple[int, int, int]:
+        nextCellsToCollapse = []
+        for x, y, z in self.getUncollapsedCellIndicies():
+            if atY is None or atY == y:
+                nextCellsToCollapse.append((x, y, z))
         return globals.rng.choice(nextCellsToCollapse)
 
     def isCollapsed(self) -> bool:
@@ -108,8 +112,8 @@ class WaveFunctionCollapse:
             self.collapseCellToState((x, y, z), collapsedState)
         return True
 
-    def collapseRandomCell(self):
-        x, y, z = self.getRandomUncollapsedCellIndex()
+    def collapseRandomCell(self, atY: int | None):
+        x, y, z = self.getRandomUncollapsedCellIndex(atY)
         cellSuperPosition = self.stateSpace[x][y][z]
         collapsedState = self.getRandomStateFromSuperposition(cellSuperPosition)
         self.collapseCellToState((x, y, z), collapsedState)

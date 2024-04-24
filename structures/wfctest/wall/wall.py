@@ -26,11 +26,13 @@ class Wall(Structure):
             ('center', -1),
             ('corner', 0),
             ('wall', 0),
+            ('wall', 1),
         ],
         zBackward=[
             ('center', -1),
             ('corner', 3),
             ('wall', 0),
+            ('wall', 3),
         ]
     )
 

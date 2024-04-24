@@ -21,7 +21,6 @@ def isValid():
 
 attempts = wfc.collapseWithRetry(reinit=reinit)
 while not isValid():
-    wfc.initStateSpaceSuperPosition()
     attempts += 1 + wfc.collapseWithRetry(reinit=reinit)
 print(f'WFC collapsed after {attempts} attempts')
 

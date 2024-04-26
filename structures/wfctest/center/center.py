@@ -27,6 +27,13 @@ class Center(Structure):
             ('wall', 2),
             ('wall', 3),
         ],
+        yForward=[
+            ('center', -1),
+            ('air', -1),
+        ],
+        yBackward=[
+            ('center', -1),
+        ],
         zForward=[
             ('center', -1),
             ('corner', 0),

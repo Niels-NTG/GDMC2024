@@ -22,6 +22,13 @@ class Wall(Structure):
             ('wall', 2),
             ('wall', 3),
         ],
+        yForward=[
+            ('air', -1),
+            ('wall', 0),
+        ],
+        yBackward=[
+            ('wall', 0),
+        ],
         zForward=[
             ('center', -1),
             ('corner', 0),

@@ -20,6 +20,13 @@ class Corner(Structure):
             ('wall', 1),
             ('wall', 2),
         ],
+        yForward=[
+            ('air', -1),
+            ('corner', 0),
+        ],
+        yBackward=[
+            ('corner', 0),
+        ],
         zForward=[
             ('air', -1),
         ],

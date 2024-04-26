@@ -23,6 +23,15 @@ class Air(Structure):
             ('corner', 3),
             ('air', -1),
         ],
+        yForward=[
+            ('air', -1),
+        ],
+        yBackward=[
+            ('center', -1),
+            ('air', -1),
+            ('corner', -1),
+            ('wall', -1),
+        ],
         zForward=[
             ('wall', 3),
             ('corner', 2),

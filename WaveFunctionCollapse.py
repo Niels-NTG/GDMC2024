@@ -14,11 +14,15 @@ class WaveFunctionCollapse:
     structureAdjacencies: Dict[str, StructureAdjacency]
     stateSpaceSize: Tuple[int, int, int]
     stateSpace: List[List[List[Set[StructureRotation]]]]
+    workList: Dict[Tuple[int, int, int], Set[StructureRotation]]
 
     def __init__(
         self,
         volumeGrid: Tuple[int, int, int],
     ):
+
+        self.workList = dict()
+
         self.stateSpaceSize = volumeGrid
         self.stateSpace = np.full(shape=self.stateSpaceSize, fill_value=set()).tolist()
 
@@ -78,6 +82,7 @@ class WaveFunctionCollapse:
                 nextCellsToCollapse.append((x, y, z))
         return globals.rng.choice(nextCellsToCollapse)
 
+    @property
     def isCollapsed(self) -> bool:
         return len(list(self.getCellIndicesWithEntropy(entropy=1))) == (
             self.stateSpaceSize[0] * self.stateSpaceSize[1] * self.stateSpaceSize[2]
@@ -94,6 +99,7 @@ class WaveFunctionCollapse:
             self.initStateSpaceWithDefaultDomain()
             if reinit:
                 reinit()
+            print(f'WFC collapse attempt {attempts}')
             attempts += 1
             if attempts > maxRetries:
                 raise Exception(f"WFC did not collapse after {maxRetries} retries.")
@@ -101,7 +107,7 @@ class WaveFunctionCollapse:
         return attempts
 
     def collapse(self) -> bool:
-        while not self.isCollapsed():
+        while not self.isCollapsed:
             minEntropy = self.getLowestEntropy()
             if minEntropy == 0:
                 return False
@@ -121,13 +127,14 @@ class WaveFunctionCollapse:
         self.collapseCellToState((x, y, z), collapsedState)
 
     def collapseCellToState(self, cellIndex: Tuple[int, int, int], structureToCollapse: StructureRotation):
-        workList: Dict[Tuple[int, int, int], Set[StructureRotation]] = {cellIndex: {structureToCollapse}}
-        while len(workList) > 0:
-            taskCellIndex, remainingStates = workList.popitem()
+        if cellIndex not in self.workList:
+            self.workList[cellIndex] = {structureToCollapse}
+        while len(self.workList) > 0:
+            taskCellIndex, remainingStates = self.workList.popitem()
             newTasks = self.propagate(cellIndex=taskCellIndex, remainingStates=remainingStates)
             for newTask in newTasks:
-                if newTask[0] not in workList:
-                    workList[newTask[0]] = newTask[1]
+                if newTask[0] not in self.workList:
+                    self.workList[newTask[0]] = newTask[1]
 
         x, y, z = cellIndex
         assert self.stateSpace[x][y][z] in (set(), {structureToCollapse}), \
@@ -196,7 +203,7 @@ class WaveFunctionCollapse:
         return allowedStates
 
     def getCollapsedState(self, buildVolumeOffset: ivec3 = ivec3(0, 0, 0)) -> Iterator[Structure]:
-        if not self.isCollapsed():
+        if not self.isCollapsed:
             raise Exception('WFC is not fully collapsed yet! Therefore the state cannot yet be extracted.')
         for x, y, z in self.cellCoordinates:
             cellState: StructureRotation = list(self.stateSpace[x][y][z])[0]

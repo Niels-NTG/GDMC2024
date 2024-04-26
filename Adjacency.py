@@ -1,7 +1,6 @@
 import functools
 from dataclasses import dataclass, replace
-from typing import List, Tuple, Optional, Union, Dict
-
+from typing import List, Tuple, Optional, Union, Dict, Set
 
 AXES: list[str] = ['xForward', 'xBackward', 'yForward', 'yBackward', 'zForward', 'zBackward']
 
@@ -44,30 +43,28 @@ class StructureAdjacency:
         self.zBackward = createRotationList(zBackward)
 
     @functools.cache
-    def adjacentStructures(self, axis: str, selfRotation: int) -> List[StructureRotation]:
+    def adjacentStructures(self, axis: str, selfRotation: int) -> Set[StructureRotation]:
         selfRotation = selfRotation % 4
 
         if axis not in AXES:
             raise ValueError(f'Invalid axis "{axis}"')
 
-        match axis:
-            case 'yForward':
-                return list(map(lambda r: r.rotate(selfRotation), self.yForward))
-            case 'yBackward':
-                return list(map(lambda r: r.rotate(selfRotation), self.yBackward))
-
         if selfRotation == 0:
-            return getattr(self, axis)
+            return set(getattr(self, axis))
         rotationAxes = [self.xForward, self.zForward, self.xBackward, self.zBackward]
         match axis:
             case 'xForward':
-                return list(map(lambda r: r.rotate(selfRotation), rotationAxes[-selfRotation + 0]))
+                return set(map(lambda r: r.rotate(selfRotation), rotationAxes[-selfRotation + 0]))
             case 'zForward':
-                return list(map(lambda r: r.rotate(selfRotation), rotationAxes[-selfRotation + 1]))
+                return set(map(lambda r: r.rotate(selfRotation), rotationAxes[-selfRotation + 1]))
             case 'xBackward':
-                return list(map(lambda r: r.rotate(selfRotation), rotationAxes[-selfRotation + 2]))
+                return set(map(lambda r: r.rotate(selfRotation), rotationAxes[-selfRotation + 2]))
             case 'zBackward':
-                return list(map(lambda r: r.rotate(selfRotation), rotationAxes[-selfRotation + 3]))
+                return set(map(lambda r: r.rotate(selfRotation), rotationAxes[-selfRotation + 3]))
+            case 'yForward':
+                return set(map(lambda r: r.rotate(selfRotation), self.yForward))
+            case 'yBackward':
+                return set(map(lambda r: r.rotate(selfRotation), self.yBackward))
         raise ValueError(f'Invalid axis "{axis}"')
 
 

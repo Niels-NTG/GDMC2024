@@ -187,10 +187,10 @@ class WaveFunctionCollapse:
         x, y, z = cellIndex
         allowedStates: Set[StructureRotation] = set()
         for s in self.stateSpace[x][y][z]:
-            allowedStates = allowedStates.union(set(self.structureAdjacencies[s.structureName].adjacentStructures(
+            allowedStates = allowedStates.union(self.structureAdjacencies[s.structureName].adjacentStructures(
                 axis,
                 s.rotation
-            )))
+            ))
         return allowedStates
 
     def getCollapsedState(self, buildVolumeOffset: ivec3 = ivec3(0, 0, 0)) -> Iterator[Structure]:

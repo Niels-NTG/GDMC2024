@@ -8,7 +8,6 @@ from StructureBase import Structure
 
 
 class Air(Structure):
-
     adjecencies = StructureAdjacency(
         name='air',
         xForward=[
@@ -43,15 +42,26 @@ class Air(Structure):
         ],
         yForward=[
             ('air', -1),
-            ('balcony_r', -1),
-            ('balcony_l', -1),
-            ('balcony_corner', -1),
+            ('corner_inner', -1),
+            ('corner_outer', -1),
+            ('hallway', -1),
+            ('t_junction', -1),
+            ('wall_l_book', -1),
+            ('wall_r_book', -1),
+            ('wall_seat', -1),
         ],
         yBackward=[
             ('air', -1),
-            ('balcony_r', -1),
-            ('balcony_l', -1),
             ('balcony_corner', -1),
+            ('balcony_l', -1),
+            ('balcony_r', -1),
+            ('corner_inner', -1),
+            ('corner_outer', -1),
+            ('hallway', -1),
+            ('t_junction', -1),
+            ('wall_l_book', -1),
+            ('wall_r_book', -1),
+            ('wall_seat', -1),
         ],
         zForward=[
             ('air', -1),
@@ -84,6 +94,7 @@ class Air(Structure):
             ('corner_outer', 3),
         ]
     )
+
 
     def __init__(
         self,

@@ -23,7 +23,6 @@ class BalconyCorner(Structure):
             ('balcony_corner', 0),
         ],
         yBackward=[
-            ('air', -1),
             ('balcony_corner', 0),
         ],
         zForward=[

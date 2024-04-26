@@ -1,12 +1,12 @@
-from pathlib import Path
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 from glm import ivec3
 
 import Adjacency
 from StructureFolder import StructureFolder
-from gdpc.gdpc import Editor
+from gdpc.gdpc import Editor, Box
 from gdpc.gdpc import interface
 
 global rng
@@ -32,22 +32,21 @@ def initialize():
 
     global adjacencies
     adjacencies = dict()
-    for name, structureFolder in structureFolders.items():
-        adjacencies[name] = deepcopy(structureFolder.structureClass.adjecencies)
-    Adjacency.checkSymmetry(adjacencies)
+    generateAdjacencies()
 
     interface.runCommand(
-        'setbuildarea 21 -60 164 101 -52 244'
+        'setbuildarea 21 -60 164 101 -40 244'
     )
     interface.runCommand(
-        'fill 21 -60 164 101 -52 244 minecraft:air'
+        'fill 21 -60 164 101 -40 244 minecraft:air'
     )
     interface.runCommand(
         'kill @e[type=minecraft:item]'
     )
 
     global buildarea
-    buildarea = interface.getBuildArea()
+    buildarea = Box(ivec3(20, -60, 164), ivec3(80, 20, 80))
+    # buildarea = interface.getBuildArea()
     global editor
     editor = Editor()
     editor.loadWorldSlice(rect=buildarea.toRect(), cache=True)
@@ -62,7 +61,7 @@ def initialize():
     global volumeGrid
     volumeGrid = buildVolume.size // tileSize
     # TODO set to flat grid for now
-    volumeGrid.y = 1
+    volumeGrid.y = 2
 
 
 def loadStructureFiles():
@@ -75,3 +74,10 @@ def loadStructureFiles():
                 name=structureName,
                 namespace=namespace
             )
+
+
+def generateAdjacencies():
+    for name, structureFolder in structureFolders.items():
+        structureAdjacency = structureFolder.structureClass.adjecencies
+        adjacencies[name] = deepcopy(structureAdjacency)
+    Adjacency.checkSymmetry(adjacencies)

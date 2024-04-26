@@ -163,12 +163,14 @@ class WaveFunctionCollapse:
             neighbourRemainingStates = self.computeNeighbourStates(
                 cellIndex, 'yBackward'
             ).intersection(self.stateSpace[x][y - 1][z])
-            nextTasks.append(((x, y - 1, z), neighbourRemainingStates))
+            if len(neighbourRemainingStates):
+                nextTasks.append(((x, y - 1, z), neighbourRemainingStates))
         if y < self.stateSpaceSize[1] - 1:
             neighbourRemainingStates = self.computeNeighbourStates(
                 cellIndex, 'yForward'
             ).intersection(self.stateSpace[x][y + 1][z])
-            nextTasks.append(((x, y + 1, z), neighbourRemainingStates))
+            if len(neighbourRemainingStates):
+                nextTasks.append(((x, y + 1, z), neighbourRemainingStates))
 
         if z > 0:
             neighbourRemainingStates = self.computeNeighbourStates(

@@ -123,8 +123,8 @@ def checkSymmetry(adjacencies: Dict[str, StructureAdjacency]):
                 )
 
                 if len(matchingRules) == 0:
-                    raise Exception(f'No symmetrical rule found for {structureName}.{axis}.{rule} in '
-                                    f'{rule.structureName} with rules {otherRules}!')
+                    raise Exception(f'No symmetrical rule found for {structureName} {axis}.{rule} in '
+                                    f'{rule.structureName} with rules {oppositeAxis}.{otherRules}!')
                 elif len(matchingRules) > 1:
-                    raise Exception(f'Too many symmetrical rules found for {structureName}.{axis}.{rule}: '
+                    raise Exception(f'Too many symmetrical rules found for {structureName} {axis}.{rule}: '
                                     f'{matchingRules}!')

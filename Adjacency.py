@@ -43,6 +43,7 @@ class StructureAdjacency:
         self.zForward = createRotationList(zForward)
         self.zBackward = createRotationList(zBackward)
 
+    @functools.cache
     def adjacentStructures(self, axis: str, selfRotation: int) -> List[StructureRotation]:
         selfRotation = selfRotation % 4
 

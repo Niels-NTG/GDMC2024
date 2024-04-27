@@ -219,15 +219,9 @@ class WaveFunctionCollapse:
     
     def getStructuresUsed(self) -> Iterator[StructureRotation]:
         for x, y, z in self.cellCoordinates:
-            yield list(self.stateSpace[x][y][z])[0]    
+            yield list(self.stateSpace[x][y][z])[0]
 
     def collapseVolumeEdgeToAir(self):
-        for y in range(self.stateSpaceSize[1]):
-            for x in range(self.stateSpaceSize[0]):
-                lastZ = self.stateSpaceSize[2] - 1
-                self.collapseCellToState((x, y, 0), StructureRotation(structureName='air', rotation=0))
-                self.collapseCellToState((x, y, lastZ), StructureRotation(structureName='air', rotation=0))
-            for z in range(self.stateSpaceSize[2]):
-                lastX = self.stateSpaceSize[0] - 1
-                self.collapseCellToState((0, y, z), StructureRotation(structureName='air', rotation=0))
-                self.collapseCellToState((lastX, y, z), StructureRotation(structureName='air', rotation=0))
+        for x, y, z in self.cellCoordinates:
+            if not (x > 0 and x < self.stateSpaceSize[0] - 1 and z > 0 and z < self.stateSpaceSize[2] - 1):
+                self.collapseCellToState((x, y, z), StructureRotation(structureName='air', rotation=0))

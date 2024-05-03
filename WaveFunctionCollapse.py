@@ -4,6 +4,7 @@ from typing import Tuple, Callable, Union, Set, List, Iterator, Dict
 import numpy as np
 from glm import ivec3
 
+import Adjacency
 import globals
 from Adjacency import StructureRotation, StructureAdjacency
 from StructureBase import Structure
@@ -224,4 +225,4 @@ class WaveFunctionCollapse:
     def collapseVolumeEdgeToAir(self):
         for x, y, z in self.cellCoordinates:
             if not (x > 0 and x < self.stateSpaceSize[0] - 1 and z > 0 and z < self.stateSpaceSize[2] - 1):
-                self.collapseCellToState((x, y, z), StructureRotation(structureName='air', rotation=0))
+                self.stateSpace[x][y][z] = set(Adjacency.getAllRotations(structureName='air'))

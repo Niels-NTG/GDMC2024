@@ -13,6 +13,12 @@ class StructureRotation:
     def rotate(self, amount: int):
         return replace(self, rotation=(self.rotation + amount) % 4)
 
+    def __eq__(self, other):
+        return self.rotation == other.rotation and self.structureName == other.structureName
+
+    def __hash__(self):
+        return hash(f'{self.structureName}.{self.rotation}')
+
 
 class StructureAdjacency:
     name: str

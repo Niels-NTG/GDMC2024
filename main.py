@@ -15,7 +15,7 @@ def reinit():
 
 
 def isValid(wfcInstance: WaveFunctionCollapse) -> bool:
-    structuresUsed = set(wfcInstance.getStructuresUsed())
+    structuresUsed = set(wfcInstance.structuresUsed)
     isAirOnly = structuresUsed.issubset(Adjacency.getAllRotations('air'))
     if isAirOnly:
         print('Invalid WFC result! Volume has only air!')

@@ -54,7 +54,8 @@ class WaveFunctionCollapse:
                 for z in range(self.stateSpaceSize[2]):
                     yield x, y, z
 
-    def getUncollapsedCellIndicies(self) -> Iterator[Tuple[int, int, int]]:
+    @property
+    def uncollapsedCellIndicies(self) -> Iterator[Tuple[int, int, int]]:
         for x, y, z in self.cellCoordinates:
             cell = self.stateSpace[x][y][z]
             if len(cell) > 1:
@@ -66,7 +67,8 @@ class WaveFunctionCollapse:
             if len(cell) == entropy:
                 yield x, y, z
 
-    def getLowestEntropy(self) -> int:
+    @property
+    def lowestEntropy(self) -> int:
         minEntrophy = len(self.defaultDomain) + 1
         for x, y, z in self.cellCoordinates:
             cell = self.stateSpace[x][y][z]
@@ -81,9 +83,10 @@ class WaveFunctionCollapse:
         # TODO implement weighting
         return globals.rng.choice(cellSuperPosition)
 
-    def getRandomUncollapsedCellIndex(self) -> Tuple[int, int, int]:
+    @property
+    def randomUncollapsedCellIndex(self) -> Tuple[int, int, int]:
         nextCellsToCollapse = []
-        for x, y, z in self.getUncollapsedCellIndicies():
+        for x, y, z in self.uncollapsedCellIndicies:
             nextCellsToCollapse.append((x, y, z))
         return globals.rng.choice(nextCellsToCollapse)
 
@@ -118,7 +121,7 @@ class WaveFunctionCollapse:
 
     def collapse(self, validationFunction: Union[Callable[[WaveFunctionCollapse], bool], None] = None) -> bool:
         while not self.isCollapsed:
-            minEntropy = self.getLowestEntropy()
+            minEntropy = self.lowestEntropy
             if minEntropy == 0:
                 return False
             nextCellsToCollapse = list(self.getCellIndicesWithEntropy(minEntropy))
@@ -144,7 +147,7 @@ class WaveFunctionCollapse:
 
         x, y, z = cellIndex
         assert self.stateSpace[x][y][z] in (OrderedSet(), OrderedSet([structureToCollapse])), \
-            f'This cell should have been set to {structureToCollapse} or {OrderedSet()} but is {self.stateSpace[x][y][z]}'
+            f'Cell should have been set to {structureToCollapse} or {OrderedSet()} but is {self.stateSpace[x][y][z]}'
 
     def propagate(
         self,
@@ -225,7 +228,8 @@ class WaveFunctionCollapse:
             )
             yield structureInstance
     
-    def getStructuresUsed(self) -> Iterator[StructureRotation]:
+    @property
+    def structuresUsed(self) -> Iterator[StructureRotation]:
         for x, y, z in self.cellCoordinates:
             yield self.stateSpace[x][y][z][0]
 

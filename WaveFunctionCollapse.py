@@ -76,11 +76,10 @@ class WaveFunctionCollapse:
         # TODO implement weighting
         return globals.rng.choice(list(cellSuperPosition))
 
-    def getRandomUncollapsedCellIndex(self, atY: int | None) -> Tuple[int, int, int]:
+    def getRandomUncollapsedCellIndex(self) -> Tuple[int, int, int]:
         nextCellsToCollapse = []
         for x, y, z in self.getUncollapsedCellIndicies():
-            if atY is None or atY == y:
-                nextCellsToCollapse.append((x, y, z))
+            nextCellsToCollapse.append((x, y, z))
         return globals.rng.choice(nextCellsToCollapse)
 
     @property
@@ -120,12 +119,6 @@ class WaveFunctionCollapse:
             collapsedState = self.getRandomStateFromSuperposition(stateSuperposition)
             self.collapseCellToState((x, y, z), collapsedState)
         return True
-
-    def collapseRandomCell(self, atY: int | None):
-        x, y, z = self.getRandomUncollapsedCellIndex(atY)
-        cellSuperPosition = self.stateSpace[x][y][z]
-        collapsedState = self.getRandomStateFromSuperposition(cellSuperPosition)
-        self.collapseCellToState((x, y, z), collapsedState)
 
     def collapseCellToState(self, cellIndex: Tuple[int, int, int], structureToCollapse: StructureRotation):
         if cellIndex not in self.workList:

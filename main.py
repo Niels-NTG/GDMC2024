@@ -4,6 +4,7 @@ from WaveFunctionCollapse import WaveFunctionCollapse
 
 globals.initialize()
 
+
 wfc = WaveFunctionCollapse(
     volumeGrid=globals.volumeGrid.to_tuple(),
 )
@@ -13,16 +14,16 @@ def reinit():
     wfc.collapseVolumeEdgeToAir()
 
 
-def isValid():
-    isAirOnly = set(wfc.getStructuresUsed()).issubset({*Adjacency.getAllRotations('air')})
-    return not isAirOnly
+def isValid(wfcInstance: WaveFunctionCollapse) -> bool:
+    structuresUsed = set(wfcInstance.getStructuresUsed())
+    isAirOnly = structuresUsed.issubset({*Adjacency.getAllRotations('air')})
+    if isAirOnly:
+        print('Invalid WFC result! Volume has only air!')
+        return False
+    return True
 
 
-attempts = wfc.collapseWithRetry(reinit=reinit)
-while not isValid():
-    print('state space is not valid, retrying…')
-    attempts += 1 + wfc.collapseWithRetry(reinit=reinit)
-print(f'WFC collapsed after {attempts} attempts')
+wfc.collapseWithRetry(reinit=reinit, validationFunction=isValid)
 
 for building in wfc.getCollapsedState(buildVolumeOffset=globals.buildVolume.offset):
     building.place()

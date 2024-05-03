@@ -1,5 +1,6 @@
-import itertools
+from __future__ import annotations
 from typing import Tuple, Callable, Union, Set, List, Iterator, Dict
+import itertools
 
 import numpy as np
 from glm import ivec3
@@ -88,14 +89,19 @@ class WaveFunctionCollapse:
             self.stateSpaceSize[0] * self.stateSpaceSize[1] * self.stateSpaceSize[2]
         )
 
-    def collapseWithRetry(self, maxRetries=1000, reinit: Union[Callable, None] = None) -> int:
+    def collapseWithRetry(
+            self,
+            maxRetries=1000,
+            reinit: Union[Callable, None] = None,
+            validationFunction: Union[Callable[[WaveFunctionCollapse], bool], None] = None,
+    ):
         attempts = 1
 
         self.initStateSpaceWithDefaultDomain()
         if reinit:
             reinit()
 
-        while not self.collapse():
+        while not self.collapse(validationFunction):
             self.initStateSpaceWithDefaultDomain()
             if reinit:
                 reinit()
@@ -104,9 +110,9 @@ class WaveFunctionCollapse:
             if attempts > maxRetries:
                 raise Exception(f"WFC did not collapse after {maxRetries} retries.")
 
-        return attempts
+        print(f'WFC collapsed after {attempts} attempts')
 
-    def collapse(self) -> bool:
+    def collapse(self, validationFunction: Union[Callable[[WaveFunctionCollapse], bool], None] = None) -> bool:
         while not self.isCollapsed:
             minEntropy = self.getLowestEntropy()
             if minEntropy == 0:
@@ -118,6 +124,8 @@ class WaveFunctionCollapse:
             stateSuperposition = self.stateSpace[x][y][z]
             collapsedState = self.getRandomStateFromSuperposition(stateSuperposition)
             self.collapseCellToState((x, y, z), collapsedState)
+        if validationFunction:
+            return validationFunction(self)
         return True
 
     def collapseCellToState(self, cellIndex: Tuple[int, int, int], structureToCollapse: StructureRotation):

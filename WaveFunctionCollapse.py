@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Tuple, Callable, Union, Iterator, Dict, Set
+from typing import Tuple, Callable, Union, Iterator, Dict, Set, List
 
 from glm import ivec3
 from ordered_set import OrderedSet
@@ -134,7 +134,10 @@ class WaveFunctionCollapse:
             self.workList[cellIndex] = OrderedSet([structureToCollapse])
         while len(self.workList) > 0:
             taskCellIndex, remainingStates = self.workList.popitem()
-            newTasks = self.propagate(cellIndex=taskCellIndex, remainingStates=remainingStates)
+            newTasks = self.propagate(
+                cellIndex=taskCellIndex,
+                remainingStates=remainingStates,
+            )
             for newTaskCellIndex in newTasks:
                 if newTaskCellIndex not in self.workList:
                     self.workList[newTaskCellIndex] = newTasks[newTaskCellIndex]
@@ -145,7 +148,7 @@ class WaveFunctionCollapse:
     def propagate(
         self,
         cellIndex: Tuple[int, int, int],
-        remainingStates: OrderedSet[StructureRotation]
+        remainingStates: OrderedSet[StructureRotation],
     ) -> Dict[Tuple[int, int, int], OrderedSet[StructureRotation]]:
         x, y, z = cellIndex
         nextTasks: Dict[Tuple[int, int, int], OrderedSet[StructureRotation]] = dict()
@@ -161,40 +164,33 @@ class WaveFunctionCollapse:
         # Update cell to new collapsed state
         self.stateSpace[cellIndex] = remainingStates
 
-        if x > 0:
-            neighbourRemainingStates = self.stateSpace[(x - 1, y, z)].intersection(
-                self.computeNeighbourStates(cellIndex, 'xBackward')
-            )
-            nextTasks[(x - 1, y, z)] = neighbourRemainingStates
-        if x < self.stateSpaceSize[0] - 1:
-            neighbourRemainingStates = self.stateSpace[(x + 1, y, z)].intersection(
-                self.computeNeighbourStates(cellIndex, 'xForward')
-            )
-            nextTasks[(x + 1, y, z)] = neighbourRemainingStates
+        if x > 0 and (x - 1, y, z) not in self.workList:
+            nextTasks[(x - 1, y, z)] = self.computeNeighbourStatesIntersection((x - 1, y, z), cellIndex, 'xBackward')[1]
+        if x < self.stateSpaceSize[0] - 1 and (x + 1, y, z) not in self.workList:
+            nextTasks[(x + 1, y, z)] = self.computeNeighbourStatesIntersection((x + 1, y, z), cellIndex, 'xForward')[1]
 
-        if y > 0:
-            neighbourRemainingStates = self.stateSpace[(x, y - 1, z)].intersection(
-                self.computeNeighbourStates(cellIndex, 'yBackward')
-            )
-            nextTasks[(x, y - 1, z)] = neighbourRemainingStates
-        if y < self.stateSpaceSize[1] - 1:
-            neighbourRemainingStates = self.stateSpace[(x, y + 1, z)].intersection(
-                self.computeNeighbourStates(cellIndex, 'yForward')
-            )
-            nextTasks[(x, y + 1, z)] = neighbourRemainingStates
+        if y > 0 and (x, y - 1, z) not in self.workList:
+            nextTasks[(x, y - 1, z)] = self.computeNeighbourStatesIntersection((x, y - 1, z), cellIndex, 'yBackward')[1]
+        if y < self.stateSpaceSize[1] - 1 and (x, y + 1, z) not in self.workList:
+            nextTasks[(x, y + 1, z)] = self.computeNeighbourStatesIntersection((x, y + 1, z), cellIndex, 'yForward')[1]
 
-        if z > 0:
-            neighbourRemainingStates = self.stateSpace[(x, y, z - 1)].intersection(
-                self.computeNeighbourStates(cellIndex, 'zBackward')
-            )
-            nextTasks[(x, y, z - 1)] = neighbourRemainingStates
-        if z < self.stateSpaceSize[2] - 1:
-            neighbourRemainingStates = self.stateSpace[(x, y, z + 1)].intersection(
-                self.computeNeighbourStates(cellIndex, 'zForward')
-            )
-            nextTasks[(x, y, z + 1)] = neighbourRemainingStates
+        if z > 0 and (x, y, z - 1) not in self.workList:
+            nextTasks[(x, y, z - 1)] = self.computeNeighbourStatesIntersection((x, y, z - 1), cellIndex, 'zBackward')[1]
+        if z < self.stateSpaceSize[2] - 1 and (x, y, z + 1) not in self.workList:
+            nextTasks[(x, y, z + 1)] = self.computeNeighbourStatesIntersection((x, y, z + 1), cellIndex, 'zForward')[1]
 
         return nextTasks
+
+    def computeNeighbourStatesIntersection(
+        self,
+        neighbourCellIndex: Tuple[int, int, int],
+        cellIndex: Tuple[int, int, int],
+        axis: str
+    ) -> Tuple[Tuple[int, int, int], OrderedSet[StructureRotation]]:
+        return (
+            neighbourCellIndex,
+            self.stateSpace[neighbourCellIndex].intersection(self.computeNeighbourStates(cellIndex, axis))
+        )
 
     def computeNeighbourStates(self, cellIndex: Tuple[int, int, int], axis: str) -> Set[StructureRotation]:
         allowedStates: Set[StructureRotation] = set()

@@ -52,24 +52,6 @@ class Structure:
         self.offset = offset
 
     @property
-    def connectors(self) -> dict[ivec3, list[Structure]]:
-        rotatedConnectors: dict[ivec3, list[Structure]] = {}
-        # for direction in self.adjecencies:
-        #     rotatedDirection = vectorTools.rotatePointAroundOrigin3D(
-        #         point=direction,
-        #         rotation=self.rotation,
-        #     )
-        #     rotatedConnectors[rotatedDirection] = []
-        #     for structureRotation in self.adjecencies[direction]:
-        #         structureFolder = globals.structureFolders[structureRotation.name]
-        #         newStructure: Structure = structureFolder.structureClass(
-        #             withRotation=self.rotation + structureRotation.rotation,
-        #             tile=self.tile + rotatedDirection,
-        #         )
-        #         rotatedConnectors[rotatedDirection].append(newStructure)
-        return rotatedConnectors
-
-    @property
     def position(self) -> ivec3:
         return self.offset + (self.tile * self.box.size)
 
@@ -146,18 +128,9 @@ class Structure:
             position=self.position, rotate=self.rotation, mirror=None,
             pivot=self.structureFile.centerPivot
         )
-        print(f'Placed {self}')
 
     @staticmethod
     def doPostProcessingSteps():
-        # for connector in node.connectorSlots:
-        #     if connector.transitionStructure is None:
-        #         continue
-        #     placeStructure(
-        #         connector.transitionStructure.file,
-        #         position=self.position, rotate=(connector.rotation + self.rotation) % 4, mirror=None,
-        #         pivot=connector.transitionStructure.centerPivot,
-        #     )
         postProcessingSteps: list[worldTools.PlacementInstruction] = []
         for postProcessingStep in postProcessingSteps:
             globals.editor.placeBlockGlobal(

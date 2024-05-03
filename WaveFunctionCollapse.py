@@ -1,9 +1,11 @@
 from __future__ import annotations
-from typing import Tuple, Callable, Union, Set, List, Iterator, Dict
+
 import itertools
+from typing import Tuple, Callable, Union, List, Iterator, Dict, Set
 
 import numpy as np
 from glm import ivec3
+from ordered_set import OrderedSet
 
 import Adjacency
 import globals
@@ -15,8 +17,8 @@ class WaveFunctionCollapse:
 
     structureAdjacencies: Dict[str, StructureAdjacency]
     stateSpaceSize: Tuple[int, int, int]
-    stateSpace: List[List[List[Set[StructureRotation]]]]
-    workList: Dict[Tuple[int, int, int], Set[StructureRotation]]
+    stateSpace: List[List[List[OrderedSet[StructureRotation]]]]
+    workList: Dict[Tuple[int, int, int], OrderedSet[StructureRotation]]
 
     def __init__(
         self,
@@ -26,14 +28,14 @@ class WaveFunctionCollapse:
         self.workList = dict()
 
         self.stateSpaceSize = volumeGrid
-        self.stateSpace = np.full(shape=self.stateSpaceSize, fill_value=set()).tolist()
+        self.stateSpace = np.full(shape=self.stateSpaceSize, fill_value=None).tolist()
 
         if not self.stateSpaceSize >= (1, 1, 1):
             raise ValueError('State space size should be at least (1, 1, 1)')
         print('WFC state space {}x{}x{}'.format(*self.stateSpaceSize))
 
         self.structureAdjacencies = globals.adjacencies
-        self.defaultDomain = set(
+        self.defaultDomain = OrderedSet(
             StructureRotation(structureName, rotation)
             for structureName, rotation in itertools.product(self.structureAdjacencies.keys(), range(4))
         )
@@ -41,7 +43,9 @@ class WaveFunctionCollapse:
         self.initStateSpaceWithDefaultDomain()
 
     def initStateSpaceWithDefaultDomain(self):
-        self.stateSpace = np.full(shape=self.stateSpaceSize, fill_value=self.defaultDomain.copy()).tolist()
+        self.stateSpace = np.full(shape=self.stateSpaceSize, fill_value=None).tolist()
+        for x, y, z in self.cellCoordinates:
+            self.stateSpace[x][y][z] = self.defaultDomain.copy()
 
     @property
     def cellCoordinates(self) -> Iterator[Tuple[int, int, int]]:
@@ -72,10 +76,10 @@ class WaveFunctionCollapse:
         return minEntrophy
 
     @staticmethod
-    def getRandomStateFromSuperposition(cellSuperPosition: Set) -> StructureRotation:
+    def getRandomStateFromSuperposition(cellSuperPosition: OrderedSet) -> StructureRotation:
         assert len(cellSuperPosition) > 1
         # TODO implement weighting
-        return globals.rng.choice(list(cellSuperPosition))
+        return globals.rng.choice(cellSuperPosition)
 
     def getRandomUncollapsedCellIndex(self) -> Tuple[int, int, int]:
         nextCellsToCollapse = []
@@ -130,27 +134,31 @@ class WaveFunctionCollapse:
 
     def collapseCellToState(self, cellIndex: Tuple[int, int, int], structureToCollapse: StructureRotation):
         if cellIndex not in self.workList:
-            self.workList[cellIndex] = {structureToCollapse}
+            self.workList[cellIndex] = OrderedSet([structureToCollapse])
         while len(self.workList) > 0:
             taskCellIndex, remainingStates = self.workList.popitem()
             newTasks = self.propagate(cellIndex=taskCellIndex, remainingStates=remainingStates)
-            for newTask in newTasks:
-                if newTask[0] not in self.workList:
-                    self.workList[newTask[0]] = newTask[1]
+            for newTaskCellIndex in newTasks:
+                if newTaskCellIndex not in self.workList:
+                    self.workList[newTaskCellIndex] = newTasks[newTaskCellIndex]
 
         x, y, z = cellIndex
-        assert self.stateSpace[x][y][z] in (set(), {structureToCollapse}), \
-            f'This cell should have been set to {structureToCollapse} or {set()} but is {self.stateSpace[x][y][z]}'
+        assert self.stateSpace[x][y][z] in (OrderedSet(), OrderedSet([structureToCollapse])), \
+            f'This cell should have been set to {structureToCollapse} or {OrderedSet()} but is {self.stateSpace[x][y][z]}'
 
-    def propagate(self, cellIndex: Tuple[int, int, int], remainingStates: Set[StructureRotation]) -> List[Tuple[Tuple[int, int, int], Set[StructureRotation]]]:
+    def propagate(
+        self,
+        cellIndex: Tuple[int, int, int],
+        remainingStates: OrderedSet[StructureRotation]
+    ) -> Dict[Tuple[int, int, int], OrderedSet[StructureRotation]]:
         x, y, z = cellIndex
-        nextTasks: List[Tuple[Tuple[int, int, int], Set[StructureRotation]]] = []
+        nextTasks: Dict[Tuple[int, int, int], OrderedSet[StructureRotation]] = dict()
         if not remainingStates.issubset(self.stateSpace[x][y][z]):
             raise Exception(
                 f'{x} {y} {z} tried to colapse a state to values not available in current superposition: '
                 f'{remainingStates} ⊄ {self.stateSpace[x][y][z]}'
             )
-        if remainingStates == self.stateSpace[x][y][z]:
+        if set(remainingStates) == set(self.stateSpace[x][y][z]):
             # No change in states. No need to propagate further.
             return nextTasks
 
@@ -158,37 +166,37 @@ class WaveFunctionCollapse:
         self.stateSpace[x][y][z] = remainingStates
 
         if x > 0:
-            neighbourRemainingStates = self.computeNeighbourStates(
-                cellIndex, 'xBackward'
-            ).intersection(self.stateSpace[x - 1][y][z])
-            nextTasks.append(((x - 1, y, z), neighbourRemainingStates))
+            neighbourRemainingStates = self.stateSpace[x - 1][y][z].intersection(
+                self.computeNeighbourStates(cellIndex, 'xBackward')
+            )
+            nextTasks[(x - 1, y, z)] = neighbourRemainingStates
         if x < self.stateSpaceSize[0] - 1:
-            neighbourRemainingStates = self.computeNeighbourStates(
-                cellIndex, 'xForward'
-            ).intersection(self.stateSpace[x + 1][y][z])
-            nextTasks.append(((x + 1, y, z), neighbourRemainingStates))
+            neighbourRemainingStates = self.stateSpace[x + 1][y][z].intersection(
+                self.computeNeighbourStates(cellIndex, 'xForward')
+            )
+            nextTasks[(x + 1, y, z)] = neighbourRemainingStates
 
         if y > 0:
-            neighbourRemainingStates = self.computeNeighbourStates(
-                cellIndex, 'yBackward'
-            ).intersection(self.stateSpace[x][y - 1][z])
-            nextTasks.append(((x, y - 1, z), neighbourRemainingStates))
+            neighbourRemainingStates = self.stateSpace[x][y - 1][z].intersection(
+                self.computeNeighbourStates(cellIndex, 'yBackward')
+            )
+            nextTasks[(x, y - 1, z)] = neighbourRemainingStates
         if y < self.stateSpaceSize[1] - 1:
-            neighbourRemainingStates = self.computeNeighbourStates(
-                cellIndex, 'yForward'
-            ).intersection(self.stateSpace[x][y + 1][z])
-            nextTasks.append(((x, y + 1, z), neighbourRemainingStates))
+            neighbourRemainingStates = self.stateSpace[x][y + 1][z].intersection(
+                self.computeNeighbourStates(cellIndex, 'yForward')
+            )
+            nextTasks[(x, y + 1, z)] = neighbourRemainingStates
 
         if z > 0:
-            neighbourRemainingStates = self.computeNeighbourStates(
-                cellIndex, 'zBackward'
-            ).intersection(self.stateSpace[x][y][z - 1])
-            nextTasks.append(((x, y, z - 1), neighbourRemainingStates))
+            neighbourRemainingStates = self.stateSpace[x][y][z - 1].intersection(
+                self.computeNeighbourStates(cellIndex, 'zBackward')
+            )
+            nextTasks[(x, y, z - 1)] = neighbourRemainingStates
         if z < self.stateSpaceSize[2] - 1:
-            neighbourRemainingStates = self.computeNeighbourStates(
-                cellIndex, 'zForward'
-            ).intersection(self.stateSpace[x][y][z + 1])
-            nextTasks.append(((x, y, z + 1), neighbourRemainingStates))
+            neighbourRemainingStates = self.stateSpace[x][y][z + 1].intersection(
+                self.computeNeighbourStates(cellIndex, 'zForward')
+            )
+            nextTasks[(x, y, z + 1)] = neighbourRemainingStates
 
         return nextTasks
 
@@ -206,7 +214,7 @@ class WaveFunctionCollapse:
         if not self.isCollapsed:
             raise Exception('WFC is not fully collapsed yet! Therefore the state cannot yet be extracted.')
         for x, y, z in self.cellCoordinates:
-            cellState: StructureRotation = list(self.stateSpace[x][y][z])[0]
+            cellState: StructureRotation = self.stateSpace[x][y][z][0]
             if cellState.structureName not in globals.structureFolders:
                 raise Exception(f'Structure file {cellState.structureName} not found in {globals.structureFolders}')
             structureFolder = globals.structureFolders[cellState.structureName]
@@ -219,9 +227,9 @@ class WaveFunctionCollapse:
     
     def getStructuresUsed(self) -> Iterator[StructureRotation]:
         for x, y, z in self.cellCoordinates:
-            yield list(self.stateSpace[x][y][z])[0]
+            yield self.stateSpace[x][y][z][0]
 
     def collapseVolumeEdgeToAir(self):
         for x, y, z in self.cellCoordinates:
             if not (x > 0 and x < self.stateSpaceSize[0] - 1 and z > 0 and z < self.stateSpaceSize[2] - 1):
-                self.stateSpace[x][y][z] = set(Adjacency.getAllRotations(structureName='air'))
+                self.stateSpace[x][y][z] = OrderedSet(Adjacency.getAllRotations(structureName='air'))

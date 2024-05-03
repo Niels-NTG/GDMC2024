@@ -10,3 +10,4 @@ scikit-image==0.19.3
 opencv_python==4.7.0.68
 scipy==1.10.1
 matplotlib==3.7.0
+ordered-set==4.1.0

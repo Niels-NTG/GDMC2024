@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import functools
 from dataclasses import dataclass, replace
-from typing import List, Tuple, Optional, Union, Dict, Set
+from typing import List, Tuple, Optional, Dict, Set
 
 AXES: list[str] = ['xForward', 'xBackward', 'yForward', 'yBackward', 'zForward', 'zBackward']
 
@@ -10,25 +12,25 @@ class StructureRotation:
     structureName: str
     rotation: int
 
-    def rotate(self, amount: int):
+    def rotate(self, amount: int) -> StructureRotation:
         return replace(self, rotation=(self.rotation + amount) % 4)
 
-    def __eq__(self, other):
+    def __eq__(self, other: StructureRotation) -> bool:
         return self.rotation == other.rotation and self.structureName == other.structureName
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(f'{self.structureName}.{self.rotation}')
 
 
 class StructureAdjacency:
     name: str
 
-    xForward: Union[List[StructureRotation] | None]
-    xBackward: Union[List[StructureRotation] | None]
-    yForward: Union[List[StructureRotation] | None]
-    yBackward: Union[List[StructureRotation] | None]
-    zForward: Union[List[StructureRotation] | None]
-    zBackward: Union[List[StructureRotation] | None]
+    xForward: Set[StructureRotation]
+    xBackward: Set[StructureRotation]
+    yForward: Set[StructureRotation]
+    yBackward: Set[StructureRotation]
+    zForward: Set[StructureRotation]
+    zBackward: Set[StructureRotation]
 
     def __init__(
         self,
@@ -74,20 +76,18 @@ class StructureAdjacency:
         raise ValueError(f'Invalid axis "{axis}"')
 
 
-def createRotationList(rotationTuples: Union[List[Tuple[str, int]] | None]) -> List[StructureRotation]:
-    rotationList: List[StructureRotation] = []
-    if rotationTuples is None or len(rotationTuples) == 0:
-        return rotationList
+def createRotationList(rotationTuples: List[Tuple[str, int]]) -> Set[StructureRotation]:
+    rotationSet: Set[StructureRotation] = set()
     for rotationTuple in rotationTuples:
         if rotationTuple[1] == -1:
-            rotationList.extend(getAllRotations(structureName=rotationTuple[0]))
+            rotationSet.update(getAllRotations(structureName=rotationTuple[0]))
         else:
-            rotationList.append(StructureRotation(structureName=rotationTuple[0], rotation=rotationTuple[1]))
-    return rotationList
+            rotationSet.add(StructureRotation(structureName=rotationTuple[0], rotation=rotationTuple[1]))
+    return rotationSet
 
 
-def getAllRotations(structureName: str) -> List[StructureRotation]:
-    return [StructureRotation(structureName, r) for r in range(4)]
+def getAllRotations(structureName: str) -> Set[StructureRotation]:
+    return set(StructureRotation(structureName, r) for r in range(4))
 
 
 @functools.cache
@@ -114,7 +114,7 @@ def checkSymmetry(adjacencies: Dict[str, StructureAdjacency]):
         adjacency = adjacencies[structureName]
 
         for axis in AXES:
-            rules: List[StructureRotation] = getattr(adjacency, axis)
+            rules: Set[StructureRotation] = getattr(adjacency, axis)
             for rule in rules:
                 if rule.structureName not in adjacencies:
                     raise KeyError(f'{rule.structureName} in rules for {structureName} is not a valid structure!')
@@ -122,7 +122,10 @@ def checkSymmetry(adjacencies: Dict[str, StructureAdjacency]):
                 otherAdjecency = adjacencies[rule.structureName]
                 oppositeAxis = getOppositeAxis(axis)
 
-                otherRules: List[StructureRotation] = otherAdjecency.adjacentStructures(oppositeAxis, rule.rotation)
+                otherRules: Set[StructureRotation] = otherAdjecency.adjacentStructures(
+                    oppositeAxis,
+                    rule.rotation
+                )
 
                 matchingRules = list(
                     filter(lambda r: r.structureName == structureName and r.rotation == SELF_ROTATION, otherRules)

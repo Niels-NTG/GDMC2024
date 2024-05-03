@@ -24,7 +24,7 @@ global nodeList
 
 def initialize():
     global rng
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed=9897)
 
     global structureFolders
     structureFolders = dict()
@@ -60,7 +60,6 @@ def initialize():
 
     global volumeGrid
     volumeGrid = buildVolume.size // tileSize
-    # TODO set to flat grid for now
     volumeGrid.y = 2
 
 

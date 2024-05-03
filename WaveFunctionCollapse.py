@@ -199,7 +199,7 @@ class WaveFunctionCollapse:
     def computeNeighbourStates(self, cellIndex: Tuple[int, int, int], axis: str) -> Set[StructureRotation]:
         allowedStates: Set[StructureRotation] = set()
         for s in self.stateSpace[cellIndex]:
-            allowedStates = allowedStates.union(self.structureAdjacencies[s.structureName].adjacentStructures(
+            allowedStates.update(self.structureAdjacencies[s.structureName].adjacentStructures(
                 axis,
                 s.rotation
             ))

@@ -58,7 +58,7 @@ class StructureAdjacency:
             raise ValueError(f'Invalid axis "{axis}"')
 
         if selfRotation == 0:
-            return set(getattr(self, axis))
+            return getattr(self, axis)
         rotationAxes = [self.xForward, self.zForward, self.xBackward, self.zBackward]
         match axis:
             case 'xForward':
@@ -74,6 +74,9 @@ class StructureAdjacency:
             case 'yBackward':
                 return set(map(lambda r: r.rotate(selfRotation), self.yBackward))
         raise ValueError(f'Invalid axis "{axis}"')
+
+    def __hash__(self):
+        return hash(self.name)
 
 
 def createRotationList(rotationTuples: List[Tuple[str, int]]) -> Set[StructureRotation]:

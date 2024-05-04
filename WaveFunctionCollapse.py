@@ -167,7 +167,7 @@ class WaveFunctionCollapse:
                 (x - 1, y, z),
                 cellIndex,
                 'xBackward',
-                self.stateSpace.copy(),
+                self.stateSpace,
                 self.structureAdjacencies,
             ))
         if x < self.stateSpaceSize[0] - 1 and (x + 1, y, z) not in self.workList:
@@ -175,7 +175,7 @@ class WaveFunctionCollapse:
                 (x + 1, y, z),
                 cellIndex,
                 'xForward',
-                self.stateSpace.copy(),
+                self.stateSpace,
                 self.structureAdjacencies,
             ))
 
@@ -184,7 +184,7 @@ class WaveFunctionCollapse:
                 (x, y - 1, z),
                 cellIndex,
                 'yBackward',
-                self.stateSpace.copy(),
+                self.stateSpace,
                 self.structureAdjacencies,
             ))
         if y < self.stateSpaceSize[1] - 1 and (x, y + 1, z) not in self.workList:
@@ -192,7 +192,7 @@ class WaveFunctionCollapse:
                 (x, y + 1, z),
                 cellIndex,
                 'yForward',
-                self.stateSpace.copy(),
+                self.stateSpace,
                 self.structureAdjacencies,
             ))
 
@@ -201,7 +201,7 @@ class WaveFunctionCollapse:
                 (x, y, z - 1),
                 cellIndex,
                 'zBackward',
-                self.stateSpace.copy(),
+                self.stateSpace,
                 self.structureAdjacencies,
             ))
         if z < self.stateSpaceSize[2] - 1 and (x, y, z + 1) not in self.workList:
@@ -209,7 +209,7 @@ class WaveFunctionCollapse:
                 (x, y, z + 1),
                 cellIndex,
                 'zForward',
-                self.stateSpace.copy(),
+                self.stateSpace,
                 self.structureAdjacencies,
             ))
 

@@ -17,7 +17,6 @@ global buildarea
 global editor
 
 global buildVolume
-global volumeGrid
 global adjacencies
 global nodeList
 
@@ -51,16 +50,11 @@ def initialize():
     editor = Editor()
     editor.loadWorldSlice(rect=buildarea.toRect(), cache=True)
 
-    tileSize = ivec3(5, 8, 5)
     # TODO implement algorithm to find and define an suitable build volume
     # TODO system should be able to define multiple different build volumes for each
     #   settlement type
     global buildVolume
     buildVolume = buildarea
-
-    global volumeGrid
-    volumeGrid = buildVolume.size // tileSize
-    volumeGrid.y = 2
 
 
 def loadStructureFiles():

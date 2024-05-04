@@ -90,19 +90,19 @@ class WaveFunctionCollapse:
     def collapseWithRetry(
             self,
             maxRetries=1000,
-            reinit: Union[Callable, None] = None,
+            initFunction: Union[Callable[[WaveFunctionCollapse], None], None] = None,
             validationFunction: Union[Callable[[WaveFunctionCollapse], bool], None] = None,
     ):
         attempts = 1
 
         self.initStateSpaceWithDefaultDomain()
-        if reinit:
-            reinit()
+        if initFunction:
+            initFunction(self)
 
         while not self.collapse(validationFunction):
             self.initStateSpaceWithDefaultDomain()
-            if reinit:
-                reinit()
+            if initFunction:
+                initFunction(self)
             print(f'WFC collapse attempt {attempts}')
             attempts += 1
             if attempts > maxRetries:

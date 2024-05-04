@@ -138,9 +138,7 @@ class WaveFunctionCollapse:
                 cellIndex=taskCellIndex,
                 remainingStates=remainingStates,
             )
-            for newTaskCellIndex in newTasks:
-                if newTaskCellIndex not in self.workList:
-                    self.workList[newTaskCellIndex] = newTasks[newTaskCellIndex]
+            self.workList.update(newTasks)
 
         assert self.stateSpace[cellIndex] in (OrderedSet(), OrderedSet([structureToCollapse])), \
             f'Cell should have been set to {structureToCollapse} or {OrderedSet()} but is {self.stateSpace[cellIndex]}'
@@ -165,37 +163,86 @@ class WaveFunctionCollapse:
         self.stateSpace[cellIndex] = remainingStates
 
         if x > 0 and (x - 1, y, z) not in self.workList:
-            nextTasks[(x - 1, y, z)] = self.computeNeighbourStatesIntersection((x - 1, y, z), cellIndex, 'xBackward')[1]
+            nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
+                (x - 1, y, z),
+                cellIndex,
+                'xBackward',
+                self.stateSpace.copy(),
+                self.structureAdjacencies,
+            ))
         if x < self.stateSpaceSize[0] - 1 and (x + 1, y, z) not in self.workList:
-            nextTasks[(x + 1, y, z)] = self.computeNeighbourStatesIntersection((x + 1, y, z), cellIndex, 'xForward')[1]
+            nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
+                (x + 1, y, z),
+                cellIndex,
+                'xForward',
+                self.stateSpace.copy(),
+                self.structureAdjacencies,
+            ))
 
         if y > 0 and (x, y - 1, z) not in self.workList:
-            nextTasks[(x, y - 1, z)] = self.computeNeighbourStatesIntersection((x, y - 1, z), cellIndex, 'yBackward')[1]
+            nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
+                (x, y - 1, z),
+                cellIndex,
+                'yBackward',
+                self.stateSpace.copy(),
+                self.structureAdjacencies,
+            ))
         if y < self.stateSpaceSize[1] - 1 and (x, y + 1, z) not in self.workList:
-            nextTasks[(x, y + 1, z)] = self.computeNeighbourStatesIntersection((x, y + 1, z), cellIndex, 'yForward')[1]
+            nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
+                (x, y + 1, z),
+                cellIndex,
+                'yForward',
+                self.stateSpace.copy(),
+                self.structureAdjacencies,
+            ))
 
         if z > 0 and (x, y, z - 1) not in self.workList:
-            nextTasks[(x, y, z - 1)] = self.computeNeighbourStatesIntersection((x, y, z - 1), cellIndex, 'zBackward')[1]
+            nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
+                (x, y, z - 1),
+                cellIndex,
+                'zBackward',
+                self.stateSpace.copy(),
+                self.structureAdjacencies,
+            ))
         if z < self.stateSpaceSize[2] - 1 and (x, y, z + 1) not in self.workList:
-            nextTasks[(x, y, z + 1)] = self.computeNeighbourStatesIntersection((x, y, z + 1), cellIndex, 'zForward')[1]
+            nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
+                (x, y, z + 1),
+                cellIndex,
+                'zForward',
+                self.stateSpace.copy(),
+                self.structureAdjacencies,
+            ))
 
         return nextTasks
 
+    @staticmethod
     def computeNeighbourStatesIntersection(
-        self,
         neighbourCellIndex: Tuple[int, int, int],
         cellIndex: Tuple[int, int, int],
-        axis: str
-    ) -> Tuple[Tuple[int, int, int], OrderedSet[StructureRotation]]:
-        return (
-            neighbourCellIndex,
-            self.stateSpace[neighbourCellIndex].intersection(self.computeNeighbourStates(cellIndex, axis))
-        )
+        axis: str,
+        stateSpace: Dict[Tuple[int, int, int], OrderedSet[StructureRotation]],
+        structureAdjacencies: Dict[str, StructureAdjacency],
+    ) -> Dict[Tuple[int, int, int], OrderedSet[StructureRotation]]:
+        return {
+            neighbourCellIndex:
+            stateSpace[neighbourCellIndex].intersection(WaveFunctionCollapse.computeNeighbourStates(
+                cellIndex,
+                axis,
+                stateSpace,
+                structureAdjacencies
+            ))
+        }
 
-    def computeNeighbourStates(self, cellIndex: Tuple[int, int, int], axis: str) -> Set[StructureRotation]:
+    @staticmethod
+    def computeNeighbourStates(
+        cellIndex: Tuple[int, int, int],
+        axis: str,
+        stateSpace: Dict[Tuple[int, int, int], OrderedSet[StructureRotation]],
+        structureAdjacencies: Dict[str, StructureAdjacency],
+    ) -> Set[StructureRotation]:
         allowedStates: Set[StructureRotation] = set()
-        for s in self.stateSpace[cellIndex]:
-            allowedStates.update(self.structureAdjacencies[s.structureName].adjacentStructures(
+        for s in stateSpace[cellIndex]:
+            allowedStates.update(structureAdjacencies[s.structureName].adjacentStructures(
                 axis,
                 s.rotation
             ))

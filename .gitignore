@@ -75,6 +75,7 @@ coverage.xml
 .pytest_cache/
 cover/
 *.prof
+profiler/
 
 # Translations
 *.mo

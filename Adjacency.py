@@ -18,6 +18,9 @@ class StructureRotation:
     def __eq__(self, other: StructureRotation) -> bool:
         return self.rotation == other.rotation and self.structureName == other.structureName
 
+    def __hash__(self) -> int:
+        return hash((self.rotation, self.structureName))
+
 
 class StructureAdjacency:
     name: str

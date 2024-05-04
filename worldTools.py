@@ -12,9 +12,9 @@ from glm import ivec2, ivec3
 import globals
 import nbtTools
 import vectorTools
-from gdpc.gdpc import lookup, interface
-from gdpc.gdpc.block import Block
-from gdpc.gdpc.vector_tools import Box, Rect, loop2D
+from gdpc.src.gdpc import lookup, interface
+from gdpc.src.gdpc.block import Block
+from gdpc.src.gdpc.vector_tools import Box, Rect, loop2D
 
 DEFAULT_HEIGHTMAP_TYPE: str = 'MOTION_BLOCKING_NO_PLANTS'
 

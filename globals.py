@@ -6,8 +6,8 @@ from glm import ivec3
 
 import Adjacency
 from StructureFolder import StructureFolder
-from gdpc.gdpc import Editor, Box
-from gdpc.gdpc import interface
+from gdpc.src.gdpc import Editor, Box
+from gdpc.src.gdpc import interface
 
 global rng
 
@@ -23,7 +23,7 @@ global nodeList
 
 def initialize():
     global rng
-    rng = np.random.default_rng(seed=9897)
+    rng = np.random.default_rng(seed=8132)
 
     global structureFolders
     structureFolders = dict()

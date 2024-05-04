@@ -2,7 +2,7 @@ from glm import ivec3
 
 import Adjacency
 from WaveFunctionCollapse import WaveFunctionCollapse
-from gdpc.gdpc import Box
+from gdpc.src.gdpc import Box
 
 
 class Builder:

@@ -3,8 +3,8 @@ from nbt import nbt
 import numpy as np
 from glm import ivec3
 
-from gdpc.gdpc.block import Block
-from gdpc.gdpc.lookup import INVENTORY_BLOCKS, CONTAINER_BLOCK_TO_INVENTORY_SIZE
+from gdpc.src.gdpc.block import Block
+from gdpc.src.gdpc.lookup import INVENTORY_BLOCKS, CONTAINER_BLOCK_TO_INVENTORY_SIZE
 
 
 def SnbttoNbt(snbt: str) -> nbtlib.Compound:

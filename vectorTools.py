@@ -5,7 +5,7 @@ import numpy as np
 import glm
 from glm import ivec3, ivec2
 
-from gdpc.gdpc.vector_tools import Rect
+from gdpc.src.gdpc.vector_tools import Rect
 
 
 class Direction:

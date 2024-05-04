@@ -12,8 +12,8 @@ from glm import ivec3, ivec2
 import globals
 import worldTools
 from Adjacency import StructureAdjacency
-from gdpc.gdpc.interface import placeStructure
-from gdpc.gdpc.vector_tools import Box, Rect
+from gdpc.src.gdpc.interface import placeStructure
+from gdpc.src.gdpc.vector_tools import Box, Rect
 
 
 class Structure:

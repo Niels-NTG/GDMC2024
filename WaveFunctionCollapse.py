@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Tuple, Callable, Union, Iterator, Dict, Set, List
+from typing import Tuple, Callable, Union, Iterator, Dict, Set
 
 from glm import ivec3
 from ordered_set import OrderedSet

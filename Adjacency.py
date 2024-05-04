@@ -15,6 +15,9 @@ class StructureRotation:
     def rotate(self, amount: int) -> StructureRotation:
         return replace(self, rotation=(self.rotation + amount) % 4)
 
+    def __eq__(self, other: 'StructureRotation') -> bool:
+        return self.rotation == other.rotation and self.structureName == other.structureName
+
 
 class StructureAdjacency:
     name: str

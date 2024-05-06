@@ -1,6 +1,7 @@
 numpy==1.25.2
 pyGLM==2.7.0
 pyglm-typing==0.2.1
+kaggle==1.6.12
 NBT==1.5.1
 nbtlib==2.0.4
 more-itertools==9.0.0
@@ -11,3 +12,4 @@ opencv_python==4.7.0.68
 scipy==1.10.1
 matplotlib==3.7.0
 ordered-set==4.1.0
+pylatexenc==3.0a21

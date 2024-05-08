@@ -58,7 +58,7 @@ def initialize():
 
 
 def loadStructureFiles():
-    namespace = 'library'
+    namespace = 'testlibrary'
     for structureFolder in Path('.').glob(f'structures/{namespace}/*/'):
         if structureFolder.is_dir():
             structureName = structureFolder.name

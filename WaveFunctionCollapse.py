@@ -69,6 +69,8 @@ class WaveFunctionCollapse:
         minEntrophy = len(self.defaultDomain) + 1
         for cellState in self.stateSpace.values():
             entrophySize = len(cellState)
+            if entrophySize == 0:
+                return entrophySize
             if entrophySize < minEntrophy and entrophySize != 1:
                 minEntrophy = entrophySize
         return minEntrophy

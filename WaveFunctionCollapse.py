@@ -6,6 +6,7 @@ from typing import Tuple, Callable, Iterator, Dict, Set
 
 import numpy as np
 from glm import ivec3
+from numpy.random import Generator
 from ordered_set import OrderedSet
 
 import Adjacency
@@ -16,6 +17,7 @@ from StructureBase import Structure
 
 class WaveFunctionCollapse:
 
+    rng: Generator
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None
     structureAdjacencies: Dict[str, StructureAdjacency]
     stateSpaceSize: ivec3
@@ -29,7 +31,7 @@ class WaveFunctionCollapse:
         validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
         rngSeed: int | None = None,
     ):
-        self.rng = np.random.default_rng(seed=rngSeed)
+        self.setupRNG(rngSeed)
 
         self.initFunction = initFunction
         self.validationFunction = validationFunction
@@ -51,6 +53,9 @@ class WaveFunctionCollapse:
         self.initStateSpaceWithDefaultDomain()
         if initFunction:
             initFunction(self)
+
+    def setupRNG(self, rngSeed: int | None = None):
+        self.rng = np.random.default_rng(seed=rngSeed)
 
     def initStateSpaceWithDefaultDomain(self):
         self.stateSpace.clear()
@@ -295,7 +300,7 @@ def startMultiThreadedWFC(
     volumeGrid: ivec3,
     initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
-    maxAttempts: int = 10000,
+    maxAttempts: int = 1000,
 ) -> WaveFunctionCollapse:
     with ProcessPoolExecutor() as executor:
         wfcResult: WaveFunctionCollapse | None = None
@@ -317,7 +322,13 @@ def startMultiThreadedWFC(
 
         for attempt in range(maxAttempts):
             if wfcResult is None:
-                future = executor.submit(startWFCInstance, attempt, volumeGrid, initFunction, validationFunction)
+                future: Future = executor.submit(
+                    startWFCInstance,
+                    attempt,
+                    volumeGrid,
+                    initFunction,
+                    validationFunction
+                )
                 future.add_done_callback(futureCallback)
 
     return wfcResult
@@ -335,15 +346,16 @@ def startSingleThreadedWFC(
         validationFunction=validationFunction,
         rngSeed=globals.rngSeed,
     )
-    attempts = 1
-    print(f'WFC collapse attempt {attempts}')
+    attempt = 1
+    print(f'WFC collapse attempt {attempt}')
     while not wfc.collapse():
+        wfc.setupRNG(globals.rngSeed + attempt)
         wfc.initStateSpaceWithDefaultDomain()
         if initFunction:
             wfc.initFunction(wfc)
-        attempts += 1
-        if attempts > maxAttempts:
+        attempt += 1
+        if attempt > maxAttempts:
             raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
-        print(f'WFC collapse attempt {attempts}')
-    print(f'WFC collapsed after {attempts} attempts')
+        print(f'WFC collapse attempt {attempt}')
+    print(f'WFC collapsed after {attempt} attempts')
     return wfc

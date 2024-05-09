@@ -1,7 +1,7 @@
 from glm import ivec3
 
 import Adjacency
-from WaveFunctionCollapse import WaveFunctionCollapse, startMultiThreadedWFC, startSingleThreadedWFC
+from WaveFunctionCollapse import WaveFunctionCollapse, startMultiThreadedWFC
 from gdpc.src.gdpc import Box
 
 
@@ -15,7 +15,9 @@ class Builder:
     ):
         self.name = buildingName
 
-        wfc = startSingleThreadedWFC(
+        volumeGrid = volume.size // tileSize
+        print(f'Running WFC in volume {volumeGrid.x}x{volumeGrid.y}x{volumeGrid.z}')
+        wfc = startMultiThreadedWFC(
             volumeGrid=volume.size // tileSize,
             initFunction=Builder.reinitWFC,
             validationFunction=Builder.isValid,

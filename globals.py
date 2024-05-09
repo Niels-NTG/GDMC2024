@@ -1,14 +1,12 @@
 from copy import deepcopy
 from pathlib import Path
 
-import numpy as np
-
 import Adjacency
 from StructureFolder import StructureFolder
 from gdpc.src.gdpc import Editor
 from gdpc.src.gdpc import interface
 
-global rng
+global rngSeed
 
 global structureFolders
 
@@ -21,8 +19,8 @@ global nodeList
 
 
 def initialize():
-    global rng
-    rng = np.random.default_rng(seed=4786200)
+    global rngSeed
+    rngSeed = 89347849
 
     global structureFolders
     structureFolders = dict()

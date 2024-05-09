@@ -2,11 +2,10 @@ from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
-from glm import ivec3
 
 import Adjacency
 from StructureFolder import StructureFolder
-from gdpc.src.gdpc import Editor, Box
+from gdpc.src.gdpc import Editor
 from gdpc.src.gdpc import interface
 
 global rng
@@ -44,8 +43,7 @@ def initialize():
     )
 
     global buildarea
-    buildarea = Box(ivec3(20, -60, 164), ivec3(80, 20, 80))
-    # buildarea = interface.getBuildArea()
+    buildarea = interface.getBuildArea()
     global editor
     editor = Editor()
     editor.loadWorldSlice(rect=buildarea.toRect(), cache=True)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Tuple, Callable, Union, Iterator, Dict, Set
+from typing import Tuple, Callable, Iterator, Dict, Set
 
 from glm import ivec3
 from ordered_set import OrderedSet
@@ -90,8 +90,8 @@ class WaveFunctionCollapse:
     def collapseWithRetry(
             self,
             maxRetries=1000,
-            initFunction: Union[Callable[[WaveFunctionCollapse], None], None] = None,
-            validationFunction: Union[Callable[[WaveFunctionCollapse], bool], None] = None,
+            initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
+            validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
     ):
         attempts = 1
 
@@ -110,7 +110,7 @@ class WaveFunctionCollapse:
 
         print(f'WFC collapsed after {attempts} attempts')
 
-    def collapse(self, validationFunction: Union[Callable[[WaveFunctionCollapse], bool], None] = None) -> bool:
+    def collapse(self, validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None) -> bool:
         while not self.isCollapsed:
             minEntropy = self.lowestEntropy
             if minEntropy == 0:

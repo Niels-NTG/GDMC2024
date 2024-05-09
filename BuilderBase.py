@@ -1,7 +1,7 @@
 from glm import ivec3
 
 import Adjacency
-from WaveFunctionCollapse import WaveFunctionCollapse
+from WaveFunctionCollapse import WaveFunctionCollapse, startMultiThreadedWFC, startSingleThreadedWFC
 from gdpc.src.gdpc import Box
 
 
@@ -11,17 +11,16 @@ class Builder:
         self,
         volume: Box,
         buildingName: str,
-        tileSize: ivec3 = ivec3(5, 8, 5),
+        tileSize: ivec3 = ivec3(5, 10, 5),
     ):
         self.name = buildingName
 
-        wfc = WaveFunctionCollapse(
-            volumeGrid=(volume.size // tileSize).to_tuple()
-        )
-        wfc.collapseWithRetry(
+        wfc = startSingleThreadedWFC(
+            volumeGrid=volume.size // tileSize,
             initFunction=Builder.reinitWFC,
-            validationFunction=Builder.isValid
+            validationFunction=Builder.isValid,
         )
+
         for building in wfc.getCollapsedState(buildVolumeOffset=volume.offset):
             building.place()
 

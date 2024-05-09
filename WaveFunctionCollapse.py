@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import concurrent.futures
 import itertools
-from typing import Tuple, Callable, Iterator, Dict, Set
+from typing import Tuple, Callable, Iterator, Dict, Set, List
+from concurrent.futures import ProcessPoolExecutor, Future
 
 from glm import ivec3
 from ordered_set import OrderedSet
@@ -14,6 +16,7 @@ from StructureBase import Structure
 
 class WaveFunctionCollapse:
 
+    validationFunction: Callable[[WaveFunctionCollapse], bool] | None
     structureAdjacencies: Dict[str, StructureAdjacency]
     stateSpaceSize: ivec3
     stateSpace: Dict[ivec3, OrderedSet[StructureRotation]]
@@ -22,7 +25,11 @@ class WaveFunctionCollapse:
     def __init__(
         self,
         volumeGrid: ivec3,
+        initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
+        validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
     ):
+        self.initFunction = initFunction
+        self.validationFunction = validationFunction
 
         self.workList = dict()
 
@@ -31,7 +38,6 @@ class WaveFunctionCollapse:
 
         if not self.stateSpaceSize >= ivec3(1, 1, 1):
             raise ValueError('State space size should be at least (1, 1, 1)')
-        print('WFC state space {}x{}x{}'.format(*volumeGrid.to_tuple()))
 
         self.structureAdjacencies = globals.adjacencies
         self.defaultDomain = OrderedSet(
@@ -40,6 +46,8 @@ class WaveFunctionCollapse:
         )
 
         self.initStateSpaceWithDefaultDomain()
+        if initFunction:
+            initFunction(self)
 
     def initStateSpaceWithDefaultDomain(self):
         self.stateSpace.clear()
@@ -89,30 +97,7 @@ class WaveFunctionCollapse:
     def isCollapsed(self) -> bool:
         return len(list(self.getCellIndicesWithEntropy(entropy=1))) == len(self.stateSpace)
 
-    def collapseWithRetry(
-            self,
-            maxRetries=1000,
-            initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
-            validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
-    ):
-        attempts = 1
-
-        self.initStateSpaceWithDefaultDomain()
-        if initFunction:
-            initFunction(self)
-
-        while not self.collapse(validationFunction):
-            self.initStateSpaceWithDefaultDomain()
-            if initFunction:
-                initFunction(self)
-            print(f'WFC collapse attempt {attempts}')
-            attempts += 1
-            if attempts > maxRetries:
-                raise Exception(f"WFC did not collapse after {maxRetries} retries.")
-
-        print(f'WFC collapsed after {attempts} attempts')
-
-    def collapse(self, validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None) -> bool:
+    def collapse(self) -> bool:
         while not self.isCollapsed:
             minEntropy = self.lowestEntropy
             if minEntropy == 0:
@@ -126,8 +111,8 @@ class WaveFunctionCollapse:
             collapsedState = self.getRandomStateFromSuperposition(nextCellState)
             self.collapseCellToState(nextCellIndex, collapsedState)
 
-        if validationFunction:
-            return validationFunction(self)
+        if self.validationFunction:
+            return self.validationFunction(self)
         return True
 
     def collapseCellToState(self, cellIndex: ivec3, structureToCollapse: StructureRotation):
@@ -282,3 +267,66 @@ class WaveFunctionCollapse:
                 index.z > 0 and index.z < self.stateSpaceSize.z - 1
             ):
                 self.stateSpace[index] = OrderedSet(Adjacency.getAllRotations(structureName='air'))
+
+
+def startWFCInstance(
+    attempt: int = 1,
+    volumeGrid: ivec3 = ivec3(0, 0, 0),
+    initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
+    validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
+) -> Tuple[bool, WaveFunctionCollapse, int]:
+    wfc = WaveFunctionCollapse(
+        volumeGrid=volumeGrid,
+        initFunction=initFunction,
+        validationFunction=validationFunction,
+    )
+    print(f'Starting WFC collapse attempt {attempt}')
+    isCollapsed = wfc.collapse()
+    return isCollapsed, wfc, attempt
+
+
+def startMultiThreadedWFC(
+    volumeGrid: ivec3,
+    initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
+    validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
+    maxAttempts: int = 100,
+) -> WaveFunctionCollapse:
+    with ProcessPoolExecutor() as executor:
+        futures: List[Future] = []
+        for attempt in range(maxAttempts):
+            future = executor.submit(startWFCInstance, attempt, volumeGrid, initFunction, validationFunction)
+            futures.append(future)
+        for future in concurrent.futures.as_completed(futures):
+            wfcResult = future.result()
+            if wfcResult[0]:
+                executor.shutdown(wait=False, cancel_futures=True)
+                print(f'WFC attempt {wfcResult[2]} HAS collapsed!')
+                return wfcResult[1]
+            print(f'WFC attempt {wfcResult[2]} did NOT collapse')
+        executor.shutdown(wait=True)
+        raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
+
+
+def startSingleThreadedWFC(
+    volumeGrid: ivec3,
+    initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
+    validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
+    maxAttempts: int = 10000,
+) -> WaveFunctionCollapse:
+    wfc = WaveFunctionCollapse(
+        volumeGrid=volumeGrid,
+        initFunction=initFunction,
+        validationFunction=validationFunction,
+    )
+    attempts = 1
+    print(f'WFC collapse attempt {attempts}')
+    while not wfc.collapse():
+        wfc.initStateSpaceWithDefaultDomain()
+        if initFunction:
+            wfc.initFunction(wfc)
+        attempts += 1
+        if attempts > maxAttempts:
+            raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
+        print(f'WFC collapse attempt {attempts}')
+    print(f'WFC collapsed after {attempts} attempts')
+    return wfc

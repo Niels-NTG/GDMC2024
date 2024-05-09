@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import concurrent.futures
 import itertools
-from typing import Tuple, Callable, Iterator, Dict, Set, List
 from concurrent.futures import ProcessPoolExecutor, Future
+from typing import Tuple, Callable, Iterator, Dict, Set
 
+import numpy as np
 from glm import ivec3
 from ordered_set import OrderedSet
 
@@ -27,7 +27,10 @@ class WaveFunctionCollapse:
         volumeGrid: ivec3,
         initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
         validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
+        rngSeed: int | None = None,
     ):
+        self.rng = np.random.default_rng(seed=rngSeed)
+
         self.initFunction = initFunction
         self.validationFunction = validationFunction
 
@@ -83,15 +86,15 @@ class WaveFunctionCollapse:
                 minEntrophy = entrophySize
         return minEntrophy
 
-    @staticmethod
-    def getRandomStateFromSuperposition(cellSuperPosition: OrderedSet) -> StructureRotation:
+    def getRandomStateFromSuperposition(self, cellSuperPosition: OrderedSet) -> StructureRotation:
         assert len(cellSuperPosition) > 1
         # TODO implement weighting
-        return globals.rng.choice(cellSuperPosition)
+        return self.rng.choice(cellSuperPosition)
 
     @property
     def randomUncollapsedCellIndex(self) -> ivec3:
-        return globals.rng.choice(list(self.uncollapsedCellIndicies))
+        # noinspection PyTypeChecker
+        return self.rng.choice(list(self.uncollapsedCellIndicies))
 
     @property
     def isCollapsed(self) -> bool:
@@ -105,7 +108,8 @@ class WaveFunctionCollapse:
             nextCellsToCollapse = list(self.getCellIndicesWithEntropy(minEntropy))
             assert len(nextCellsToCollapse) > 0
 
-            nextCellIndex = ivec3(globals.rng.choice(nextCellsToCollapse))
+            # noinspection PyTypeChecker
+            nextCellIndex = ivec3(self.rng.choice(nextCellsToCollapse))
 
             nextCellState = self.stateSpace[nextCellIndex]
             collapsedState = self.getRandomStateFromSuperposition(nextCellState)
@@ -275,10 +279,12 @@ def startWFCInstance(
     initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
 ) -> Tuple[bool, WaveFunctionCollapse, int]:
+    rngSeed = (globals.rngSeed + attempt) if globals.rngSeed is not None else None
     wfc = WaveFunctionCollapse(
         volumeGrid=volumeGrid,
         initFunction=initFunction,
         validationFunction=validationFunction,
+        rngSeed=rngSeed,
     )
     print(f'Starting WFC collapse attempt {attempt}')
     isCollapsed = wfc.collapse()
@@ -289,22 +295,32 @@ def startMultiThreadedWFC(
     volumeGrid: ivec3,
     initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
-    maxAttempts: int = 100,
+    maxAttempts: int = 10000,
 ) -> WaveFunctionCollapse:
     with ProcessPoolExecutor() as executor:
-        futures: List[Future] = []
-        for attempt in range(maxAttempts):
-            future = executor.submit(startWFCInstance, attempt, volumeGrid, initFunction, validationFunction)
-            futures.append(future)
-        for future in concurrent.futures.as_completed(futures):
-            wfcResult = future.result()
-            if wfcResult[0]:
+        wfcResult: WaveFunctionCollapse | None = None
+
+        def futureCallback(f: Future):
+            nonlocal wfcResult
+            if wfcResult:
+                f.cancel()
+                return
+            newWfcResult = f.result()
+            if newWfcResult[0]:
                 executor.shutdown(wait=False, cancel_futures=True)
-                print(f'WFC attempt {wfcResult[2]} HAS collapsed!')
-                return wfcResult[1]
-            print(f'WFC attempt {wfcResult[2]} did NOT collapse')
-        executor.shutdown(wait=True)
-        raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
+                wfcResult = newWfcResult[1]
+                print(f'WFC attempt {newWfcResult[2]} HAS collapsed!')
+                return
+            if newWfcResult[2] >= maxAttempts:
+                raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
+            print(f'WFC attempt {newWfcResult[2]} did NOT collapse')
+
+        for attempt in range(maxAttempts):
+            if wfcResult is None:
+                future = executor.submit(startWFCInstance, attempt, volumeGrid, initFunction, validationFunction)
+                future.add_done_callback(futureCallback)
+
+    return wfcResult
 
 
 def startSingleThreadedWFC(
@@ -317,6 +333,7 @@ def startSingleThreadedWFC(
         volumeGrid=volumeGrid,
         initFunction=initFunction,
         validationFunction=validationFunction,
+        rngSeed=globals.rngSeed,
     )
     attempts = 1
     print(f'WFC collapse attempt {attempts}')

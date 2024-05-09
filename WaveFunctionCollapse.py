@@ -15,13 +15,13 @@ from StructureBase import Structure
 class WaveFunctionCollapse:
 
     structureAdjacencies: Dict[str, StructureAdjacency]
-    stateSpaceSize: Tuple[int, int, int]
+    stateSpaceSize: ivec3
     stateSpace: Dict[Tuple[int, int, int], OrderedSet[StructureRotation]]
     workList: Dict[Tuple[int, int, int], OrderedSet[StructureRotation]]
 
     def __init__(
         self,
-        volumeGrid: Tuple[int, int, int],
+        volumeGrid: ivec3,
     ):
 
         self.workList = dict()
@@ -29,9 +29,9 @@ class WaveFunctionCollapse:
         self.stateSpaceSize = volumeGrid
         self.stateSpace = dict()
 
-        if not self.stateSpaceSize >= (1, 1, 1):
+        if not self.stateSpaceSize >= ivec3(1, 1, 1):
             raise ValueError('State space size should be at least (1, 1, 1)')
-        print('WFC state space {}x{}x{}'.format(*self.stateSpaceSize))
+        print('WFC state space {}x{}x{}'.format(*volumeGrid.to_tuple()))
 
         self.structureAdjacencies = globals.adjacencies
         self.defaultDomain = OrderedSet(
@@ -48,9 +48,9 @@ class WaveFunctionCollapse:
 
     @property
     def cellCoordinates(self) -> Iterator[Tuple[int, int, int]]:
-        for x in range(self.stateSpaceSize[0]):
-            for y in range(self.stateSpaceSize[1]):
-                for z in range(self.stateSpaceSize[2]):
+        for x in range(self.stateSpaceSize.x):
+            for y in range(self.stateSpaceSize.y):
+                for z in range(self.stateSpaceSize.z):
                     yield x, y, z
 
     @property
@@ -172,7 +172,7 @@ class WaveFunctionCollapse:
                 self.stateSpace,
                 self.structureAdjacencies,
             ))
-        if x < self.stateSpaceSize[0] - 1 and (x + 1, y, z) not in self.workList:
+        if x < self.stateSpaceSize.x - 1 and (x + 1, y, z) not in self.workList:
             nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
                 (x + 1, y, z),
                 cellIndex,
@@ -189,7 +189,7 @@ class WaveFunctionCollapse:
                 self.stateSpace,
                 self.structureAdjacencies,
             ))
-        if y < self.stateSpaceSize[1] - 1 and (x, y + 1, z) not in self.workList:
+        if y < self.stateSpaceSize.y - 1 and (x, y + 1, z) not in self.workList:
             nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
                 (x, y + 1, z),
                 cellIndex,
@@ -206,7 +206,7 @@ class WaveFunctionCollapse:
                 self.stateSpace,
                 self.structureAdjacencies,
             ))
-        if z < self.stateSpaceSize[2] - 1 and (x, y, z + 1) not in self.workList:
+        if z < self.stateSpaceSize.z - 1 and (x, y, z + 1) not in self.workList:
             nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
                 (x, y, z + 1),
                 cellIndex,
@@ -272,5 +272,5 @@ class WaveFunctionCollapse:
 
     def collapseVolumeEdgeToAir(self):
         for x, y, z in self.stateSpace.keys():
-            if not (x > 0 and x < self.stateSpaceSize[0] - 1 and z > 0 and z < self.stateSpaceSize[2] - 1):
+            if not (x > 0 and x < self.stateSpaceSize.x - 1 and z > 0 and z < self.stateSpaceSize.z - 1):
                 self.stateSpace[(x, y, z)] = OrderedSet(Adjacency.getAllRotations(structureName='air'))

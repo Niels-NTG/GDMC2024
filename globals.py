@@ -22,7 +22,7 @@ global nodeList
 
 def initialize():
     global rng
-    rng = np.random.default_rng(seed=8132)
+    rng = np.random.default_rng(seed=4786200)
 
     global structureFolders
     structureFolders = dict()
@@ -56,7 +56,7 @@ def initialize():
 
 
 def loadStructureFiles():
-    namespace = 'testlibrary'
+    namespace = 'doha'
     for structureFolder in Path('.').glob(f'structures/{namespace}/*/'):
         if structureFolder.is_dir():
             structureName = structureFolder.name

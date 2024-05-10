@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+from copy import deepcopy
 from dataclasses import dataclass, replace
 from typing import List, Tuple, Optional, Dict, Set
 
@@ -89,6 +90,7 @@ def createRotationList(rotationTuples: List[Tuple[str, int]]) -> Set[StructureRo
     return rotationSet
 
 
+@functools.cache
 def getAllRotations(structureName: str) -> Set[StructureRotation]:
     return set(StructureRotation(structureName, r) for r in range(4))
 
@@ -112,12 +114,13 @@ def getOppositeAxis(axis: str) -> str:
 
 
 def checkSymmetry(adjacencies: Dict[str, StructureAdjacency]):
-    SELF_ROTATION = 0
     for structureName in adjacencies.keys():
         adjacency = adjacencies[structureName]
 
         for axis in AXES:
             rules: Set[StructureRotation] = getattr(adjacency, axis)
+            if len(rules) == 0:
+                raise Exception(f'Ruleset {structureName} {axis} cannot be empty!')
             for rule in rules:
                 if rule.structureName not in adjacencies:
                     raise KeyError(f'{rule.structureName} in rules for {structureName} is not a valid structure!')
@@ -131,7 +134,7 @@ def checkSymmetry(adjacencies: Dict[str, StructureAdjacency]):
                 )
 
                 matchingRules = list(
-                    filter(lambda r: r.structureName == structureName and r.rotation == SELF_ROTATION, otherRules)
+                    filter(lambda r: r.structureName == structureName and r.rotation == 0, otherRules)
                 )
 
                 if len(matchingRules) == 0:
@@ -140,3 +143,32 @@ def checkSymmetry(adjacencies: Dict[str, StructureAdjacency]):
                 elif len(matchingRules) > 1:
                     raise Exception(f'Too many symmetrical rules found for {structureName} {axis}.{rule}: '
                                     f'{matchingRules}!')
+
+
+def omitAdjacencies(
+    adjacencies: Dict[str, StructureAdjacency],
+    omitList: List[str],
+) -> Dict[str, StructureAdjacency]:
+    newAdjacencies = deepcopy(adjacencies)
+    omitRotations: Set[StructureRotation] = set()
+    for structureToOmit in omitList:
+        newAdjacencies.pop(structureToOmit)
+        omitRotations.update(getAllRotations(structureToOmit))
+    for adjacency in newAdjacencies.values():
+        for axis in AXES:
+            rules: Set[StructureRotation] = getattr(adjacency, axis)
+            rules = rules.difference(omitRotations)
+            setattr(adjacency, axis, rules)
+    checkSymmetry(newAdjacencies)
+    return newAdjacencies
+
+
+def omitAdjacenciesWithZeroWeight(
+    adjacencies: Dict[str, StructureAdjacency],
+    weights: Dict[str, float],
+) -> Dict[str, StructureAdjacency]:
+    omitList: List[str] = []
+    for structureName, weight in weights.items():
+        if weight == 0.0:
+            omitList.append(structureName)
+    return omitAdjacencies(adjacencies, omitList)

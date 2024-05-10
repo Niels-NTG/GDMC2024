@@ -60,8 +60,6 @@ class WallL(Structure):
             ('wall_r_inner', 0),
             ('t_junction', 0),
             ('wall_lectern', 2),
-            # TODO maybe not corner_outer?
-            ('corner_outer', 1),
             ('corner_inner', 1),
         ]
     )

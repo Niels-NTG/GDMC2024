@@ -1,7 +1,4 @@
-import itertools
 from pathlib import Path
-
-from ordered_set import OrderedSet
 
 import Adjacency
 from StructureFolder import StructureFolder
@@ -11,9 +8,8 @@ from gdpc.src.gdpc import interface
 global rngSeed
 
 global structureFolders
-global adjacencies
-global structureWeights
-global defaultDomain
+global defaultAdjacencies
+global defaultStructureWeights
 
 global buildarea
 global editor
@@ -29,25 +25,23 @@ def initialize():
     structureFolders = dict()
     loadStructureFiles()
 
-    global adjacencies
-    adjacencies = dict()
+    global defaultAdjacencies
+    defaultAdjacencies = dict()
     generateAdjacencies()
 
-    global structureWeights
-    structureWeights = dict()
+    global defaultStructureWeights
+    defaultStructureWeights = dict()
     setupStructureWeights()
 
     interface.runCommand(
-        'setbuildarea 21 -60 164 101 -40 244'
-    global defaultDomain
-    defaultDomain = OrderedSet(
-        Adjacency.StructureRotation(structureName, rotation)
-        for structureName, rotation in itertools.product(adjacencies.keys(), range(4))
+        'setbuildarea 20 -60 164 101 -50 244'
     )
-
-    interface.runCommand(
-        'fill 21 -60 164 101 -40 244 minecraft:air'
-    )
+    # interface.runCommand(
+    #     'setbuildarea 20 -60 163 120 -50 263'
+    # )
+    # interface.runCommand(
+    #     'setbuildarea 20 -60 160 160 0 300'
+    # )
     interface.runCommand(
         'kill @e[type=minecraft:item]'
     )
@@ -79,10 +73,10 @@ def loadStructureFiles():
 
 def generateAdjacencies():
     for name, structureFolder in structureFolders.items():
-        adjacencies[name] = structureFolder.structureClass.adjecencies
-    Adjacency.checkSymmetry(adjacencies)
+        defaultAdjacencies[name] = structureFolder.structureClass.adjecencies
+    Adjacency.checkSymmetry(defaultAdjacencies)
 
 
 def setupStructureWeights():
     for name, structureFolder in structureFolders.items():
-        structureWeights[name] = structureFolder.structureClass.weight
+        defaultStructureWeights[name] = structureFolder.structureClass.weight

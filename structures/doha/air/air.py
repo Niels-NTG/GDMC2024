@@ -116,6 +116,8 @@ class Air(Structure):
         ]
     )
 
+    weight = 0.1
+
     def __init__(
         self,
         withRotation: int = 0,

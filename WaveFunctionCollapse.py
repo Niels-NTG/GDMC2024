@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import itertools
 from concurrent.futures import ProcessPoolExecutor, Future
+from copy import deepcopy
 from typing import Tuple, Callable, Iterator, Dict, Set
 
 import numpy as np
@@ -9,17 +11,20 @@ from numpy.random import Generator
 from ordered_set import OrderedSet
 
 import globals
-from Adjacency import StructureRotation
+import Adjacency
+from Adjacency import StructureRotation, StructureAdjacency
 from StructureBase import Structure
 
 
 class WaveFunctionCollapse:
 
-    rng: Generator
-    validationFunction: Callable[[WaveFunctionCollapse], bool] | None
-    structureWeights: Dict[str, float]
     stateSpaceSize: ivec3
     stateSpace: Dict[ivec3, OrderedSet[StructureRotation]]
+    structureWeights: Dict[str, float]
+    defaultAdjacencies: Dict[str, StructureAdjacency]
+    defaultDomain: OrderedSet[StructureRotation]
+    rng: Generator
+    validationFunction: Callable[[WaveFunctionCollapse], bool] | None
     workList: Dict[ivec3, OrderedSet[StructureRotation]]
 
     def __init__(
@@ -30,19 +35,25 @@ class WaveFunctionCollapse:
         validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
         rngSeed: int | None = None,
     ):
+
+        self.stateSpaceSize = volumeGrid
+        if not self.stateSpaceSize >= ivec3(1, 1, 1):
+            raise ValueError('State space size should be at least (1, 1, 1)')
+
+        self.stateSpace = dict()
+
+        self.structureWeights = structureWeights
+
+        # Setup default list of adjacencies and cell domain
+        self.defaultAdjacencies = self.createDefaultAdjacencies()
+        self.defaultDomain = self.createDefaultDomain()
+
         self.setupRNG(rngSeed)
-        self.setStructureWeights(structureWeights)
 
         self.initFunction = initFunction
         self.validationFunction = validationFunction
 
         self.workList = dict()
-
-        self.stateSpaceSize = volumeGrid
-        self.stateSpace = dict()
-
-        if not self.stateSpaceSize >= ivec3(1, 1, 1):
-            raise ValueError('State space size should be at least (1, 1, 1)')
 
         self.initStateSpaceWithDefaultDomain()
         if initFunction:
@@ -51,10 +62,22 @@ class WaveFunctionCollapse:
     def setupRNG(self, rngSeed: int | None = None):
         self.rng = np.random.default_rng(seed=rngSeed)
 
+    def createDefaultAdjacencies(self) -> Dict[str, StructureAdjacency]:
+        return Adjacency.omitAdjacenciesWithZeroWeight(
+            globals.defaultAdjacencies,
+            self.structureWeights
+        )
+
+    def createDefaultDomain(self) -> OrderedSet[StructureRotation]:
+        return OrderedSet(
+            Adjacency.StructureRotation(structureName, rotation)
+            for structureName, rotation in itertools.product(self.defaultAdjacencies.keys(), range(4))
+        )
+
     def initStateSpaceWithDefaultDomain(self):
         self.stateSpace.clear()
         for index in self.cellCoordinates:
-            self.stateSpace[index] = globals.defaultDomain.copy()
+            self.stateSpace[index] = deepcopy(self.defaultDomain)
 
     @property
     def cellCoordinates(self) -> Iterator[ivec3]:
@@ -76,7 +99,7 @@ class WaveFunctionCollapse:
 
     @property
     def lowestEntropy(self) -> int:
-        minEntrophy = len(globals.defaultDomain) + 1
+        minEntrophy = len(self.defaultDomain) + 1
         for cellState in self.stateSpace.values():
             entrophySize = len(cellState)
             if entrophySize == 0:
@@ -91,17 +114,15 @@ class WaveFunctionCollapse:
         ], dtype=float)
         return structureWeights / sum(structureWeights)
 
-    def setStructureWeights(self, structureWeights: Dict[str, float]):
-        self.structureWeights = structureWeights if structureWeights is not None else globals.structureWeights
-
-    def getRandomStateFromSuperposition(self, cellSuperPosition: OrderedSet) -> StructureRotation:
+    def getRandomStateFromSuperposition(self, cellSuperPosition: OrderedSet[StructureRotation]) -> StructureRotation:
         assert len(cellSuperPosition) > 1
+        # noinspection PyTypeChecker
         return self.rng.choice(cellSuperPosition, p=self.getStructureWeights(cellSuperPosition))
 
     @property
     def randomUncollapsedCellIndex(self) -> ivec3:
         # noinspection PyTypeChecker
-        return self.rng.choice(list(self.uncollapsedCellIndicies))
+        return ivec3(self.rng.choice(list(self.uncollapsedCellIndicies)))
 
     @property
     def isCollapsed(self) -> bool:
@@ -161,82 +182,73 @@ class WaveFunctionCollapse:
 
         xBackward = ivec3(x - 1, y, z)
         if x > 0 and xBackward not in self.workList:
-            nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
+            nextTasks.update(self.computeNeighbourStatesIntersection(
                 xBackward,
                 cellIndex,
                 'xBackward',
-                self.stateSpace,
             ))
         xForward = ivec3(x + 1, y, z)
         if x < self.stateSpaceSize.x - 1 and xForward not in self.workList:
-            nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
+            nextTasks.update(self.computeNeighbourStatesIntersection(
                 xForward,
                 cellIndex,
                 'xForward',
-                self.stateSpace,
             ))
 
         yBackward = ivec3(x, y - 1, z)
         if y > 0 and yBackward not in self.workList:
-            nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
+            nextTasks.update(self.computeNeighbourStatesIntersection(
                 yBackward,
                 cellIndex,
                 'yBackward',
-                self.stateSpace,
             ))
         yForward = ivec3(x, y + 1, z)
         if y < self.stateSpaceSize.y - 1 and yForward not in self.workList:
-            nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
+            nextTasks.update(self.computeNeighbourStatesIntersection(
                 yForward,
                 cellIndex,
                 'yForward',
-                self.stateSpace,
             ))
 
         zBackward = ivec3(x, y, z - 1)
         if z > 0 and zBackward not in self.workList:
-            nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
+            nextTasks.update(self.computeNeighbourStatesIntersection(
                 zBackward,
                 cellIndex,
                 'zBackward',
-                self.stateSpace,
             ))
         zForward = ivec3(x, y, z + 1)
         if z < self.stateSpaceSize.z - 1 and (x, y, z + 1) not in self.workList:
-            nextTasks.update(WaveFunctionCollapse.computeNeighbourStatesIntersection(
+            nextTasks.update(self.computeNeighbourStatesIntersection(
                 zForward,
                 cellIndex,
                 'zForward',
-                self.stateSpace,
             ))
 
         return nextTasks
 
-    @staticmethod
     def computeNeighbourStatesIntersection(
+        self,
         neighbourCellIndex: ivec3,
         cellIndex: ivec3,
         axis: str,
-        stateSpace: Dict[ivec3, OrderedSet[StructureRotation]],
     ) -> Dict[ivec3, OrderedSet[StructureRotation]]:
         return {
             neighbourCellIndex:
-            stateSpace[neighbourCellIndex].intersection(WaveFunctionCollapse.computeNeighbourStates(
+            self.stateSpace[neighbourCellIndex].intersection(self.computeNeighbourStates(
                 cellIndex,
                 axis,
-                stateSpace,
             ))
         }
 
-    @staticmethod
     def computeNeighbourStates(
+        self,
         cellIndex: ivec3,
         axis: str,
-        stateSpace: Dict[ivec3, OrderedSet[StructureRotation]],
     ) -> Set[StructureRotation]:
         allowedStates: Set[StructureRotation] = set()
-        for s in stateSpace[cellIndex]:
-            allowedStates.update(globals.adjacencies[s.structureName].adjacentStructures(
+        for s in self.stateSpace[cellIndex]:
+            allowedStates.update(self.defaultAdjacencies[s.structureName].adjacentStructures(
                 axis,
                 s.rotation
             ))
@@ -260,15 +272,9 @@ class WaveFunctionCollapse:
     @property
     def structuresUsed(self) -> Iterator[StructureRotation]:
         for cellState in self.stateSpace.values():
+            if cellState[0].structureName not in globals.structureFolders:
+                raise Exception(f'Structure file {cellState[0].structureName} not found in {globals.structureFolders}')
             yield cellState[0]
-
-    def collapseVolumeEdgeToAir(self):
-        for index in self.stateSpace.keys():
-            if not (
-                index.x > 0 and index.x < self.stateSpaceSize.x - 1 and
-                index.z > 0 and index.z < self.stateSpaceSize.z - 1
-            ):
-                self.stateSpace[index] = OrderedSet(Adjacency.getAllRotations(structureName='air'))
 
 
 def startWFCInstance(
@@ -348,7 +354,8 @@ def startSingleThreadedWFC(
     attempt = 1
     print(f'WFC collapse attempt {attempt}')
     while not wfc.collapse():
-        wfc.setupRNG(globals.rngSeed + attempt)
+        rngSeed = (globals.rngSeed + attempt) if globals.rngSeed is not None else None
+        wfc.setupRNG(rngSeed)
         wfc.initStateSpaceWithDefaultDomain()
         if initFunction:
             wfc.initFunction(wfc)

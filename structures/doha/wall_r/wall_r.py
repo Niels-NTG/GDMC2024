@@ -57,8 +57,6 @@ class WallR(Structure):
             ('wall_l_inner', 0),
             ('t_junction', 0),
             ('wall_lectern', 2),
-            # TODO maybe not corner_outer?
-            ('corner_outer', 2),
             ('corner_inner', 0),
         ],
         zBackward=[

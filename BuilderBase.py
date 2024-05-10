@@ -33,7 +33,7 @@ class Builder:
 
     @staticmethod
     def isValid(wfcInstance: WaveFunctionCollapse) -> bool:
-        structuresUsed = set(wfcInstance.structureAdjacencies)
+        structuresUsed = set(wfcInstance.structuresUsed)
         isAirOnly = structuresUsed.issubset(Adjacency.getAllRotations('air'))
         if isAirOnly:
             print('Invalid WFC result! Volume has only air!')

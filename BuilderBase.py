@@ -1,6 +1,10 @@
+from typing import Dict
+
 from glm import ivec3
+from ordered_set import OrderedSet
 
 import Adjacency
+import globals
 from WaveFunctionCollapse import WaveFunctionCollapse, startMultiThreadedWFC
 from gdpc.src.gdpc import Box
 
@@ -21,6 +25,7 @@ class Builder:
             volumeGrid=volume.size // tileSize,
             initFunction=Builder.reinitWFC,
             validationFunction=Builder.isValid,
+            structureWeights=Builder.generateWeights()
         )
 
         for building in wfc.getCollapsedState(buildVolumeOffset=volume.offset):
@@ -38,3 +43,13 @@ class Builder:
     @staticmethod
     def reinitWFC(wfcInstance: WaveFunctionCollapse):
         wfcInstance.collapseVolumeEdgeToAir()
+
+    @staticmethod
+    def generateWeights(condition: str = '') -> Dict[str, float]:
+        match condition:
+            case 'top':
+                return globals.structureWeights | {
+                    'atrium_ceiling_edge': 0.5,
+                    'atrium_ceiling_edge_corner': 0.5
+                }
+        return globals.structureWeights

@@ -30,6 +30,8 @@ class AtriumCeilingEdgeCorner(Structure):
         ]
     )
 
+    weight = 0
+
     def __init__(
         self,
         withRotation: int = 0,

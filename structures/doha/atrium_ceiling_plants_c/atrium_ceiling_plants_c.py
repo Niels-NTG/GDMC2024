@@ -46,6 +46,7 @@ class AtriumCeilingPlantsC(Structure):
         ]
     )
 
+    weight = 0.2
 
     def __init__(
         self,

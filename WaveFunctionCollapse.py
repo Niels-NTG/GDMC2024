@@ -19,6 +19,7 @@ class WaveFunctionCollapse:
 
     rng: Generator
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None
+    structureWeights: Dict[str, float]
     structureAdjacencies: Dict[str, StructureAdjacency]
     stateSpaceSize: ivec3
     stateSpace: Dict[ivec3, OrderedSet[StructureRotation]]
@@ -27,11 +28,13 @@ class WaveFunctionCollapse:
     def __init__(
         self,
         volumeGrid: ivec3,
+        structureWeights: Dict[str, float],
         initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
         validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
         rngSeed: int | None = None,
     ):
         self.setupRNG(rngSeed)
+        self.setStructureWeights(structureWeights)
 
         self.initFunction = initFunction
         self.validationFunction = validationFunction
@@ -91,10 +94,18 @@ class WaveFunctionCollapse:
                 minEntrophy = entrophySize
         return minEntrophy
 
+    def getStructureWeights(self, structureRotations: OrderedSet[StructureRotation]):
+        structureWeights = np.array([
+            self.structureWeights[structureRotation.structureName] for structureRotation in structureRotations
+        ], dtype=float)
+        return structureWeights / sum(structureWeights)
+
+    def setStructureWeights(self, structureWeights: Dict[str, float]):
+        self.structureWeights = structureWeights if structureWeights is not None else globals.structureWeights
+
     def getRandomStateFromSuperposition(self, cellSuperPosition: OrderedSet) -> StructureRotation:
         assert len(cellSuperPosition) > 1
-        # TODO implement weighting
-        return self.rng.choice(cellSuperPosition)
+        return self.rng.choice(cellSuperPosition, p=self.getStructureWeights(cellSuperPosition))
 
     @property
     def randomUncollapsedCellIndex(self) -> ivec3:
@@ -279,10 +290,11 @@ class WaveFunctionCollapse:
 
 
 def startWFCInstance(
-    attempt: int = 1,
-    volumeGrid: ivec3 = ivec3(0, 0, 0),
-    initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
-    validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
+    attempt: int,
+    volumeGrid: ivec3,
+    structureWeights: Dict[str, float],
+    initFunction: Callable[[WaveFunctionCollapse], None] | None,
+    validationFunction: Callable[[WaveFunctionCollapse], bool] | None,
 ) -> Tuple[bool, WaveFunctionCollapse, int]:
     rngSeed = (globals.rngSeed + attempt) if globals.rngSeed is not None else None
     wfc = WaveFunctionCollapse(
@@ -290,6 +302,7 @@ def startWFCInstance(
         initFunction=initFunction,
         validationFunction=validationFunction,
         rngSeed=rngSeed,
+        structureWeights=structureWeights,
     )
     print(f'Starting WFC collapse attempt {attempt}')
     isCollapsed = wfc.collapse()
@@ -298,8 +311,9 @@ def startWFCInstance(
 
 def startMultiThreadedWFC(
     volumeGrid: ivec3,
-    initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
-    validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
+    structureWeights: Dict[str, float],
+    initFunction: Callable[[WaveFunctionCollapse], None] | None,
+    validationFunction: Callable[[WaveFunctionCollapse], bool] | None,
     maxAttempts: int = 1000,
 ) -> WaveFunctionCollapse:
     with ProcessPoolExecutor() as executor:
@@ -326,6 +340,7 @@ def startMultiThreadedWFC(
                     startWFCInstance,
                     attempt,
                     volumeGrid,
+                    structureWeights,
                     initFunction,
                     validationFunction
                 )
@@ -336,12 +351,14 @@ def startMultiThreadedWFC(
 
 def startSingleThreadedWFC(
     volumeGrid: ivec3,
-    initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
-    validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
+    structureWeights: Dict[str, float],
+    initFunction: Callable[[WaveFunctionCollapse], None] | None,
+    validationFunction: Callable[[WaveFunctionCollapse], bool] | None,
     maxAttempts: int = 10000,
 ) -> WaveFunctionCollapse:
     wfc = WaveFunctionCollapse(
         volumeGrid=volumeGrid,
+        structureWeights=structureWeights,
         initFunction=initFunction,
         validationFunction=validationFunction,
         rngSeed=globals.rngSeed,

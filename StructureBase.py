@@ -31,6 +31,8 @@ class Structure:
     _rotation: int
     tile: ivec3
 
+    weight: float = 0.5
+
     def __init__(
         self,
         structureFolder: StructureFolder,

@@ -1,4 +1,3 @@
-from copy import deepcopy
 from pathlib import Path
 
 import Adjacency
@@ -9,13 +8,13 @@ from gdpc.src.gdpc import interface
 global rngSeed
 
 global structureFolders
+global adjacencies
+global structureWeights
 
 global buildarea
 global editor
 
 global buildVolume
-global adjacencies
-global nodeList
 
 
 def initialize():
@@ -29,6 +28,10 @@ def initialize():
     global adjacencies
     adjacencies = dict()
     generateAdjacencies()
+
+    global structureWeights
+    structureWeights = dict()
+    setupStructureWeights()
 
     interface.runCommand(
         'setbuildarea 21 -60 164 101 -40 244'
@@ -67,6 +70,10 @@ def loadStructureFiles():
 
 def generateAdjacencies():
     for name, structureFolder in structureFolders.items():
-        structureAdjacency = structureFolder.structureClass.adjecencies
-        adjacencies[name] = deepcopy(structureAdjacency)
+        adjacencies[name] = structureFolder.structureClass.adjecencies
     Adjacency.checkSymmetry(adjacencies)
+
+
+def setupStructureWeights():
+    for name, structureFolder in structureFolders.items():
+        structureWeights[name] = structureFolder.structureClass.weight

@@ -56,6 +56,8 @@ class TJunction(Structure):
         ]
     )
 
+    weight = 0.8
+
     def __init__(
         self,
         withRotation: int = 0,

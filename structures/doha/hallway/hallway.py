@@ -68,6 +68,8 @@ class Hallway(Structure):
         ]
     )
 
+    weight = 0.4
+
     def __init__(
         self,
         withRotation: int = 0,

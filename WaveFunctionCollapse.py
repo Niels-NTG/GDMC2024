@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import itertools
 from concurrent.futures import ProcessPoolExecutor, Future
 from typing import Tuple, Callable, Iterator, Dict, Set
 
@@ -9,9 +8,8 @@ from glm import ivec3
 from numpy.random import Generator
 from ordered_set import OrderedSet
 
-import Adjacency
 import globals
-from Adjacency import StructureRotation, StructureAdjacency
+from Adjacency import StructureRotation
 from StructureBase import Structure
 
 
@@ -20,7 +18,6 @@ class WaveFunctionCollapse:
     rng: Generator
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None
     structureWeights: Dict[str, float]
-    structureAdjacencies: Dict[str, StructureAdjacency]
     stateSpaceSize: ivec3
     stateSpace: Dict[ivec3, OrderedSet[StructureRotation]]
     workList: Dict[ivec3, OrderedSet[StructureRotation]]
@@ -47,12 +44,6 @@ class WaveFunctionCollapse:
         if not self.stateSpaceSize >= ivec3(1, 1, 1):
             raise ValueError('State space size should be at least (1, 1, 1)')
 
-        self.structureAdjacencies = globals.adjacencies
-        self.defaultDomain = OrderedSet(
-            StructureRotation(structureName, rotation)
-            for structureName, rotation in itertools.product(self.structureAdjacencies.keys(), range(4))
-        )
-
         self.initStateSpaceWithDefaultDomain()
         if initFunction:
             initFunction(self)
@@ -63,7 +54,7 @@ class WaveFunctionCollapse:
     def initStateSpaceWithDefaultDomain(self):
         self.stateSpace.clear()
         for index in self.cellCoordinates:
-            self.stateSpace[index] = self.defaultDomain.copy()
+            self.stateSpace[index] = globals.defaultDomain.copy()
 
     @property
     def cellCoordinates(self) -> Iterator[ivec3]:
@@ -85,7 +76,7 @@ class WaveFunctionCollapse:
 
     @property
     def lowestEntropy(self) -> int:
-        minEntrophy = len(self.defaultDomain) + 1
+        minEntrophy = len(globals.defaultDomain) + 1
         for cellState in self.stateSpace.values():
             entrophySize = len(cellState)
             if entrophySize == 0:
@@ -175,7 +166,6 @@ class WaveFunctionCollapse:
                 cellIndex,
                 'xBackward',
                 self.stateSpace,
-                self.structureAdjacencies,
             ))
         xForward = ivec3(x + 1, y, z)
         if x < self.stateSpaceSize.x - 1 and xForward not in self.workList:
@@ -184,7 +174,6 @@ class WaveFunctionCollapse:
                 cellIndex,
                 'xForward',
                 self.stateSpace,
-                self.structureAdjacencies,
             ))
 
         yBackward = ivec3(x, y - 1, z)
@@ -194,7 +183,6 @@ class WaveFunctionCollapse:
                 cellIndex,
                 'yBackward',
                 self.stateSpace,
-                self.structureAdjacencies,
             ))
         yForward = ivec3(x, y + 1, z)
         if y < self.stateSpaceSize.y - 1 and yForward not in self.workList:
@@ -203,7 +191,6 @@ class WaveFunctionCollapse:
                 cellIndex,
                 'yForward',
                 self.stateSpace,
-                self.structureAdjacencies,
             ))
 
         zBackward = ivec3(x, y, z - 1)
@@ -213,7 +200,6 @@ class WaveFunctionCollapse:
                 cellIndex,
                 'zBackward',
                 self.stateSpace,
-                self.structureAdjacencies,
             ))
         zForward = ivec3(x, y, z + 1)
         if z < self.stateSpaceSize.z - 1 and (x, y, z + 1) not in self.workList:
@@ -222,7 +208,6 @@ class WaveFunctionCollapse:
                 cellIndex,
                 'zForward',
                 self.stateSpace,
-                self.structureAdjacencies,
             ))
 
         return nextTasks
@@ -233,7 +218,6 @@ class WaveFunctionCollapse:
         cellIndex: ivec3,
         axis: str,
         stateSpace: Dict[ivec3, OrderedSet[StructureRotation]],
-        structureAdjacencies: Dict[str, StructureAdjacency],
     ) -> Dict[ivec3, OrderedSet[StructureRotation]]:
         return {
             neighbourCellIndex:
@@ -241,7 +225,6 @@ class WaveFunctionCollapse:
                 cellIndex,
                 axis,
                 stateSpace,
-                structureAdjacencies
             ))
         }
 
@@ -250,11 +233,10 @@ class WaveFunctionCollapse:
         cellIndex: ivec3,
         axis: str,
         stateSpace: Dict[ivec3, OrderedSet[StructureRotation]],
-        structureAdjacencies: Dict[str, StructureAdjacency],
     ) -> Set[StructureRotation]:
         allowedStates: Set[StructureRotation] = set()
         for s in stateSpace[cellIndex]:
-            allowedStates.update(structureAdjacencies[s.structureName].adjacentStructures(
+            allowedStates.update(globals.adjacencies[s.structureName].adjacentStructures(
                 axis,
                 s.rotation
             ))

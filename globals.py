@@ -1,4 +1,7 @@
+import itertools
 from pathlib import Path
+
+from ordered_set import OrderedSet
 
 import Adjacency
 from StructureFolder import StructureFolder
@@ -10,6 +13,7 @@ global rngSeed
 global structureFolders
 global adjacencies
 global structureWeights
+global defaultDomain
 
 global buildarea
 global editor
@@ -35,7 +39,12 @@ def initialize():
 
     interface.runCommand(
         'setbuildarea 21 -60 164 101 -40 244'
+    global defaultDomain
+    defaultDomain = OrderedSet(
+        Adjacency.StructureRotation(structureName, rotation)
+        for structureName, rotation in itertools.product(adjacencies.keys(), range(4))
     )
+
     interface.runCommand(
         'fill 21 -60 164 101 -40 244 minecraft:air'
     )

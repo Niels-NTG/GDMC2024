@@ -35,8 +35,6 @@ class BalconyR(Structure):
         ],
     )
 
-    weight = 0.2
-
     def __init__(
         self,
         withRotation: int = 0,

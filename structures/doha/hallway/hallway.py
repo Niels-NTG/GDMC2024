@@ -42,27 +42,13 @@ class Hallway(Structure):
         ],
         zForward=[
             ('air', -1),
-            ('wall_l', 3),
-            ('wall_r', 3),
-            ('wall_l_inner', 3),
-            ('wall_r_inner', 3),
-            ('wall_lectern', 1),
-            ('corner_outer', 0),
-            ('corner_outer', 1),
         ],
         zBackward=[
             ('air', -1),
-            ('wall_l', 1),
-            ('wall_r', 1),
-            ('wall_l_inner', 1),
-            ('wall_r_inner', 1),
-            ('wall_lectern', 3),
-            ('corner_outer', 2),
-            ('corner_outer', 3),
         ]
     )
 
-    weight = 0.4
+    weight = 0.2
 
     def __init__(
         self,

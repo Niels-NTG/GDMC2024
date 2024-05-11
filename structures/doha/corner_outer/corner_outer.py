@@ -18,18 +18,6 @@ class CornerOuter(Structure):
         ],
         xBackward=[
             ('air', -1),
-            ('wall_l', 0),
-            ('wall_r', 0),
-            ('wall_l_inner', 0),
-            ('wall_r_inner', 0),
-            ('wall_lectern', 2),
-            ('hallway', 1),
-            ('hallway', 3),
-            ('ladder', 0),
-            ('ladder', 1),
-            ('ladder', 3),
-            ('corner_outer', 1),
-            ('corner_outer', 2),
         ],
         yForward=[
             ('air', -1),
@@ -63,18 +51,6 @@ class CornerOuter(Structure):
         ],
         zBackward=[
             ('air', -1),
-            ('corner_outer', 2),
-            ('corner_outer', 3),
-            ('hallway', 0),
-            ('hallway', 2),
-            ('ladder', 0),
-            ('ladder', 1),
-            ('ladder', 2),
-            ('wall_l', 1),
-            ('wall_r', 1),
-            ('wall_l_inner', 1),
-            ('wall_r_inner', 1),
-            ('wall_lectern', 3),
         ]
     )
 

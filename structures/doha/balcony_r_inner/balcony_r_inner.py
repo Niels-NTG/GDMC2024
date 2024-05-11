@@ -32,6 +32,8 @@ class BalconyRInner(Structure):
         ],
         walls=[
             'xForward',
+            'yForward',
+            'yBackward',
         ],
     )
 

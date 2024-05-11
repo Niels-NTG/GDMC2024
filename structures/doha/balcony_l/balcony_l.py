@@ -32,6 +32,8 @@ class BalconyL(Structure):
         ],
         walls=[
             'xForward',
+            'yForward',
+            'yBackward',
         ],
     )
 

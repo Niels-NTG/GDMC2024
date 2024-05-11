@@ -49,6 +49,8 @@ class Hallway(Structure):
         walls=[
             'zForward',
             'zBackward',
+            'yForward',
+            'yBackward',
         ],
     )
 

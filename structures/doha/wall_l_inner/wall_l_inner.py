@@ -58,6 +58,8 @@ class WallLInner(Structure):
         ],
         walls=[
             'xForward',
+            'yForward',
+            'yBackward',
         ]
     )
 

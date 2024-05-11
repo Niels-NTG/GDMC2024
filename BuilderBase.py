@@ -23,7 +23,7 @@ class Builder:
             volumeGrid=volumeGrid,
             initFunction=self.reinitWFC,
             validationFunction=Builder.isValid,
-            structureWeights=Builder.generateWeights('noCeiling'),
+            structureWeights=Builder.generateWeights(),
         )
 
         wfc.removeOrphanedBuildings()

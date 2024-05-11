@@ -49,7 +49,11 @@ class CornerInner(Structure):
         ],
         zBackward=[
             ('wall_r', 0),
-        ]
+        ],
+        walls=[
+            'yForward',
+            'yBackward',
+        ],
     )
 
     weight = 0.8

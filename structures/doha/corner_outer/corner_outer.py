@@ -69,6 +69,8 @@ class CornerOuter(Structure):
         walls=[
             'xBackward',
             'zBackward',
+            'yForward',
+            'yBackward',
         ],
     )
 

@@ -53,7 +53,11 @@ class TJunction(Structure):
         zBackward=[
             ('wall_r', 0),
             ('corner_outer', 1),
-        ]
+        ],
+        walls=[
+            'yForward',
+            'yBackward',
+        ],
     )
 
     weight = 0.8

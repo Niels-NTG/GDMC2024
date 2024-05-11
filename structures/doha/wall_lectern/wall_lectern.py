@@ -60,6 +60,8 @@ class WallLectern(Structure):
         ],
         walls=[
             'xBackward',
+            'yForward',
+            'yBackward',
         ]
     )
 

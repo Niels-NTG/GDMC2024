@@ -58,8 +58,8 @@ class StructureAdjacency:
         self.zForward = createRotationList(zForward)
         self.zBackward = createRotationList(zBackward)
         self.walls = walls
-        if walls is not None and not set(walls).issubset(set(ROTATIONAL_AXES)):
-            raise ValueError(f'Walls {walls} contains value not in {ROTATIONAL_AXES}')
+        if walls is not None and not set(walls).issubset(set(AXES)):
+            raise ValueError(f'Walls {walls} contains value not in {AXES}')
 
     @functools.cache
     def adjacentStructures(self, axis: str, selfRotation: int) -> Set[StructureRotation]:
@@ -90,12 +90,15 @@ class StructureAdjacency:
     def rotatedNonWallAxes(self, selfRotation: int) -> List[str]:
         selfRotation = selfRotation % 4
         if self.walls is None:
-            return ROTATIONAL_AXES
+            return AXES
         openSpaces: List[str] = []
         rotatedWalls: List[str] = []
         for wall in self.walls:
-            rotatedWalls.append(ROTATIONAL_AXES[(selfRotation + ROTATIONAL_AXES.index(wall)) % 4])
-        for axis in ROTATIONAL_AXES:
+            if wall.startswith('y'):
+                rotatedWalls.append(wall)
+            else:
+                rotatedWalls.append(ROTATIONAL_AXES[(selfRotation + ROTATIONAL_AXES.index(wall)) % 4])
+        for axis in AXES:
             if axis not in rotatedWalls:
                 openSpaces.append(axis)
         return openSpaces

@@ -30,7 +30,11 @@ class BalconyCorner(Structure):
         zBackward=[
             ('t_junction', 3),
             ('wall_lectern', 1),
-        ]
+        ],
+        walls=[
+            'yForward',
+            'yBackward',
+        ],
     )
 
     def __init__(

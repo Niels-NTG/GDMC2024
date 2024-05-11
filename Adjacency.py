@@ -8,6 +8,8 @@ from typing import List, Tuple, Optional, Dict, Set
 from glm import ivec3
 
 AXES: List[str] = ['xForward', 'xBackward', 'yForward', 'yBackward', 'zForward', 'zBackward']
+ROTATIONAL_AXES: List[str] = ['xForward', 'zForward', 'xBackward', 'zBackward']
+
 
 @dataclass(frozen=True)
 class StructureRotation:
@@ -33,6 +35,7 @@ class StructureAdjacency:
     yBackward: Set[StructureRotation]
     zForward: Set[StructureRotation]
     zBackward: Set[StructureRotation]
+    walls: List[str]
 
     def __init__(
         self,
@@ -43,6 +46,7 @@ class StructureAdjacency:
         yBackward: Optional[List[Tuple[str, int]]] = None,
         zForward: Optional[List[Tuple[str, int]]] = None,
         zBackward: Optional[List[Tuple[str, int]]] = None,
+        walls: Optional[List[str]] = None
     ):
         self.name = name
         self.xForward = createRotationList(xForward)
@@ -51,6 +55,9 @@ class StructureAdjacency:
         self.yBackward = createRotationList(yBackward)
         self.zForward = createRotationList(zForward)
         self.zBackward = createRotationList(zBackward)
+        self.walls = walls
+        if walls is not None and not set(walls).issubset(set(ROTATIONAL_AXES)):
+            raise ValueError(f'Walls {walls} contains value not in {ROTATIONAL_AXES}')
 
     @functools.cache
     def adjacentStructures(self, axis: str, selfRotation: int) -> Set[StructureRotation]:
@@ -76,6 +83,27 @@ class StructureAdjacency:
             case 'yBackward':
                 return set(map(lambda r: r.rotate(selfRotation), self.yBackward))
         raise ValueError(f'Invalid axis "{axis}"')
+
+    @functools.cache
+    def rotatedNonWallAxes(self, selfRotation: int) -> List[str]:
+        selfRotation = selfRotation % 4
+        if self.walls is None:
+            return ROTATIONAL_AXES
+        openSpaces: List[str] = []
+        rotatedWalls: List[str] = []
+        for wall in self.walls:
+            rotatedWalls.append(ROTATIONAL_AXES[(selfRotation + ROTATIONAL_AXES.index(wall)) % 4])
+        for axis in ROTATIONAL_AXES:
+            if axis not in rotatedWalls:
+                openSpaces.append(axis)
+        return openSpaces
+
+    @functools.cache
+    def getNonWallPositions(self, selfRotation: int, pos: ivec3) -> Set[ivec3]:
+        openPositions: Set[ivec3] = set()
+        for wall in self.rotatedNonWallAxes(selfRotation):
+            openPositions.add(getPositionFromAxis(axis=wall, pos=pos)[0])
+        return openPositions
 
     def __hash__(self):
         return hash(self.name)

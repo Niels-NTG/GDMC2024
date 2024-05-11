@@ -65,7 +65,11 @@ class CornerOuter(Structure):
             ('wall_lectern', 3),
             ('corner_outer', 2),
             ('corner_outer', 3),
-        ]
+        ],
+        walls=[
+            'xBackward',
+            'zBackward',
+        ],
     )
 
     weight = 0.08

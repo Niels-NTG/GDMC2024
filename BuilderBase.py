@@ -28,6 +28,7 @@ class Builder:
             structureWeights=Builder.generateWeights('noAtrium'),
         )
 
+        wfc.removeOrphanedBuildings()
         for building in wfc.getCollapsedState(buildVolumeOffset=volume.offset):
             building.place()
 

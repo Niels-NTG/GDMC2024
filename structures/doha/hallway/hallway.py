@@ -45,7 +45,11 @@ class Hallway(Structure):
         ],
         zBackward=[
             ('air', -1),
-        ]
+        ],
+        walls=[
+            'zForward',
+            'zBackward',
+        ],
     )
 
     weight = 0.2

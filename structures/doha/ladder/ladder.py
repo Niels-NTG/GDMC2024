@@ -27,7 +27,12 @@ class Ladder(Structure):
         ],
         zBackward=[
             ('air', -1),
-        ]
+        ],
+        walls=[
+            'xForward',
+            'zForward',
+            'zBackward',
+        ],
     )
 
     weight = 0.1

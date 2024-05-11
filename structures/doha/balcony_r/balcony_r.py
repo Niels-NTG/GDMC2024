@@ -29,7 +29,10 @@ class BalconyR(Structure):
         ],
         zBackward=[
             ('balcony_l', 0),
-        ]
+        ],
+        walls=[
+            'xForward',
+        ],
     )
 
     weight = 0.2

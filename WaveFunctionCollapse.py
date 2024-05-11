@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 from concurrent.futures import ProcessPoolExecutor, Future
 from copy import deepcopy
-from typing import Tuple, Callable, Iterator, Dict, Set
+from typing import Tuple, Callable, Iterator, Dict, Set, List
 
 import numpy as np
 from glm import ivec3
@@ -123,6 +123,11 @@ class WaveFunctionCollapse:
     def randomUncollapsedCellIndex(self) -> ivec3:
         # noinspection PyTypeChecker
         return ivec3(self.rng.choice(list(self.uncollapsedCellIndicies)))
+
+    @property
+    def randomCollapsedCellIndex(self) -> ivec3:
+        # noinspection PyTypeChecker
+        return ivec3(self.rng.choice(list(self.getCellIndicesWithEntropy(entropy=1))))
 
     @property
     def isCollapsed(self) -> bool:
@@ -268,7 +273,52 @@ class WaveFunctionCollapse:
                 offset=buildVolumeOffset,
             )
             yield structureInstance
-    
+
+    def scanForBuildings(self) -> List[Set[ivec3]]:
+        if not self.isCollapsed:
+            raise Exception('WFC is not fully collapsed yet! Therefore volume cannot be scanned yet.')
+        buildings: List[Set[ivec3]] = []
+        newBuilding: Set[ivec3] = set()
+        cellsVisited: Set[ivec3] = set()
+
+        while len(cellsVisited) != len(self.stateSpace):
+            randomIndex = self.randomCollapsedCellIndex
+            if randomIndex in cellsVisited:
+                continue
+
+            if self.stateSpace[randomIndex][0].structureName.endswith('air'):
+                cellsVisited.add(randomIndex)
+                continue
+
+            scanWorkList: List[ivec3] = [randomIndex]
+            while len(scanWorkList) > 0:
+                cellIndex = scanWorkList.pop()
+                if cellIndex in cellsVisited:
+                    continue
+
+                cellState: StructureRotation = self.stateSpace[cellIndex][0]
+
+                openPositions = self.defaultAdjacencies[cellState.structureName].getNonWallPositions(
+                    cellState.rotation,
+                    cellIndex
+                )
+                newBuilding.add(cellIndex)
+                newBuilding.update(openPositions)
+                scanWorkList.extend(openPositions)
+                cellsVisited.add(cellIndex)
+            buildings.append(newBuilding.copy())
+            newBuilding.clear()
+
+        return buildings
+
+    def removeOrphanedBuildings(self):
+        buildings = self.scanForBuildings()
+        largestBuilding = max(buildings, key=lambda x: len(x))
+        for building in buildings:
+            if building != largestBuilding:
+                for pos in building:
+                    del self.stateSpace[pos]
+
     @property
     def structuresUsed(self) -> Iterator[StructureRotation]:
         for cellState in self.stateSpace.values():

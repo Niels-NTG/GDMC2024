@@ -57,6 +57,9 @@ class WallLectern(Structure):
         zBackward=[
             ('wall_l', 2),
             ('corner_outer', 0),
+        ],
+        walls=[
+            'xBackward',
         ]
     )
 

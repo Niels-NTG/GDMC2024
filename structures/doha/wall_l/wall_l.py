@@ -56,7 +56,10 @@ class WallL(Structure):
             ('t_junction', 0),
             ('wall_lectern', 2),
             ('corner_inner', 1),
-        ]
+        ],
+        walls=[
+            'xForward',
+        ],
     )
 
     weight = 0.8

@@ -56,6 +56,9 @@ class WallR(Structure):
         ],
         zBackward=[
             ('wall_l', 0),
+        ],
+        walls=[
+            'xForward',
         ]
     )
 

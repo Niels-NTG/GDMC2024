@@ -17,6 +17,8 @@ class WallLInner(Structure):
             ('wall_l_inner', 2),
             ('wall_r_inner', 2),
             ('wall_lectern', 0),
+            ('corner_outer', 0),
+            ('corner_outer', 3),
         ],
         xBackward=[
             ('wall_r_inner', 2),

@@ -116,7 +116,7 @@ class Air(Structure):
         ]
     )
 
-    weight = 0.04
+    weight = 0.01
 
     def __init__(
         self,

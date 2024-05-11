@@ -7,6 +7,8 @@ from typing import List, Tuple, Optional, Dict, Set
 
 from glm import ivec3
 
+from gdpc.src.gdpc import Box
+
 AXES: List[str] = ['xForward', 'xBackward', 'yForward', 'yBackward', 'zForward', 'zBackward']
 ROTATIONAL_AXES: List[str] = ['xForward', 'zForward', 'xBackward', 'zBackward']
 
@@ -99,10 +101,12 @@ class StructureAdjacency:
         return openSpaces
 
     @functools.cache
-    def getNonWallPositions(self, selfRotation: int, pos: ivec3) -> Set[ivec3]:
+    def getNonWallPositions(self, selfRotation: int, pos: ivec3, box: Box) -> Set[ivec3]:
         openPositions: Set[ivec3] = set()
         for wall in self.rotatedNonWallAxes(selfRotation):
-            openPositions.add(getPositionFromAxis(axis=wall, pos=pos)[0])
+            openPosition = getPositionFromAxis(axis=wall, pos=pos)[0]
+            if box.contains(openPosition):
+                openPositions.add(openPosition)
         return openPositions
 
     def __hash__(self):

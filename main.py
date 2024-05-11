@@ -4,4 +4,4 @@ import globals
 globals.initialize()
 
 
-BuilderBase.Builder(buildingName='library', volume=globals.buildVolume)
+BuilderBase.Builder(volume=globals.buildVolume)

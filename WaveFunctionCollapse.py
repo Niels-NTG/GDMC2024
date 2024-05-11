@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 from concurrent.futures import ProcessPoolExecutor, Future
 from copy import deepcopy
-from typing import Tuple, Callable, Iterator, Dict, Set, List
+from typing import Tuple, Callable, Iterator, Dict, Set, List, Optional
 
 import numpy as np
 from glm import ivec3
@@ -14,11 +14,11 @@ import globals
 import Adjacency
 from Adjacency import StructureRotation, StructureAdjacency
 from StructureBase import Structure
+from gdpc.src.gdpc import Box
 
 
 class WaveFunctionCollapse:
 
-    stateSpaceSize: ivec3
     stateSpace: Dict[ivec3, OrderedSet[StructureRotation]]
     structureWeights: Dict[str, float]
     defaultAdjacencies: Dict[str, StructureAdjacency]
@@ -29,18 +29,19 @@ class WaveFunctionCollapse:
 
     def __init__(
         self,
-        volumeGrid: ivec3,
+        volumeGrid: Box,
         structureWeights: Dict[str, float],
+        stateSpace: Optional[Dict[ivec3, OrderedSet[StructureRotation]]] = None,
         initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
         validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
         rngSeed: int | None = None,
     ):
 
-        self.stateSpaceSize = volumeGrid
-        if not self.stateSpaceSize >= ivec3(1, 1, 1):
+        self.stateSpaceBox = volumeGrid
+        if not volumeGrid.size >= ivec3(1, 1, 1):
             raise ValueError('State space size should be at least (1, 1, 1)')
 
-        self.stateSpace = dict()
+        self.stateSpace = dict() if stateSpace is None else stateSpace
 
         self.structureWeights = structureWeights
 
@@ -75,15 +76,14 @@ class WaveFunctionCollapse:
         )
 
     def initStateSpaceWithDefaultDomain(self):
-        self.stateSpace.clear()
         for index in self.cellCoordinates:
             self.stateSpace[index] = deepcopy(self.defaultDomain)
 
     @property
     def cellCoordinates(self) -> Iterator[ivec3]:
-        for x in range(self.stateSpaceSize.x):
-            for y in range(self.stateSpaceSize.y):
-                for z in range(self.stateSpaceSize.z):
+        for x in range(self.stateSpaceBox.begin.x, self.stateSpaceBox.end.x):
+            for y in range(self.stateSpaceBox.begin.y, self.stateSpaceBox.end.y):
+                for z in range(self.stateSpaceBox.begin.z, self.stateSpaceBox.end.z):
                     yield ivec3(x, y, z)
 
     @property
@@ -186,14 +186,14 @@ class WaveFunctionCollapse:
         self.stateSpace[cellIndex] = remainingStates
 
         xBackward, axis = Adjacency.getPositionFromAxis('xBackward', cellIndex)
-        if x > 0 and xBackward not in self.workList:
+        if x > self.stateSpaceBox.begin.x and xBackward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 xBackward,
                 cellIndex,
                 axis,
             ))
         xForward, axis = Adjacency.getPositionFromAxis('xForward', cellIndex)
-        if x < self.stateSpaceSize.x - 1 and xForward not in self.workList:
+        if x < self.stateSpaceBox.last.x and xForward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 xForward,
                 cellIndex,
@@ -201,14 +201,14 @@ class WaveFunctionCollapse:
             ))
 
         yBackward, axis = Adjacency.getPositionFromAxis('yBackward', cellIndex)
-        if y > 0 and yBackward not in self.workList:
+        if y > self.stateSpaceBox.begin.y and yBackward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 yBackward,
                 cellIndex,
                 axis,
             ))
         yForward, axis = Adjacency.getPositionFromAxis('yForward', cellIndex)
-        if y < self.stateSpaceSize.y - 1 and yForward not in self.workList:
+        if y < self.stateSpaceBox.last.y and yForward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 yForward,
                 cellIndex,
@@ -216,14 +216,14 @@ class WaveFunctionCollapse:
             ))
 
         zBackward, axis = Adjacency.getPositionFromAxis('zBackward', cellIndex)
-        if z > 0 and zBackward not in self.workList:
+        if z > self.stateSpaceBox.begin.z and zBackward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 zBackward,
                 cellIndex,
                 axis,
             ))
         zForward, axis = Adjacency.getPositionFromAxis('zForward', cellIndex)
-        if z < self.stateSpaceSize.z - 1 and zForward not in self.workList:
+        if z < self.stateSpaceBox.last.z and zForward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 zForward,
                 cellIndex,
@@ -298,9 +298,10 @@ class WaveFunctionCollapse:
 
                 cellState: StructureRotation = self.stateSpace[cellIndex][0]
 
-                openPositions = self.defaultAdjacencies[cellState.structureName].getNonWallPositions(
+                openPositions: Set[ivec3] = self.defaultAdjacencies[cellState.structureName].getNonWallPositions(
                     cellState.rotation,
-                    cellIndex
+                    cellIndex,
+                    self.stateSpaceBox,
                 )
                 newBuilding.add(cellIndex)
                 newBuilding.update(openPositions)
@@ -329,7 +330,7 @@ class WaveFunctionCollapse:
 
 def startWFCInstance(
     attempt: int,
-    volumeGrid: ivec3,
+    volumeGrid: Box,
     structureWeights: Dict[str, float],
     initFunction: Callable[[WaveFunctionCollapse], None] | None,
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None,
@@ -348,7 +349,7 @@ def startWFCInstance(
 
 
 def startMultiThreadedWFC(
-    volumeGrid: ivec3,
+    volumeGrid: Box,
     structureWeights: Dict[str, float],
     initFunction: Callable[[WaveFunctionCollapse], None] | None,
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None,
@@ -388,7 +389,7 @@ def startMultiThreadedWFC(
 
 
 def startSingleThreadedWFC(
-    volumeGrid: ivec3,
+    volumeGrid: Box,
     structureWeights: Dict[str, float],
     initFunction: Callable[[WaveFunctionCollapse], None] | None,
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None,

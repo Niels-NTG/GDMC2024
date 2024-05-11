@@ -14,16 +14,14 @@ class Builder:
     def __init__(
         self,
         volume: Box,
-        buildingName: str,
         tileSize: ivec3 = ivec3(5, 10, 5),
     ):
-        self.name = buildingName
 
-        volumeGrid = volume.size // tileSize
-        print(f'Running WFC in volume {volumeGrid.x}x{volumeGrid.y}x{volumeGrid.z}')
+        volumeGrid = Box(ivec3(0, 0, 0), volume.size // tileSize)
+        print(f'Running WFC in volume {volumeGrid.size.x}x{volumeGrid.size.y}x{volumeGrid.size.z}')
         wfc = startMultiThreadedWFC(
             volumeGrid=volumeGrid,
-            initFunction=Builder.reinitWFC,
+            initFunction=self.reinitWFC,
             validationFunction=Builder.isValid,
             structureWeights=Builder.generateWeights('noAtrium'),
         )
@@ -41,17 +39,15 @@ class Builder:
             return False
         return True
 
-    @staticmethod
-    def reinitWFC(wfcInstance: WaveFunctionCollapse):
-        Builder.collapseVolumeEdgeToAir(wfcInstance)
+    def reinitWFC(self, wfcInstance: WaveFunctionCollapse):
+        self.collapseVolumeEdgeToAir(wfcInstance)
 
-    @staticmethod
-    def collapseVolumeEdgeToAir(wfcInstance: WaveFunctionCollapse):
+    def collapseVolumeEdgeToAir(self, wfcInstance: WaveFunctionCollapse):
         keys = wfcInstance.stateSpace.keys()
         for index in keys:
             if not (
-                index.x > 0 and index.x < wfcInstance.stateSpaceSize.x - 1 and
-                index.z > 0 and index.z < wfcInstance.stateSpaceSize.z - 1
+                index.x > wfcInstance.stateSpaceBox.begin.x and index.x < wfcInstance.stateSpaceBox.last.x and
+                index.z > wfcInstance.stateSpaceBox.begin.z and index.z < wfcInstance.stateSpaceBox.last.z
             ):
                 wfcInstance.stateSpace[index] = OrderedSet(Adjacency.getAllRotations(structureName='air'))
 

@@ -5,8 +5,9 @@ from copy import deepcopy
 from dataclasses import dataclass, replace
 from typing import List, Tuple, Optional, Dict, Set
 
-AXES: list[str] = ['xForward', 'xBackward', 'yForward', 'yBackward', 'zForward', 'zBackward']
+from glm import ivec3
 
+AXES: List[str] = ['xForward', 'xBackward', 'yForward', 'yBackward', 'zForward', 'zBackward']
 
 @dataclass(frozen=True)
 class StructureRotation:
@@ -111,6 +112,24 @@ def getOppositeAxis(axis: str) -> str:
         case 'zBackward':
             return 'zForward'
     raise ValueError(f'axis "{axis}" has no opposite. Axis is invalid!')
+
+
+@functools.cache
+def getPositionFromAxis(axis: str, pos: ivec3) -> Tuple[ivec3, str]:
+    match axis:
+        case 'xBackward':
+            return ivec3(pos.x - 1, pos.y, pos.z), axis
+        case 'xForward':
+            return ivec3(pos.x + 1, pos.y, pos.z), axis
+        case 'yBackward':
+            return ivec3(pos.x, pos.y - 1, pos.z), axis
+        case 'yForward':
+            return ivec3(pos.x, pos.y + 1, pos.z), axis
+        case 'zBackward':
+            return ivec3(pos.x, pos.y, pos.z - 1), axis
+        case 'zForward':
+            return ivec3(pos.x, pos.y, pos.z + 1), axis
+    raise ValueError(f'Axis {axis} is invalid!')
 
 
 def checkSymmetry(adjacencies: Dict[str, StructureAdjacency]):

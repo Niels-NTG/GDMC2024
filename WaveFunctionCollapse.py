@@ -180,49 +180,49 @@ class WaveFunctionCollapse:
         # Update cell to new collapsed state
         self.stateSpace[cellIndex] = remainingStates
 
-        xBackward = ivec3(x - 1, y, z)
+        xBackward, axis = Adjacency.getPositionFromAxis('xBackward', cellIndex)
         if x > 0 and xBackward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 xBackward,
                 cellIndex,
-                'xBackward',
+                axis,
             ))
-        xForward = ivec3(x + 1, y, z)
+        xForward, axis = Adjacency.getPositionFromAxis('xForward', cellIndex)
         if x < self.stateSpaceSize.x - 1 and xForward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 xForward,
                 cellIndex,
-                'xForward',
+                axis,
             ))
 
-        yBackward = ivec3(x, y - 1, z)
+        yBackward, axis = Adjacency.getPositionFromAxis('yBackward', cellIndex)
         if y > 0 and yBackward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 yBackward,
                 cellIndex,
-                'yBackward',
+                axis,
             ))
-        yForward = ivec3(x, y + 1, z)
+        yForward, axis = Adjacency.getPositionFromAxis('yForward', cellIndex)
         if y < self.stateSpaceSize.y - 1 and yForward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 yForward,
                 cellIndex,
-                'yForward',
+                axis,
             ))
 
-        zBackward = ivec3(x, y, z - 1)
+        zBackward, axis = Adjacency.getPositionFromAxis('zBackward', cellIndex)
         if z > 0 and zBackward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 zBackward,
                 cellIndex,
-                'zBackward',
+                axis,
             ))
-        zForward = ivec3(x, y, z + 1)
-        if z < self.stateSpaceSize.z - 1 and (x, y, z + 1) not in self.workList:
+        zForward, axis = Adjacency.getPositionFromAxis('zForward', cellIndex)
+        if z < self.stateSpaceSize.z - 1 and zForward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 zForward,
                 cellIndex,
-                'zForward',
+                axis,
             ))
 
         return nextTasks

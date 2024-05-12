@@ -17,6 +17,7 @@ class CornerInner(Structure):
             ('wall_r_inner', 2),
             ('balcony_r_inner', 2),
             ('corner_inner', 3),
+            ('balcony_corner', 2),
         ],
         yForward=[
             ('air', -1),
@@ -46,6 +47,7 @@ class CornerInner(Structure):
             ('corner_inner', 1),
             ('wall_l_inner', 1),
             ('balcony_l_inner', 1),
+            ('balcony_corner', 0),
         ],
         zBackward=[
             ('wall_r', 0),

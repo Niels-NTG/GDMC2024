@@ -16,6 +16,7 @@ class BalconyCorner(Structure):
         xBackward=[
             ('t_junction', 2),
             ('wall_lectern', 0),
+            ('corner_inner', 2),
         ],
         yForward=[
             ('balcony_corner', 0),
@@ -30,6 +31,7 @@ class BalconyCorner(Structure):
         zBackward=[
             ('t_junction', 3),
             ('wall_lectern', 1),
+            ('corner_inner', 0),
         ],
         walls=[
             'yForward',

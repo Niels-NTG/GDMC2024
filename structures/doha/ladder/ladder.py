@@ -17,10 +17,10 @@ class Ladder(Structure):
             ('t_junction', 0),
         ],
         yForward=[
-            ('ladder', -1),
+            ('ladder', 0),
         ],
         yBackward=[
-            ('ladder', -1),
+            ('ladder', 0),
         ],
         zForward=[
             ('air', -1),

@@ -314,11 +314,12 @@ class WaveFunctionCollapse:
 
     def removeOrphanedBuildings(self):
         buildings = self.scanForBuildings()
+        print(f'Found {len(buildings)} distinct buildings, removing orphaned buildings…')
         largestBuilding = max(buildings, key=lambda x: len(x))
         for building in buildings:
             if building != largestBuilding:
                 for pos in building:
-                    del self.stateSpace[pos]
+                    self.stateSpace[pos] = OrderedSet({StructureRotation(structureName='air', rotation=0)})
 
     @property
     def structuresUsed(self) -> Iterator[StructureRotation]:

@@ -43,7 +43,10 @@ class AtriumCeilingPlantsC(Structure):
             ('atrium_ceiling_plants_b', 0),
             ('atrium_ceiling_plants_b', 2),
             ('atrium_ceiling_edge', 1),
-        ]
+        ],
+        walls=[
+            'yForward',
+        ],
     )
 
     weight = 0.2

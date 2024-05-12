@@ -43,7 +43,10 @@ class AtriumCeilingA(Structure):
             ('atrium_ceiling_plants_b', 1),
             ('atrium_ceiling_plants_b', 3),
             ('atrium_ceiling_edge', 1),
-        ]
+        ],
+        walls=[
+            'yForward',
+        ],
     )
 
     def __init__(

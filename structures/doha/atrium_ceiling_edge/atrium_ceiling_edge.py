@@ -37,7 +37,11 @@ class AtriumCeilingEdge(Structure):
         zBackward=[
             ('atrium_ceiling_edge', 0),
             ('atrium_ceiling_edge_corner', 0),
-        ]
+        ],
+        walls=[
+            'xBackward',
+            'yForward',
+        ],
     )
 
     def __init__(

@@ -25,6 +25,7 @@ class WallLectern(Structure):
             ('wall_r_inner', 0),
             ('corner_outer', 1),
             ('corner_outer', 2),
+            ('ladder', 0),
         ],
         yForward=[
             ('air', -1),

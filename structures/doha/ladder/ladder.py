@@ -12,6 +12,13 @@ class Ladder(Structure):
         name='ladder',
         xForward=[
             ('air', -1),
+            ('wall_l', 2),
+            ('wall_r', 2),
+            ('wall_l_inner', 2),
+            ('wall_r_inner', 2),
+            ('wall_lectern', 0),
+            ('corner_outer', 0),
+            ('corner_outer', 3),
         ],
         xBackward=[
             ('t_junction', 0),
@@ -35,7 +42,7 @@ class Ladder(Structure):
         ],
     )
 
-    weight = 0.1
+    weight = 0.04
 
     def __init__(
         self,

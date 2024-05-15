@@ -171,11 +171,10 @@ class WaveFunctionCollapse:
         cellIndex: ivec3,
         remainingStates: OrderedSet[StructureRotation],
     ) -> Dict[ivec3, OrderedSet[StructureRotation]]:
-        x, y, z = cellIndex
         nextTasks: Dict[ivec3, OrderedSet[StructureRotation]] = dict()
         if not remainingStates.issubset(self.stateSpace[cellIndex]):
             raise Exception(
-                f'{x} {y} {z} tried to colapse a state to values not available in current superposition: '
+                f'{cellIndex} tried to colapse a state to values not available in current superposition: '
                 f'{remainingStates} ⊄ {self.stateSpace[cellIndex]}'
             )
         if set(remainingStates) == set(self.stateSpace[cellIndex]):
@@ -186,14 +185,14 @@ class WaveFunctionCollapse:
         self.stateSpace[cellIndex] = remainingStates
 
         xBackward, axis = Adjacency.getPositionFromAxis('xBackward', cellIndex)
-        if x > self.stateSpaceBox.begin.x and xBackward not in self.workList:
+        if cellIndex.x > self.stateSpaceBox.begin.x and xBackward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 xBackward,
                 cellIndex,
                 axis,
             ))
         xForward, axis = Adjacency.getPositionFromAxis('xForward', cellIndex)
-        if x < self.stateSpaceBox.last.x and xForward not in self.workList:
+        if cellIndex.x < self.stateSpaceBox.last.x and xForward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 xForward,
                 cellIndex,
@@ -201,14 +200,14 @@ class WaveFunctionCollapse:
             ))
 
         yBackward, axis = Adjacency.getPositionFromAxis('yBackward', cellIndex)
-        if y > self.stateSpaceBox.begin.y and yBackward not in self.workList:
+        if cellIndex.y > self.stateSpaceBox.begin.y and yBackward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 yBackward,
                 cellIndex,
                 axis,
             ))
         yForward, axis = Adjacency.getPositionFromAxis('yForward', cellIndex)
-        if y < self.stateSpaceBox.last.y and yForward not in self.workList:
+        if cellIndex.y < self.stateSpaceBox.last.y and yForward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 yForward,
                 cellIndex,
@@ -216,14 +215,14 @@ class WaveFunctionCollapse:
             ))
 
         zBackward, axis = Adjacency.getPositionFromAxis('zBackward', cellIndex)
-        if z > self.stateSpaceBox.begin.z and zBackward not in self.workList:
+        if cellIndex.z > self.stateSpaceBox.begin.z and zBackward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 zBackward,
                 cellIndex,
                 axis,
             ))
         zForward, axis = Adjacency.getPositionFromAxis('zForward', cellIndex)
-        if z < self.stateSpaceBox.last.z and zForward not in self.workList:
+        if cellIndex.z < self.stateSpaceBox.last.z and zForward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
                 zForward,
                 cellIndex,
@@ -410,6 +409,7 @@ def startSingleThreadedWFC(
     while not wfc.collapse():
         rngSeed = (globals.rngSeed + attempt) if globals.rngSeed is not None else None
         wfc.setupRNG(rngSeed)
+        wfc.workList.clear()
         wfc.initStateSpaceWithDefaultDomain()
         if initFunction:
             wfc.initFunction(wfc)

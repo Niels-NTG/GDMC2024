@@ -12,6 +12,7 @@ from ordered_set import OrderedSet
 
 import globals
 import Adjacency
+import vectorTools
 from Adjacency import StructureRotation, StructureAdjacency
 from StructureBase import Structure
 from gdpc.src.gdpc import Box
@@ -81,10 +82,7 @@ class WaveFunctionCollapse:
 
     @property
     def cellCoordinates(self) -> Iterator[ivec3]:
-        for x in range(self.stateSpaceBox.begin.x, self.stateSpaceBox.end.x):
-            for y in range(self.stateSpaceBox.begin.y, self.stateSpaceBox.end.y):
-                for z in range(self.stateSpaceBox.begin.z, self.stateSpaceBox.end.z):
-                    yield ivec3(x, y, z)
+        return vectorTools.boxPositions(self.stateSpaceBox)
 
     @property
     def uncollapsedCellIndicies(self) -> Iterator[ivec3]:

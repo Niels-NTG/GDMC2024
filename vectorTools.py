@@ -5,16 +5,7 @@ import numpy as np
 import glm
 from glm import ivec3, ivec2
 
-from gdpc.src.gdpc.vector_tools import Rect
-
-
-class Direction:
-    X_FORWARD = ivec3(1, 0, 0)
-    X_BACKWARD = ivec3(-1, 0, 0)
-    Y_FORWARD = ivec3(0, 1, 0)
-    Y_BACKWARD = ivec3(0, -1, 0)
-    Z_FORWARD = ivec3(0, 0, 1)
-    Z_BACKWARD = ivec3(0, 0, -1)
+from gdpc.src.gdpc.vector_tools import Rect, Box
 
 
 @functools.cache
@@ -92,6 +83,15 @@ def loop2DwithRects(
             )
             newRect.end = glm.min(newRect.end, end)
             yield newRect
+
+
+def boxPositions(
+    box: Box
+) -> Iterator[ivec3]:
+    for x in range(box.begin.x, box.end.x):
+        for y in range(box.begin.y, box.end.y):
+            for z in range(box.begin.z, box.end.z):
+                yield ivec3(x, y, z)
 
 
 def mergeRects(

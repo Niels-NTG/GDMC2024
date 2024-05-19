@@ -395,25 +395,19 @@ def startSingleThreadedWFC(
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None,
     maxAttempts: int = 10000,
 ) -> WaveFunctionCollapse:
-    wfc = WaveFunctionCollapse(
-        volumeGrid=volumeGrid,
-        structureWeights=structureWeights,
-        initFunction=initFunction,
-        validationFunction=validationFunction,
-        rngSeed=globals.rngSeed,
-    )
     attempt = 1
-    print(f'WFC collapse attempt {attempt}')
-    while not wfc.collapse():
-        rngSeed = (globals.rngSeed + attempt) if globals.rngSeed is not None else None
-        wfc.setupRNG(rngSeed)
-        wfc.workList.clear()
-        wfc.initStateSpaceWithDefaultDomain()
-        if initFunction:
-            wfc.initFunction(wfc)
+    isCollapsed = False
+    wfc = None
+    while not isCollapsed:
+        isCollapsed, wfc, _ = startWFCInstance(
+            attempt=attempt,
+            volumeGrid=volumeGrid,
+            structureWeights=structureWeights,
+            initFunction=initFunction,
+            validationFunction=validationFunction,
+        )
         attempt += 1
         if attempt > maxAttempts:
             raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
-        print(f'WFC collapse attempt {attempt}')
     print(f'WFC collapsed after {attempt} attempts')
     return wfc

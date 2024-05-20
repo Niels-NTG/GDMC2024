@@ -19,6 +19,7 @@ class TJunction(Structure):
         xBackward=[
             ('t_junction', 2),
             ('wall_lectern', 0),
+            ('balcony_middle_inner', 2),
             ('balcony_corner', 1),
             ('balcony_corner', 2),
         ],

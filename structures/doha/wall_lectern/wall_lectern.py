@@ -13,6 +13,7 @@ class WallLectern(Structure):
         xForward=[
             ('wall_lectern', 2),
             ('t_junction', 0),
+            ('balcony_middle_inner', 0),
             ('balcony_corner', 0),
             ('balcony_corner', 3),
         ],

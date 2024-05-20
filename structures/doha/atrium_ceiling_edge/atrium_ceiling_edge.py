@@ -29,6 +29,7 @@ class AtriumCeilingEdge(Structure):
             ('balcony_r', 0),
             ('balcony_l_inner', 0),
             ('balcony_r_inner', 0),
+            ('balcony_middle_inner', 0),
         ],
         zForward=[
             ('atrium_ceiling_edge', 0),

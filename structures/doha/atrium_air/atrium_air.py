@@ -16,6 +16,7 @@ class AtriumAir(Structure):
             ('balcony_r', 2),
             ('balcony_l_inner', 2),
             ('balcony_r_inner', 2),
+            ('balcony_middle_inner', 2),
         ],
         xBackward=[
             ('atrium_air', -1),
@@ -23,6 +24,7 @@ class AtriumAir(Structure):
             ('balcony_r', 0),
             ('balcony_l_inner', 0),
             ('balcony_r_inner', 0),
+            ('balcony_middle_inner', 0),
         ],
         yForward=[
             ('atrium_air', -1),
@@ -43,6 +45,7 @@ class AtriumAir(Structure):
             ('balcony_r', 3),
             ('balcony_l_inner', 3),
             ('balcony_r_inner', 3),
+            ('balcony_middle_inner', 3),
         ],
         zBackward=[
             ('atrium_air', -1),
@@ -50,6 +53,7 @@ class AtriumAir(Structure):
             ('balcony_r', 1),
             ('balcony_l_inner', 1),
             ('balcony_r_inner', 1),
+            ('balcony_middle_inner', 1),
         ]
     )
 

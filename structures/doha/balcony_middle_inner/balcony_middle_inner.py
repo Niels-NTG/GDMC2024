@@ -7,29 +7,28 @@ from Adjacency import StructureAdjacency
 from StructureBase import Structure
 
 
-class BalconyL(Structure):
+class BalconyMiddleInner(Structure):
     adjecencies = StructureAdjacency(
-        name='balcony_l',
+        name='balcony_middle_inner',
         xForward=[
             ('atrium_air', -1),
         ],
         xBackward=[
-            ('wall_r', 2),
+            ('t_junction', 2),
+            ('wall_lectern', 0),
         ],
         yForward=[
-            ('balcony_l', 0),
+            ('balcony_middle_inner', 0),
             ('atrium_ceiling_edge', 0),
         ],
         yBackward=[
-            ('balcony_l', 0),
+            ('balcony_middle_inner', 0),
         ],
         zForward=[
-            ('balcony_r', 0),
+            ('balcony_l', 0),
         ],
         zBackward=[
-            ('balcony_r_inner', 0),
-            ('balcony_corner', 0),
-            ('balcony_middle_inner', 0),
+            ('balcony_r', 0),
         ],
         walls=[
             'xForward',

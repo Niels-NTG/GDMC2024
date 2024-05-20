@@ -72,3 +72,4 @@ class CornerInner(Structure):
             tile=tile,
             offset=offset,
         )
+        # TODO implement pre/post-processing to change flowers

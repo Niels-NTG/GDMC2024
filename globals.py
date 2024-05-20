@@ -33,12 +33,12 @@ def initialize():
     defaultStructureWeights = dict()
     setupStructureWeights()
 
-    interface.runCommand(
-        'setbuildarea 20 -60 164 101 -50 244'
-    )
     # interface.runCommand(
     #     'setbuildarea 20 -60 163 120 -50 263'
     # )
+    interface.runCommand(
+        'setbuildarea 20 -60 160 120 0 260'
+    )
     # interface.runCommand(
     #     'setbuildarea 20 -60 160 160 0 300'
     # )
@@ -50,7 +50,7 @@ def initialize():
     buildarea = interface.getBuildArea()
     global editor
     editor = Editor()
-    editor.loadWorldSlice(rect=buildarea.toRect(), cache=True)
+    # editor.loadWorldSlice(rect=buildarea.toRect(), cache=True)
 
     # TODO implement algorithm to find and define an suitable build volume
     # TODO system should be able to define multiple different build volumes for each

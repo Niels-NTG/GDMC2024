@@ -1,5 +1,5 @@
 import functools
-from typing import Iterator
+from typing import Iterator, List
 
 import numpy as np
 import glm
@@ -95,7 +95,7 @@ def boxPositions(
 
 
 def mergeRects(
-    rectList: list[Rect],
+    rectList: List[Rect],
 ) -> Rect:
     if len(rectList) == 1:
         return rectList[0]
@@ -109,3 +109,41 @@ def mergeRects(
     )
     rect.end = glm.max(rectEnds)
     return rect
+
+
+def mergeBoxes(
+    boxList: List[Box],
+) -> Box:
+    if len(boxList) == 1:
+        return boxList[0]
+    boxStarts: list[ivec2] = []
+    boxEnds: list[ivec2] = []
+    for box in boxList:
+        boxStarts.extend(box.begin)
+        boxEnds.extend(box.end)
+    newBox = Box(
+        offset=glm.min(boxStarts),
+    )
+    newBox.end = glm.max(boxEnds)
+    return newBox
+
+
+@functools.cache
+def intersectionBox(
+    boxA: Box,
+    boxB: Box,
+) -> Box | None:
+    if boxA.collides(boxB):
+        x = max(boxA.offset.x, boxB.offset.x)
+        y = max(boxA.offset.y, boxB.offset.y)
+        z = max(boxA.offset.z, boxB.offset.z)
+        box = Box(
+            offset=ivec3(x, y, z),
+            size=ivec3(
+                min(boxA.end.x, boxB.end.x) - x,
+                min(boxA.end.y, boxB.end.y) - y,
+                min(boxA.end.z, boxB.end.z) - z
+            )
+        )
+        if box.size > ivec3(0, 0, 0):
+            return box

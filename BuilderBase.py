@@ -5,7 +5,7 @@ from ordered_set import OrderedSet
 
 import Adjacency
 import globals
-from WaveFunctionCollapse import WaveFunctionCollapse, startMultiThreadedWFC, startSingleThreadedWFC
+from WaveFunctionCollapse import WaveFunctionCollapse, startSingleThreadedWFC, startMultiThreadedWFC
 from gdpc.src.gdpc import Box
 
 
@@ -17,17 +17,23 @@ class Builder:
         tileSize: ivec3 = ivec3(5, 10, 5),
     ):
 
-        volumeGrid = Box(ivec3(0, 0, 0), volume.size // tileSize)
-        print(f'Running WFC in volume {volumeGrid.size.x}x{volumeGrid.size.y}x{volumeGrid.size.z}')
-        wfc = startMultiThreadedWFC(
-            volumeGrid=volumeGrid,
+        self.volumeGrid = Box(size=volume.size // tileSize)
+        print(f'Running WFC in volume {self.volumeGrid.size.x}x{self.volumeGrid.size.y}x{self.volumeGrid.size.z}')
+
+        volumeGrid1 = Box(
+            offset=self.volumeGrid.offset,
+            size=ivec3(self.volumeGrid.size.x, self.volumeGrid.size.y - 1, self.volumeGrid.size.z)
+        )
+        print(f'Running WFC 1 on box {volumeGrid1}')
+        wfc1 = startSingleThreadedWFC(
+            volumeGrid=volumeGrid1,
             initFunction=self.reinitWFC,
             validationFunction=Builder.isValid,
             structureWeights=Builder.generateWeights(),
         )
 
-        wfc.removeOrphanedBuildings()
-        for building in wfc.getCollapsedState(buildVolumeOffset=volume.offset):
+        wfc1.removeOrphanedBuildings()
+        for building in wfc1.getCollapsedState(buildVolumeOffset=volume.offset):
             building.place()
 
     @staticmethod
@@ -43,12 +49,11 @@ class Builder:
         self.collapseVolumeEdgeToAir(wfcInstance)
 
     def collapseVolumeEdgeToAir(self, wfcInstance: WaveFunctionCollapse):
-        keys = wfcInstance.stateSpace.keys()
-        for index in keys:
+        for index in wfcInstance.stateSpace:
             if not (
-                index.x > wfcInstance.stateSpaceBox.begin.x and index.x < wfcInstance.stateSpaceBox.last.x and
-                index.z > wfcInstance.stateSpaceBox.begin.z and index.z < wfcInstance.stateSpaceBox.last.z
-            ):
+                index.x > self.volumeGrid.begin.x and index.x < self.volumeGrid.last.x and
+                index.z > self.volumeGrid.begin.z and index.z < self.volumeGrid.last.z
+            ) or index.y == self.volumeGrid.last.y:
                 wfcInstance.stateSpace[index] = OrderedSet(Adjacency.getAllRotations(structureName='air'))
 
     @staticmethod

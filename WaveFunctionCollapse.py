@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 from concurrent.futures import ProcessPoolExecutor, Future
 from copy import deepcopy
-from typing import Tuple, Callable, Iterator, Dict, Set, List, Optional
+from typing import Tuple, Callable, Iterator, Dict, Set, List
 
 import numpy as np
 from glm import ivec3
@@ -21,6 +21,7 @@ from gdpc.src.gdpc import Box
 class WaveFunctionCollapse:
 
     stateSpace: Dict[ivec3, OrderedSet[StructureRotation]]
+    lockedTiles: Dict[ivec3, bool]
     structureWeights: Dict[str, float]
     defaultAdjacencies: Dict[str, StructureAdjacency]
     defaultDomain: OrderedSet[StructureRotation]
@@ -32,7 +33,6 @@ class WaveFunctionCollapse:
         self,
         volumeGrid: Box,
         structureWeights: Dict[str, float],
-        stateSpace: Optional[Dict[ivec3, OrderedSet[StructureRotation]]] = None,
         initFunction: Callable[[WaveFunctionCollapse], None] | None = None,
         validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
         rngSeed: int | None = None,
@@ -42,7 +42,7 @@ class WaveFunctionCollapse:
         if not volumeGrid.size >= ivec3(1, 1, 1):
             raise ValueError('State space size should be at least (1, 1, 1)')
 
-        self.stateSpace = dict() if stateSpace is None else stateSpace
+        self.stateSpace = dict()
 
         self.structureWeights = structureWeights
 
@@ -138,22 +138,30 @@ class WaveFunctionCollapse:
                 return False
             nextCellsToCollapse = list(self.getCellIndicesWithEntropy(minEntropy))
             assert len(nextCellsToCollapse) > 0
-
             # noinspection PyTypeChecker
             nextCellIndex = ivec3(self.rng.choice(nextCellsToCollapse))
 
             nextCellState = self.stateSpace[nextCellIndex]
             collapsedState = self.getRandomStateFromSuperposition(nextCellState)
+
             self.collapseCellToState(nextCellIndex, collapsedState)
 
         if self.validationFunction:
             return self.validationFunction(self)
         return True
 
+    def collapseRandomCell(self):
+        cellCellIndex = self.randomUncollapsedCellIndex
+        nextCellState = self.stateSpace[cellCellIndex]
+        collapsedState = self.getRandomStateFromSuperposition(nextCellState)
+        self.collapseCellToState(cellCellIndex, collapsedState)
+
     def collapseCellToState(self, cellIndex: ivec3, structureToCollapse: StructureRotation):
-        if cellIndex not in self.workList:
-            self.workList[cellIndex] = OrderedSet([structureToCollapse])
+        self.workList[cellIndex] = OrderedSet([structureToCollapse])
         while len(self.workList) > 0:
+            if self.lowestEntropy == 0:
+                self.workList.clear()
+                break
             taskCellIndex, remainingStates = self.workList.popitem()
             newTasks = self.propagate(
                 cellIndex=taskCellIndex,
@@ -182,6 +190,22 @@ class WaveFunctionCollapse:
         # Update cell to new collapsed state
         self.stateSpace[cellIndex] = remainingStates
 
+        xForward, axis = Adjacency.getPositionFromAxis('xForward', cellIndex)
+        if cellIndex.x < self.stateSpaceBox.last.x and xForward not in self.workList:
+            nextTasks.update(self.computeNeighbourStatesIntersection(
+                xForward,
+                cellIndex,
+                axis,
+            ))
+
+        zForward, axis = Adjacency.getPositionFromAxis('zForward', cellIndex)
+        if cellIndex.z < self.stateSpaceBox.last.z and zForward not in self.workList:
+            nextTasks.update(self.computeNeighbourStatesIntersection(
+                zForward,
+                cellIndex,
+                axis,
+            ))
+
         xBackward, axis = Adjacency.getPositionFromAxis('xBackward', cellIndex)
         if cellIndex.x > self.stateSpaceBox.begin.x and xBackward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
@@ -189,10 +213,11 @@ class WaveFunctionCollapse:
                 cellIndex,
                 axis,
             ))
-        xForward, axis = Adjacency.getPositionFromAxis('xForward', cellIndex)
-        if cellIndex.x < self.stateSpaceBox.last.x and xForward not in self.workList:
+
+        zBackward, axis = Adjacency.getPositionFromAxis('zBackward', cellIndex)
+        if cellIndex.z > self.stateSpaceBox.begin.z and zBackward not in self.workList:
             nextTasks.update(self.computeNeighbourStatesIntersection(
-                xForward,
+                zBackward,
                 cellIndex,
                 axis,
             ))
@@ -212,21 +237,6 @@ class WaveFunctionCollapse:
                 axis,
             ))
 
-        zBackward, axis = Adjacency.getPositionFromAxis('zBackward', cellIndex)
-        if cellIndex.z > self.stateSpaceBox.begin.z and zBackward not in self.workList:
-            nextTasks.update(self.computeNeighbourStatesIntersection(
-                zBackward,
-                cellIndex,
-                axis,
-            ))
-        zForward, axis = Adjacency.getPositionFromAxis('zForward', cellIndex)
-        if cellIndex.z < self.stateSpaceBox.last.z and zForward not in self.workList:
-            nextTasks.update(self.computeNeighbourStatesIntersection(
-                zForward,
-                cellIndex,
-                axis,
-            ))
-
         return nextTasks
 
     def computeNeighbourStatesIntersection(
@@ -236,8 +246,7 @@ class WaveFunctionCollapse:
         axis: str,
     ) -> Dict[ivec3, OrderedSet[StructureRotation]]:
         return {
-            neighbourCellIndex:
-            self.stateSpace[neighbourCellIndex].intersection(self.computeNeighbourStates(
+            neighbourCellIndex: self.stateSpace[neighbourCellIndex].intersection(self.computeNeighbourStates(
                 cellIndex,
                 axis,
             ))
@@ -395,10 +404,11 @@ def startSingleThreadedWFC(
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None,
     maxAttempts: int = 10000,
 ) -> WaveFunctionCollapse:
-    attempt = 1
+    attempt = 0
     isCollapsed = False
     wfc = None
     while not isCollapsed:
+        attempt += 1
         isCollapsed, wfc, _ = startWFCInstance(
             attempt=attempt,
             volumeGrid=volumeGrid,
@@ -406,7 +416,6 @@ def startSingleThreadedWFC(
             initFunction=initFunction,
             validationFunction=validationFunction,
         )
-        attempt += 1
         if attempt > maxAttempts:
             raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
     print(f'WFC collapsed after {attempt} attempts')

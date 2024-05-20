@@ -17,6 +17,8 @@ class Builder:
         tileSize: ivec3 = ivec3(5, 10, 5),
     ):
 
+        self.volume = volume
+
         self.volumeGrid = Box(size=volume.size // tileSize)
         print(f'Running WFC in volume {self.volumeGrid.size.x}x{self.volumeGrid.size.y}x{self.volumeGrid.size.z}')
 
@@ -25,16 +27,14 @@ class Builder:
             size=ivec3(self.volumeGrid.size.x, self.volumeGrid.size.y - 1, self.volumeGrid.size.z)
         )
         print(f'Running WFC 1 on box {volumeGrid1}')
-        wfc1 = startSingleThreadedWFC(
-            volumeGrid=volumeGrid1,
+        startMultiThreadedWFC(
+            volumeGrid=self.volumeGrid,
             initFunction=self.reinitWFC,
             validationFunction=Builder.isValid,
-            structureWeights=Builder.generateWeights(),
+            structureWeights=Builder.generateWeights('noCeiling'),
+            onResolve=self.onResolveWFC,
         )
 
-        wfc1.removeOrphanedBuildings()
-        for building in wfc1.getCollapsedState(buildVolumeOffset=volume.offset):
-            building.place()
 
     @staticmethod
     def isValid(wfcInstance: WaveFunctionCollapse) -> bool:
@@ -48,6 +48,10 @@ class Builder:
     def reinitWFC(self, wfcInstance: WaveFunctionCollapse):
         self.collapseVolumeEdgeToAir(wfcInstance)
 
+    def onResolveWFC(self, wfc: WaveFunctionCollapse):
+        # wfc.removeOrphanedBuildings()
+        for building in wfc.getCollapsedState(buildVolumeOffset=self.volume.offset):
+            building.place()
     def collapseVolumeEdgeToAir(self, wfcInstance: WaveFunctionCollapse):
         for index in wfcInstance.stateSpace:
             if not (

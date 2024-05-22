@@ -14,7 +14,7 @@ class CornerOuter(Structure):
             ('wall_lectern', 1),
             ('t_junction', 3),
             ('wall_l_inner', 3),
-            # ('corner_outer', 1),
+            ('corner_outer', 1),
         ],
         xBackward=[
             ('air', -1),
@@ -55,7 +55,7 @@ class CornerOuter(Structure):
             ('wall_lectern', 0),
             ('t_junction', 2),
             ('wall_r_inner', 2),
-            # ('corner_outer', 3),
+            ('corner_outer', 3),
         ],
         zBackward=[
             ('air', -1),

@@ -67,6 +67,8 @@ class WallLectern(Structure):
         ]
     )
 
+    weight = 0.08
+
     def __init__(
         self,
         withRotation: int = 0,

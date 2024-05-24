@@ -304,7 +304,7 @@ class WaveFunctionCollapse:
 
                 cellState: StructureRotation = self.stateSpace[cellIndex][0]
                 if cellState.structureName.endswith('air'):
-                    raise Exception(f'Wall leak found in building {newBuilding}')
+                    raise Exception(f'Wall leak found at {cellIndex} {cellState} in building {newBuilding}')
 
                 openPositions: Set[ivec3] = self.defaultAdjacencies[cellState.structureName].getNonWallPositions(
                     cellState.rotation,

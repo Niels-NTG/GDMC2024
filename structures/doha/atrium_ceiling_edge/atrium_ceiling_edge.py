@@ -40,6 +40,7 @@ class AtriumCeilingEdge(Structure):
             ('atrium_ceiling_edge_corner', 0),
         ],
         walls=[
+            'xForward',
             'xBackward',
             'yForward',
         ],

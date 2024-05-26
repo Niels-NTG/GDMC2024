@@ -366,45 +366,49 @@ def startMultiThreadedWFC(
     onResolve: Callable[[WaveFunctionCollapse], None],
     maxAttempts: int = 1000,
 ) -> WaveFunctionCollapse:
-    with ProcessPoolExecutor() as executor:
-        wfcResult: WaveFunctionCollapse | None = None
+    executor = ProcessPoolExecutor()
+    wfcResult: WaveFunctionCollapse | None = None
+    attempt = 1
 
-        def createFuture():
-            try:
-                future: Future = executor.submit(
-                    startWFCInstance,
-                    attempt,
-                    volumeGrid,
-                    structureWeights,
-                    initFunction,
-                    validationFunction,
-                )
-                future.add_done_callback(futureCallback)
-            except RuntimeError:
-                print('Shutting down remaining attempts…')
+    def createFuture():
+        nonlocal attempt
+        try:
+            future: Future = executor.submit(
+                startWFCInstance,
+                attempt,
+                volumeGrid,
+                structureWeights,
+                initFunction,
+                validationFunction,
+            )
+            future.add_done_callback(futureCallback)
+            attempt += 1
+        except RuntimeError as e:
+            print('Shutting down remaining attempts…')
 
-        def futureCallback(f: Future):
-            nonlocal wfcResult
-            if wfcResult:
-                f.cancel()
-                return
-            newWfcResultIsCollapsed, wfc, lastAttempt = f.result()
-            if newWfcResultIsCollapsed:
-                executor.shutdown(wait=False, cancel_futures=True)
-                wfcResult = wfc
-                print(f'WFC attempt {lastAttempt} HAS collapsed!')
-                onResolve(wfc)
-                return
-            if lastAttempt >= maxAttempts:
-                raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
-            print(f'WFC attempt {lastAttempt} did NOT collapse')
-            # Create a new future after a previous future has not resulted in a collapsed state.
-            createFuture()
+    def futureCallback(f: Future):
+        nonlocal wfcResult
+        if wfcResult:
+            f.cancel()
+            return
+        newWfcResultIsCollapsed, wfc, lastAttempt = f.result()
+        if newWfcResultIsCollapsed:
+            executor.shutdown(wait=False, cancel_futures=True)
+            wfcResult = wfc
+            print(f'WFC attempt {lastAttempt} HAS collapsed!')
+            onResolve(wfc)
+            return
+        if lastAttempt >= maxAttempts:
+            raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
+        print(f'WFC attempt {lastAttempt} did NOT collapse')
+        # Create a new future after a previous future has not resulted in a collapsed state.
+        createFuture()
 
-        for attempt in range(1, min(maxAttempts, os.cpu_count() + 1)):
-            if wfcResult:
-                break
-            createFuture()
+    for initialAttempt in range(1, min(maxAttempts, os.cpu_count() + 1)):
+        createFuture()
+    while wfcResult is None:
+        pass
+
     return wfcResult
 
 

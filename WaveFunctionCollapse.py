@@ -307,7 +307,7 @@ def startMultiThreadedWFC(
     initFunction: Callable[[WaveFunctionCollapse], None] | None,
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None,
     onResolve: Callable[[WaveFunctionCollapse], None],
-    maxAttempts: int = 1000,
+    maxAttempts: int = 10000,
 ) -> WaveFunctionCollapse:
     executor = ProcessPoolExecutor()
     wfcResult: WaveFunctionCollapse | None = None

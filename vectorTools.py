@@ -130,9 +130,11 @@ def mergeBoxes(
 
 @functools.cache
 def intersectionBox(
-    boxA: Box,
-    boxB: Box,
+    boxA: Box | None,
+    boxB: Box | None,
 ) -> Box | None:
+    if boxA is None or boxB is None:
+        return None
     if boxA.collides(boxB):
         x = max(boxA.offset.x, boxB.offset.x)
         y = max(boxA.offset.y, boxB.offset.y)

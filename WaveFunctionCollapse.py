@@ -315,6 +315,9 @@ def startMultiThreadedWFC(
 
     def createFuture():
         nonlocal attempt
+        if attempt >= maxAttempts:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
         try:
             future: Future = executor.submit(
                 startWFCInstance,
@@ -342,8 +345,6 @@ def startMultiThreadedWFC(
             if onResolve:
                 onResolve(wfc)
             return
-        if lastAttempt >= maxAttempts:
-            raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
         print(f'WFC attempt {lastAttempt} did NOT collapse')
         # Create a new future after a previous future has not resulted in a collapsed state.
         createFuture()

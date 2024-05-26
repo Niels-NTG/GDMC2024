@@ -4,18 +4,17 @@ import itertools
 import os
 from concurrent.futures import ProcessPoolExecutor, Future
 from copy import deepcopy
-from typing import Tuple, Callable, Iterator, Dict, Set, List
+from typing import Tuple, Callable, Iterator, Dict, Set
 
 import numpy as np
 from glm import ivec3
 from numpy.random import Generator
 from ordered_set import OrderedSet
 
-import globals
 import Adjacency
+import globals
 import vectorTools
 from Adjacency import StructureRotation, StructureAdjacency
-from StructureBase import Structure
 from gdpc.src.gdpc import Box
 
 
@@ -38,12 +37,12 @@ class WaveFunctionCollapse:
         validationFunction: Callable[[WaveFunctionCollapse], bool] | None = None,
         rngSeed: int | None = None,
     ):
-
         self.stateSpaceBox = volumeGrid
         if not volumeGrid.size >= ivec3(1, 1, 1):
             raise ValueError('State space size should be at least (1, 1, 1)')
 
         self.stateSpace = dict()
+        self.lockedTiles = dict()
 
         self.structureWeights = structureWeights
 
@@ -57,6 +56,7 @@ class WaveFunctionCollapse:
         self.validationFunction = validationFunction
 
         self.workList = dict()
+        self.firstPositions = set()
 
         self.initStateSpaceWithDefaultDomain()
         if initFunction:
@@ -80,6 +80,7 @@ class WaveFunctionCollapse:
     def initStateSpaceWithDefaultDomain(self):
         for index in self.cellCoordinates:
             self.stateSpace[index] = deepcopy(self.defaultDomain)
+            self.lockedTiles[index] = False
 
     @property
     def cellCoordinates(self) -> Iterator[ivec3]:
@@ -142,6 +143,11 @@ class WaveFunctionCollapse:
             # noinspection PyTypeChecker
             nextCellIndex = ivec3(self.rng.choice(nextCellsToCollapse))
 
+            if len(self.firstPositions) > 0:
+                nextCellIndex = self.firstPositions.pop()
+                if len(self.stateSpace[nextCellIndex]) == 1:
+                    continue
+
             nextCellState = self.stateSpace[nextCellIndex]
             collapsedState = self.getRandomStateFromSuperposition(nextCellState)
 
@@ -188,8 +194,9 @@ class WaveFunctionCollapse:
             # No change in states. No need to propagate further.
             return nextTasks
 
-        # Update cell to new collapsed state
-        self.stateSpace[cellIndex] = remainingStates
+        if not self.lockedTiles[cellIndex]:
+            # Update cell to new collapsed state
+            self.stateSpace[cellIndex] = remainingStates
 
         xForward, axis = Adjacency.getPositionFromAxis('xForward', cellIndex)
         if cellIndex.x < self.stateSpaceBox.last.x and xForward not in self.workList:
@@ -265,70 +272,6 @@ class WaveFunctionCollapse:
                 s.rotation
             ))
         return allowedStates
-
-    def getCollapsedState(self, buildVolumeOffset: ivec3 = ivec3(0, 0, 0)) -> Iterator[Structure]:
-        if not self.isCollapsed:
-            raise Exception('WFC is not fully collapsed yet! Therefore the state cannot yet be extracted.')
-        for cellIndex in self.stateSpace:
-            cellState: StructureRotation = self.stateSpace[cellIndex][0]
-            if cellState.structureName not in globals.structureFolders:
-                raise Exception(f'Structure file {cellState.structureName} not found in {globals.structureFolders}')
-            structureFolder = globals.structureFolders[cellState.structureName]
-            structureInstance: Structure = structureFolder.structureClass(
-                withRotation=cellState.rotation,
-                tile=ivec3(*cellIndex),
-                offset=buildVolumeOffset,
-            )
-            yield structureInstance
-
-    def scanForBuildings(self) -> List[Set[ivec3]]:
-        if not self.isCollapsed:
-            raise Exception('WFC is not fully collapsed yet! Therefore volume cannot be scanned yet.')
-        buildings: List[Set[ivec3]] = []
-        newBuilding: Set[ivec3] = set()
-        cellsVisited: Set[ivec3] = set()
-
-        while len(cellsVisited) != len(self.stateSpace):
-            randomIndex = self.randomCollapsedCellIndex
-            if randomIndex in cellsVisited:
-                continue
-
-            if self.stateSpace[randomIndex][0].structureName.endswith('air'):
-                cellsVisited.add(randomIndex)
-                continue
-
-            scanWorkList: List[ivec3] = [randomIndex]
-            while len(scanWorkList) > 0:
-                cellIndex = scanWorkList.pop()
-                if cellIndex in cellsVisited:
-                    continue
-
-                cellState: StructureRotation = self.stateSpace[cellIndex][0]
-                if cellState.structureName.endswith('air'):
-                    raise Exception(f'Wall leak found at {cellIndex} {cellState} in building {newBuilding}')
-
-                openPositions: Set[ivec3] = self.defaultAdjacencies[cellState.structureName].getNonWallPositions(
-                    cellState.rotation,
-                    cellIndex,
-                    self.stateSpaceBox,
-                )
-                newBuilding.add(cellIndex)
-                newBuilding.update(openPositions)
-                scanWorkList.extend(openPositions)
-                cellsVisited.add(cellIndex)
-            buildings.append(newBuilding.copy())
-            newBuilding.clear()
-
-        return buildings
-
-    def removeOrphanedBuildings(self):
-        buildings = self.scanForBuildings()
-        print(f'Found {len(buildings)} distinct buildings, removing orphaned buildings…')
-        largestBuilding = max(buildings, key=lambda x: len(x))
-        for building in buildings:
-            if building != largestBuilding:
-                for pos in building:
-                    self.stateSpace[pos] = OrderedSet({StructureRotation(structureName='air', rotation=0)})
 
     @property
     def structuresUsed(self) -> Iterator[StructureRotation]:

@@ -70,6 +70,7 @@ class Builder:
                     'balcony_r': 0.0,
                     'balcony_l_inner': 0.0,
                     'balcony_r_inner': 0.0,
+                    'balcony_middle_inner': 0.0,
                     'atrium_ceiling_edge': 0.0,
                     'atrium_ceiling_edge_corner': 0.0,
                     'atrium_ceiling_a': 0.0,

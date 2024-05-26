@@ -51,12 +51,12 @@ class StructureAdjacency:
         walls: Optional[List[str]] = None
     ):
         self.name = name
-        self.xForward = createRotationList(xForward)
-        self.xBackward = createRotationList(xBackward)
-        self.yForward = createRotationList(yForward)
-        self.yBackward = createRotationList(yBackward)
-        self.zForward = createRotationList(zForward)
-        self.zBackward = createRotationList(zBackward)
+        self.xForward = createRotationSet(xForward)
+        self.xBackward = createRotationSet(xBackward)
+        self.yForward = createRotationSet(yForward)
+        self.yBackward = createRotationSet(yBackward)
+        self.zForward = createRotationSet(zForward)
+        self.zBackward = createRotationSet(zBackward)
         self.walls = walls
         if walls is not None and not set(walls).issubset(set(AXES)):
             raise ValueError(f'Walls {walls} contains value not in {AXES}')
@@ -116,7 +116,7 @@ class StructureAdjacency:
         return hash(self.name)
 
 
-def createRotationList(rotationTuples: List[Tuple[str, int]]) -> Set[StructureRotation]:
+def createRotationSet(rotationTuples: List[Tuple[str, int]]) -> Set[StructureRotation]:
     rotationSet: Set[StructureRotation] = set()
     for rotationTuple in rotationTuples:
         if rotationTuple[1] == -1:

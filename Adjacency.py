@@ -101,7 +101,7 @@ class StructureAdjacency:
                 openSpaces.append(axis)
         return openSpaces
 
-    def getNonWallPositions(self, selfRotation: int, pos: ivec3, stateSpaceKeys: Set[ivec3]) -> Set[ivec3]:
+    def getNonWallPositions(self, selfRotation: int, pos: ivec3, stateSpaceKeys: List[ivec3]) -> Set[ivec3]:
         openPositions: Set[ivec3] = set()
         for wall in self.rotatedNonWallAxes(selfRotation):
             openPosition = getPositionFromAxis(axis=wall, pos=pos)[0]

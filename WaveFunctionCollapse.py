@@ -306,7 +306,7 @@ def startMultiThreadedWFC(
     structureWeights: Dict[str, float],
     initFunction: Callable[[WaveFunctionCollapse], None] | None,
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None,
-    onResolve: Callable[[WaveFunctionCollapse], None] | None,
+    onResolve: Callable[[WaveFunctionCollapse], None],
     maxAttempts: int = 1000,
 ) -> WaveFunctionCollapse:
     executor = ProcessPoolExecutor()
@@ -342,8 +342,7 @@ def startMultiThreadedWFC(
             executor.shutdown(wait=False, cancel_futures=True)
             wfcResult = wfc
             print(f'WFC attempt {lastAttempt} HAS collapsed!')
-            if onResolve:
-                onResolve(wfc)
+            onResolve(wfc)
             return
         print(f'WFC attempt {lastAttempt} did NOT collapse')
         # Create a new future after a previous future has not resulted in a collapsed state.
@@ -362,7 +361,7 @@ def startSingleThreadedWFC(
     structureWeights: Dict[str, float],
     initFunction: Callable[[WaveFunctionCollapse], None] | None,
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None,
-    onResolve: Callable[[WaveFunctionCollapse], None] | None,
+    onResolve: Callable[[WaveFunctionCollapse], None],
     maxAttempts: int = 10000,
 ) -> WaveFunctionCollapse:
     attempt = 0
@@ -380,6 +379,5 @@ def startSingleThreadedWFC(
         if attempt > maxAttempts:
             raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
     print(f'WFC collapsed after {attempt} attempts')
-    if onResolve:
-        onResolve(wfc)
+    onResolve(wfc)
     return wfc

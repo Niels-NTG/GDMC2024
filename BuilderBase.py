@@ -16,6 +16,11 @@ from gdpc.src.gdpc import Box
 
 class Builder:
 
+    allStateSpace: Dict[ivec3, OrderedSet[StructureRotation]]
+    allDefaultAdjacencies: Dict[str, StructureAdjacency]
+    lastVolumeGrid: Box | None
+    volumeGrid: Box
+
     def __init__(
         self,
         volume: Box,
@@ -24,65 +29,57 @@ class Builder:
 
         self.volume = volume
 
+        self.allStateSpace = dict()
+        self.allDefaultAdjacencies = dict()
+        self.lastVolumeGrid = None
+
         self.volumeGrid = Box(size=volume.size // tileSize)
         print(f'Running WFC in volume {self.volumeGrid.size.x}x{self.volumeGrid.size.y}x{self.volumeGrid.size.z}')
 
-        self.volumeGrid1 = Box(
+        volumeGrid1 = Box(
             offset=self.volumeGrid.offset,
-            size=ivec3(12, 1, 12),
+            size=ivec3(13, 1, 13),
         )
-        print(f'Running WFC 1 on box {self.volumeGrid1}')
-        self.wfc1 = startMultiThreadedWFC(
-            volumeGrid=self.volumeGrid1,
+        print(f'Running WFC 1 on box {volumeGrid1}')
+        startMultiThreadedWFC(
+            volumeGrid=volumeGrid1,
             initFunction=self.reinitWFC,
             validationFunction=Builder.isValid,
             structureWeights=Builder.generateWeights('noAtrium'),
-            onResolve=None,
+            onResolve=self.onResolve,
         )
 
-        self.volumeGrid2 = Box(
+        volumeGrid2 = Box(
             offset=ivec3(
-                self.volumeGrid1.last.x,
-                self.volumeGrid1.offset.y,
-                self.volumeGrid1.offset.z,
+                volumeGrid1.last.x,
+                volumeGrid1.offset.y,
+                volumeGrid1.offset.z,
             ),
-            size=ivec3(12, 1, 12),
+            size=ivec3(13, 1, 13),
         )
-        print(f'Running WFC 2 on box {self.volumeGrid2}')
-        self.wfc2 = startMultiThreadedWFC(
-            volumeGrid=self.volumeGrid2,
+        print(f'Running WFC 2 on box {volumeGrid2}')
+        startMultiThreadedWFC(
+            volumeGrid=volumeGrid2,
             initFunction=self.reinitWFC2,
             validationFunction=Builder.isValid,
-            structureWeights=Builder.generateWeights('noCeiling'),
-            onResolve=None,
+            structureWeights=Builder.generateWeights('noAtrium'),
+            onResolve=self.onResolve,
         )
 
-        completeStateSpace = self.wfc1.stateSpace | self.wfc2.stateSpace
-        completeDefaultAdjacencies = self.wfc1.defaultAdjacencies | self.wfc2.defaultAdjacencies
+        self.removeOrphanedBuildings()
+        self.buildStructure(volume.offset)
 
-        Builder.removeOrphanedBuildings(completeStateSpace, completeDefaultAdjacencies)
-        Builder.buildStructure(completeStateSpace, volume.offset)
-
-
-    @staticmethod
-    def isValid(wfcInstance: WaveFunctionCollapse) -> bool:
-        structuresUsed = set(wfcInstance.structuresUsed)
-        isAirOnly = structuresUsed.issubset(Adjacency.getAllRotations('air'))
-        if isAirOnly:
-            print('Invalid WFC result! Volume has only air!')
-            return False
-        return True
 
     def reinitWFC(self, wfcInstance: WaveFunctionCollapse):
         self.collapseVolumeEdgeToAir(wfcInstance)
 
     def reinitWFC2(self, wfcInstance: WaveFunctionCollapse):
         self.collapseVolumeEdgeToAir(wfcInstance)
-        intersectionBox = vectorTools.intersectionBox(wfcInstance.stateSpaceBox, self.wfc1.stateSpaceBox)
+        intersectionBox = vectorTools.intersectionBox(wfcInstance.stateSpaceBox, self.lastVolumeGrid)
         if intersectionBox:
             intersectionPositions = set(vectorTools.boxPositions(intersectionBox))
             for index in intersectionPositions:
-                wfcInstance.stateSpace[index] = deepcopy(self.wfc1.stateSpace[index])
+                wfcInstance.stateSpace[index] = deepcopy(self.allStateSpace[index])
                 wfcInstance.lockedTiles[index] = True
             for index in intersectionPositions:
                 neighbourCellIndex = ivec3(index.x + 1, index.y, index.z)
@@ -138,24 +135,35 @@ class Builder:
         return globals.defaultStructureWeights
 
     @staticmethod
-    def scanForBuildings(
-        stateSpace: Dict[ivec3, OrderedSet[StructureRotation]],
-        defaultAdjacencies: Dict[str, StructureAdjacency],
-    ) -> List[Set[ivec3]]:
+    def isValid(wfcInstance: WaveFunctionCollapse) -> bool:
+        structuresUsed = set(wfcInstance.structuresUsed)
+        isAirOnly = structuresUsed.issubset(Adjacency.getAllRotations('air'))
+        if isAirOnly:
+            print('Invalid WFC result! Volume has only air!')
+            return False
+        # isCeilingOnly = structuresUsed.issubset(Adjacency.getAllRotations('ceiling'))
+        return True
+
+    def onResolve(self, wfcInstance: WaveFunctionCollapse):
+        self.allStateSpace.update(wfcInstance.stateSpace)
+        self.allDefaultAdjacencies.update(wfcInstance.defaultAdjacencies)
+        self.lastVolumeGrid = wfcInstance.stateSpaceBox
+
+    def scanForBuildings(self) -> List[Set[ivec3]]:
         buildings: List[Set[ivec3]] = []
         newBuilding: Set[ivec3] = set()
         cellsVisited: Set[ivec3] = set()
-        stateSpaceKeys: Set[ivec3] = set(stateSpace.keys())
+        stateSpaceKeys: List[ivec3] = list(self.allStateSpace.keys())
 
         rng = np.random.default_rng(seed=globals.rngSeed)
 
-        while len(cellsVisited) != len(stateSpace):
+        while len(cellsVisited) != len(self.allStateSpace):
             # noinspection PyTypeChecker
-            randomIndex = ivec3(rng.choice(list(stateSpace.keys())))
+            randomIndex = ivec3(rng.choice(stateSpaceKeys))
             if randomIndex in cellsVisited:
                 continue
 
-            if stateSpace[randomIndex][0].structureName.endswith('air'):
+            if self.allStateSpace[randomIndex][0].structureName.endswith('air'):
                 cellsVisited.add(randomIndex)
                 continue
 
@@ -165,11 +173,11 @@ class Builder:
                 if cellIndex in cellsVisited:
                     continue
 
-                cellState: StructureRotation = stateSpace[cellIndex][0]
+                cellState: StructureRotation = self.allStateSpace[cellIndex][0]
                 if cellState.structureName.endswith('air'):
                     raise Exception(f'Wall leak found at {cellIndex} {cellState} in building {newBuilding}')
 
-                openPositions: Set[ivec3] = defaultAdjacencies[cellState.structureName].getNonWallPositions(
+                openPositions: Set[ivec3] = self.allDefaultAdjacencies[cellState.structureName].getNonWallPositions(
                     cellState.rotation,
                     cellIndex,
                     stateSpaceKeys,
@@ -183,26 +191,18 @@ class Builder:
 
         return buildings
 
-    @staticmethod
-    def removeOrphanedBuildings(
-        stateSpace: Dict[ivec3, OrderedSet[StructureRotation]],
-        defaultAdjacencies: Dict[str, StructureAdjacency],
-    ):
-        buildings = Builder.scanForBuildings(stateSpace, defaultAdjacencies)
+    def removeOrphanedBuildings(self):
+        buildings = self.scanForBuildings()
         print(f'Found {len(buildings)} distinct buildings, removing orphaned buildings…')
         largestBuilding = max(buildings, key=lambda x: len(x))
         for building in buildings:
             if building != largestBuilding:
                 for pos in building:
-                    stateSpace[pos] = OrderedSet({StructureRotation(structureName='air', rotation=0)})
+                    self.allStateSpace[pos] = OrderedSet({StructureRotation(structureName='air', rotation=0)})
 
-    @staticmethod
-    def getCollapsedState(
-        stateSpace: Dict[ivec3, OrderedSet[StructureRotation]],
-        buildVolumeOffset: ivec3 = ivec3(0, 0, 0),
-    ) -> Iterator[Structure]:
-        for cellIndex in stateSpace:
-            cellState: StructureRotation = stateSpace[cellIndex][0]
+    def getCollapsedState(self, buildVolumeOffset: ivec3 = ivec3(0, 0, 0)) -> Iterator[Structure]:
+        for cellIndex in self.allStateSpace:
+            cellState: StructureRotation = self.allStateSpace[cellIndex][0]
             if cellState.structureName not in globals.structureFolders:
                 raise Exception(f'Structure file {cellState.structureName} not found in {globals.structureFolders}')
             structureFolder = globals.structureFolders[cellState.structureName]
@@ -213,11 +213,7 @@ class Builder:
             )
             yield structureInstance
 
-    @staticmethod
-    def buildStructure(
-        stateSpace: Dict[ivec3, OrderedSet[StructureRotation]],
-        buildVolumeOffset: ivec3 = ivec3(0, 0, 0),
-    ):
+    def buildStructure(self, buildVolumeOffset: ivec3 = ivec3(0, 0, 0)):
         print('Placing tiles…')
-        for building in Builder.getCollapsedState(buildVolumeOffset=buildVolumeOffset, stateSpace=stateSpace):
+        for building in self.getCollapsedState(buildVolumeOffset=buildVolumeOffset):
             building.place()

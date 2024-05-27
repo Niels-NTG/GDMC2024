@@ -342,7 +342,6 @@ def startMultiThreadedWFC(
             executor.shutdown(wait=False, cancel_futures=True)
             wfcResult = wfc
             print(f'WFC attempt {lastAttempt} HAS collapsed!')
-            onResolve(wfc)
             return
         print(f'WFC attempt {lastAttempt} did NOT collapse')
         # Create a new future after a previous future has not resulted in a collapsed state.
@@ -353,6 +352,7 @@ def startMultiThreadedWFC(
     while wfcResult is None:
         pass
 
+    onResolve(wfcResult)
     return wfcResult
 
 

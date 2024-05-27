@@ -7,11 +7,11 @@ from ordered_set import OrderedSet
 from termcolor import cprint
 
 import Adjacency
-from Adjacency import StructureAdjacency, StructureRotation
 import globals
 import vectorTools
+from Adjacency import StructureAdjacency, StructureRotation
 from StructureBase import Structure
-from WaveFunctionCollapse import WaveFunctionCollapse, startSingleThreadedWFC, startMultiThreadedWFC
+from WaveFunctionCollapse import WaveFunctionCollapse, startMultiThreadedWFC
 from gdpc.src.gdpc import Box
 
 
@@ -19,7 +19,7 @@ class Builder:
 
     allStateSpace: Dict[ivec3, OrderedSet[StructureRotation]]
     allDefaultAdjacencies: Dict[str, StructureAdjacency]
-    lastVolumeGrid: Box | None
+    volumeGrids: List[Box]
     volumeGrid: Box
 
     def __init__(
@@ -32,7 +32,7 @@ class Builder:
 
         self.allStateSpace = dict()
         self.allDefaultAdjacencies = dict()
-        self.lastVolumeGrid = None
+        self.volumeGrids = []
 
         self.volumeGrid = Box(size=volume.size // tileSize)
         print(f'Running WFC in volume {self.volumeGrid.size.x}x{self.volumeGrid.size.y}x{self.volumeGrid.size.z}')
@@ -46,7 +46,7 @@ class Builder:
             volumeGrid=volumeGrid1,
             initFunction=self.reinitWFC,
             validationFunction=Builder.isValid,
-            structureWeights=Builder.generateWeights('noAtrium'),
+            structureWeights=Builder.generateWeights(),
             onResolve=self.onResolve,
         )
 
@@ -61,9 +61,26 @@ class Builder:
         cprint(f'Running WFC 2 on box {volumeGrid2}', 'magenta', 'on_light_grey')
         startMultiThreadedWFC(
             volumeGrid=volumeGrid2,
-            initFunction=self.reinitWFC2,
+            initFunction=self.reinitWFC,
             validationFunction=Builder.isValid,
-            structureWeights=Builder.generateWeights('noAtrium'),
+            structureWeights=Builder.generateWeights(),
+            onResolve=self.onResolve,
+        )
+
+        volumeGrid3 = Box(
+            offset=ivec3(
+                volumeGrid1.last.x,
+                volumeGrid1.offset.y,
+                volumeGrid1.last.z,
+            ),
+            size=ivec3(13, 1, 13),
+        )
+        cprint(f'Running WFC 3 on box {volumeGrid3}', 'magenta', 'on_light_grey')
+        startMultiThreadedWFC(
+            volumeGrid=volumeGrid3,
+            initFunction=self.reinitWFC,
+            validationFunction=Builder.isValid,
+            structureWeights=Builder.generateWeights(),
             onResolve=self.onResolve,
         )
 
@@ -71,34 +88,35 @@ class Builder:
         self.buildStructure(volume.offset)
 
 
-    def reinitWFC(self, wfcInstance: WaveFunctionCollapse):
-        self.collapseVolumeEdgeToAir(wfcInstance)
-
-    def reinitWFC2(self, wfcInstance: WaveFunctionCollapse):
-        self.collapseVolumeEdgeToAir(wfcInstance)
-        intersectionBox = vectorTools.intersectionBox(wfcInstance.stateSpaceBox, self.lastVolumeGrid)
-        if intersectionBox:
-            intersectionPositions = set(vectorTools.boxPositions(intersectionBox))
-            for index in intersectionPositions:
-                wfcInstance.stateSpace[index] = deepcopy(self.allStateSpace[index])
-                wfcInstance.lockedTiles[index] = True
-            for index in intersectionPositions:
-                neighbourCellIndex = ivec3(index.x + 1, index.y, index.z)
-                wfcInstance.stateSpace[neighbourCellIndex] = wfcInstance.stateSpace[neighbourCellIndex].intersection(
-                    wfcInstance.computeNeighbourStates(
-                        index,
-                        'xForward'
+    def reinitWFC(self, wfc: WaveFunctionCollapse):
+        self.collapseVolumeEdgeToAir(wfc)
+        intersectionPositions = set()
+        for otherVolumeGrid in self.volumeGrids:
+            intersectionBox = vectorTools.intersectionBox(wfc.stateSpaceBox, otherVolumeGrid)
+            if intersectionBox:
+                intersectionPositions.update(set(vectorTools.boxPositions(intersectionBox)))
+        for index in intersectionPositions:
+            wfc.stateSpace[index] = deepcopy(self.allStateSpace[index])
+            wfc.lockedTiles[index] = True
+        for index in intersectionPositions:
+            for axis in Adjacency.ROTATIONAL_AXES:
+                neighbourCellIndex = Adjacency.getPositionFromAxis(axis, index)[0]
+                if neighbourCellIndex in wfc.stateSpace and len(wfc.stateSpace[neighbourCellIndex]) > 1:
+                    wfc.stateSpace[neighbourCellIndex] = wfc.stateSpace[neighbourCellIndex].intersection(
+                        wfc.computeNeighbourStates(
+                            index,
+                            axis
+                        )
                     )
-                )
-            wfcInstance.firstPositions = intersectionPositions
+        wfc.firstPositions = intersectionPositions
 
-    def collapseVolumeEdgeToAir(self, wfcInstance: WaveFunctionCollapse):
-        for index in wfcInstance.stateSpace:
+    def collapseVolumeEdgeToAir(self, wfc: WaveFunctionCollapse):
+        for index in wfc.stateSpace:
             if not (
                 index.x > self.volumeGrid.begin.x and index.x < self.volumeGrid.last.x and
                 index.z > self.volumeGrid.begin.z and index.z < self.volumeGrid.last.z
             ) or index.y == self.volumeGrid.last.y:
-                wfcInstance.stateSpace[index] = OrderedSet(Adjacency.getAllRotations(structureName='air'))
+                wfc.stateSpace[index] = OrderedSet(Adjacency.getAllRotations(structureName='air'))
 
     @staticmethod
     def generateWeights(condition: str = '') -> Dict[str, float]:
@@ -136,8 +154,8 @@ class Builder:
         return globals.defaultStructureWeights
 
     @staticmethod
-    def isValid(wfcInstance: WaveFunctionCollapse) -> bool:
-        structuresUsed = set(wfcInstance.structuresUsed)
+    def isValid(wfc: WaveFunctionCollapse) -> bool:
+        structuresUsed = set(wfc.structuresUsed)
         isAirOnly = structuresUsed.issubset(Adjacency.getAllRotations('air'))
         if isAirOnly:
             print('Invalid WFC result! Volume has only air!')
@@ -145,10 +163,10 @@ class Builder:
         # isCeilingOnly = structuresUsed.issubset(Adjacency.getAllRotations('ceiling'))
         return True
 
-    def onResolve(self, wfcInstance: WaveFunctionCollapse):
-        self.allStateSpace.update(wfcInstance.stateSpace)
-        self.allDefaultAdjacencies.update(wfcInstance.defaultAdjacencies)
-        self.lastVolumeGrid = wfcInstance.stateSpaceBox
+    def onResolve(self, wfc: WaveFunctionCollapse):
+        self.allStateSpace.update(wfc.stateSpace)
+        self.allDefaultAdjacencies.update(wfc.defaultAdjacencies)
+        self.volumeGrids.append(wfc.stateSpaceBox)
 
     def scanForBuildings(self) -> List[Set[ivec3]]:
         buildings: List[Set[ivec3]] = []

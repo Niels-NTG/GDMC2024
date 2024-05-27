@@ -352,7 +352,7 @@ def startMultiThreadedWFC(
         createFuture()
     while wfcResult is None:
         pass
-
+    executor.shutdown(wait=False, cancel_futures=True)
     onResolve(wfcResult)
     return wfcResult
 

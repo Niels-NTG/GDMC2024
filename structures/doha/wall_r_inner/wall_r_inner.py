@@ -24,6 +24,7 @@ class WallRInner(Structure):
             ('wall_l_inner', 2),
             ('balcony_l_inner', 2),
             ('corner_inner', 2),
+            ('balcony_corner', 1),
         ],
         yForward=[
             ('air', -1),
@@ -55,6 +56,7 @@ class WallRInner(Structure):
         ],
         zBackward=[
             ('wall_l_inner', 0),
+            ('corner_outer', 1),
         ],
         walls=[
             'xForward',

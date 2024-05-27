@@ -10,6 +10,7 @@ import numpy as np
 from glm import ivec3
 from numpy.random import Generator
 from ordered_set import OrderedSet
+from termcolor import cprint
 
 import Adjacency
 import globals
@@ -341,9 +342,9 @@ def startMultiThreadedWFC(
         if newWfcResultIsCollapsed:
             executor.shutdown(wait=False, cancel_futures=True)
             wfcResult = wfc
-            print(f'WFC attempt {lastAttempt} HAS collapsed!')
+            cprint(f'WFC attempt {lastAttempt} HAS collapsed!', 'green')
             return
-        print(f'WFC attempt {lastAttempt} did NOT collapse')
+        cprint(f'WFC attempt {lastAttempt} did NOT collapse', 'yellow')
         # Create a new future after a previous future has not resulted in a collapsed state.
         createFuture()
 
@@ -378,6 +379,6 @@ def startSingleThreadedWFC(
         )
         if attempt > maxAttempts:
             raise Exception(f'WFC did not collapse after {maxAttempts} retries.')
-    print(f'WFC collapsed after {attempt} attempts')
+    cprint(f'WFC collapsed after {attempt} attempts', 'green')
     onResolve(wfc)
     return wfc

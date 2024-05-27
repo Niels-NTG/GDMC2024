@@ -4,6 +4,7 @@ from typing import Dict, List, Set, Iterator
 import numpy as np
 from glm import ivec3
 from ordered_set import OrderedSet
+from termcolor import cprint
 
 import Adjacency
 from Adjacency import StructureAdjacency, StructureRotation
@@ -40,7 +41,7 @@ class Builder:
             offset=self.volumeGrid.offset,
             size=ivec3(13, 1, 13),
         )
-        print(f'Running WFC 1 on box {volumeGrid1}')
+        cprint(f'Running WFC 1 on box {volumeGrid1}', 'magenta', 'on_light_grey')
         startMultiThreadedWFC(
             volumeGrid=volumeGrid1,
             initFunction=self.reinitWFC,
@@ -57,7 +58,7 @@ class Builder:
             ),
             size=ivec3(13, 1, 13),
         )
-        print(f'Running WFC 2 on box {volumeGrid2}')
+        cprint(f'Running WFC 2 on box {volumeGrid2}', 'magenta', 'on_light_grey')
         startMultiThreadedWFC(
             volumeGrid=volumeGrid2,
             initFunction=self.reinitWFC2,

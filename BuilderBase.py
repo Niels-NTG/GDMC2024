@@ -19,7 +19,7 @@ class Builder:
 
     allStateSpace: Dict[ivec3, OrderedSet[StructureRotation]]
     allDefaultAdjacencies: Dict[str, StructureAdjacency]
-    volumeGrids: List[Box]
+    subGridVolumes: List[Box]
     volumeGrid: Box
 
     def __init__(
@@ -32,52 +32,52 @@ class Builder:
 
         self.allStateSpace = dict()
         self.allDefaultAdjacencies = dict()
-        self.volumeGrids = []
+        self.subGridVolumes = []
 
         self.volumeGrid = Box(size=volume.size // tileSize)
         print(f'Running WFC in volume {self.volumeGrid.size.x}x{self.volumeGrid.size.y}x{self.volumeGrid.size.z}')
 
-        volumeGrid1 = Box(
+        subGridVolume1 = vectorTools.intersectionBox(Box(
             offset=self.volumeGrid.offset,
             size=ivec3(13, 1, 13),
-        )
-        cprint(f'Running WFC 1 on box {volumeGrid1}', 'magenta', 'on_light_grey')
+        ), self.volumeGrid)
+        cprint(f'Running WFC 1 on box {subGridVolume1}', 'magenta', 'on_light_grey')
         startMultiThreadedWFC(
-            volumeGrid=volumeGrid1,
+            volumeGrid=subGridVolume1,
             initFunction=self.reinitWFC,
             validationFunction=Builder.isValid,
             structureWeights=Builder.generateWeights(),
             onResolve=self.onResolve,
         )
 
-        volumeGrid2 = Box(
+        subGridVolume2 = vectorTools.intersectionBox(Box(
             offset=ivec3(
-                volumeGrid1.last.x,
-                volumeGrid1.offset.y,
-                volumeGrid1.offset.z,
+                subGridVolume1.last.x,
+                subGridVolume1.offset.y,
+                subGridVolume1.offset.z,
             ),
             size=ivec3(13, 1, 13),
-        )
-        cprint(f'Running WFC 2 on box {volumeGrid2}', 'magenta', 'on_light_grey')
+        ), self.volumeGrid)
+        cprint(f'Running WFC 2 on box {subGridVolume2}', 'magenta', 'on_light_grey')
         startMultiThreadedWFC(
-            volumeGrid=volumeGrid2,
+            volumeGrid=subGridVolume2,
             initFunction=self.reinitWFC,
             validationFunction=Builder.isValid,
             structureWeights=Builder.generateWeights(),
             onResolve=self.onResolve,
         )
 
-        volumeGrid3 = Box(
+        subGridVolume3 = vectorTools.intersectionBox(Box(
             offset=ivec3(
-                volumeGrid1.last.x,
-                volumeGrid1.offset.y,
-                volumeGrid1.last.z,
+                subGridVolume2.last.x,
+                subGridVolume2.offset.y,
+                subGridVolume2.offset.z,
             ),
             size=ivec3(13, 1, 13),
-        )
-        cprint(f'Running WFC 3 on box {volumeGrid3}', 'magenta', 'on_light_grey')
+        ), self.volumeGrid)
+        cprint(f'Running WFC 3 on box {subGridVolume3}', 'magenta', 'on_light_grey')
         startMultiThreadedWFC(
-            volumeGrid=volumeGrid3,
+            volumeGrid=subGridVolume3,
             initFunction=self.reinitWFC,
             validationFunction=Builder.isValid,
             structureWeights=Builder.generateWeights(),
@@ -91,7 +91,7 @@ class Builder:
     def reinitWFC(self, wfc: WaveFunctionCollapse):
         self.collapseVolumeEdgeToAir(wfc)
         intersectionPositions = set()
-        for otherVolumeGrid in self.volumeGrids:
+        for otherVolumeGrid in self.subGridVolumes:
             intersectionBox = vectorTools.intersectionBox(wfc.stateSpaceBox, otherVolumeGrid)
             if intersectionBox:
                 intersectionPositions.update(set(vectorTools.boxPositions(intersectionBox)))
@@ -166,7 +166,7 @@ class Builder:
     def onResolve(self, wfc: WaveFunctionCollapse):
         self.allStateSpace.update(wfc.stateSpace)
         self.allDefaultAdjacencies.update(wfc.defaultAdjacencies)
-        self.volumeGrids.append(wfc.stateSpaceBox)
+        self.subGridVolumes.append(wfc.stateSpaceBox)
 
     def scanForBuildings(self) -> List[Set[ivec3]]:
         buildings: List[Set[ivec3]] = []

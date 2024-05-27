@@ -25,7 +25,6 @@ class CornerOuter(Structure):
             ('wall_lectern', 2),
             ('corner_outer', 1),
             ('corner_outer', 2),
-            ('ladder', 0),
         ],
         yForward=[
             ('air', -1),
@@ -66,7 +65,6 @@ class CornerOuter(Structure):
             ('wall_lectern', 3),
             ('corner_outer', 2),
             ('corner_outer', 3),
-            ('ladder', 1),
         ],
         walls=[
             'xBackward',

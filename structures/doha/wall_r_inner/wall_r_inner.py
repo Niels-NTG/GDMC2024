@@ -19,7 +19,6 @@ class WallRInner(Structure):
             ('wall_lectern', 0),
             ('corner_outer', 0),
             ('corner_outer', 3),
-            ('ladder', 2),
         ],
         xBackward=[
             ('wall_l_inner', 2),

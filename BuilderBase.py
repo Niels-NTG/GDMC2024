@@ -46,7 +46,7 @@ class Builder:
             volumeGrid=subGridVolume1,
             initFunction=self.reinitWFC,
             validationFunction=Builder.isValid,
-            structureWeights=Builder.generateWeights(),
+            structureWeights=Builder.generateWeights('noAtrium'),
             onResolve=self.onResolve,
         )
 
@@ -80,7 +80,7 @@ class Builder:
             volumeGrid=subGridVolume3,
             initFunction=self.reinitWFC,
             validationFunction=Builder.isValid,
-            structureWeights=Builder.generateWeights(),
+            structureWeights=Builder.generateWeights('noAtrium'),
             onResolve=self.onResolve,
         )
 
@@ -111,11 +111,8 @@ class Builder:
         wfc.firstPositions = intersectionPositions
 
     def collapseVolumeEdgeToAir(self, wfc: WaveFunctionCollapse):
-        for index in wfc.stateSpace:
-            if not (
-                index.x > self.volumeGrid.begin.x and index.x < self.volumeGrid.last.x and
-                index.z > self.volumeGrid.begin.z and index.z < self.volumeGrid.last.z
-            ) or index.y == self.volumeGrid.last.y:
+        for index in vectorTools.getBoxWallsAndCeiling(self.volumeGrid):
+            if index in wfc.stateSpace:
                 wfc.stateSpace[index] = OrderedSet(Adjacency.getAllRotations(structureName='air'))
 
     @staticmethod
@@ -154,6 +151,14 @@ class Builder:
         return globals.defaultStructureWeights
 
     @staticmethod
+    def hasAtriumTileOnEdgeOfSubGrid(wfc: WaveFunctionCollapse) -> bool:
+        for index in vectorTools.getBoxWallsAndCeiling(wfc.stateSpaceBox):
+            tileState = wfc.stateSpace[index][0]
+            if tileState.structureName.startswith('atrium') or tileState.structureName.startswith('balcony'):
+                return True
+        return False
+
+    @staticmethod
     def isValid(wfc: WaveFunctionCollapse) -> bool:
         structuresUsed = set(wfc.structuresUsed)
         isAirOnly = structuresUsed.issubset(Adjacency.getAllRotations('air'))
@@ -161,6 +166,10 @@ class Builder:
             print('Invalid WFC result! Volume has only air!')
             return False
         # isCeilingOnly = structuresUsed.issubset(Adjacency.getAllRotations('ceiling'))
+        hasAtriumTileOnEdgeOfSubGrid = Builder.hasAtriumTileOnEdgeOfSubGrid(wfc)
+        if hasAtriumTileOnEdgeOfSubGrid:
+            print('Invalid WFC result! Volume has atrium tiles on edge of volume!')
+            return False
         return True
 
     def onResolve(self, wfc: WaveFunctionCollapse):

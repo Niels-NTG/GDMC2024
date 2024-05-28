@@ -24,6 +24,7 @@ class CornerOuter(Structure):
             ('wall_r', 0),
             ('wall_l_inner', 0),
             ('wall_r_inner', 0),
+            ('wall_middle', 0),
             ('wall_lectern', 2),
             ('corner_outer', 1),
             ('corner_outer', 2),
@@ -38,6 +39,7 @@ class CornerOuter(Structure):
             ('wall_r', -1),
             ('wall_l_inner', -1),
             ('wall_r_inner', -1),
+            ('wall_middle', -1),
             ('wall_lectern', -1),
         ],
         yBackward=[
@@ -50,6 +52,7 @@ class CornerOuter(Structure):
             ('wall_r', -1),
             ('wall_l_inner', -1),
             ('wall_r_inner', -1),
+            ('wall_middle', -1),
             ('wall_lectern', -1),
         ],
         zForward=[
@@ -66,6 +69,7 @@ class CornerOuter(Structure):
             ('wall_r', 1),
             ('wall_l_inner', 1),
             ('wall_r_inner', 1),
+            ('wall_middle', 1),
             ('wall_lectern', 3),
             ('corner_outer', 2),
             ('corner_outer', 3),

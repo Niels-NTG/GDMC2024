@@ -26,6 +26,7 @@ class BalconyRInner(Structure):
         ],
         zForward=[
             ('balcony_l', 0),
+            ('balcony_middle', 0),
         ],
         zBackward=[
             ('balcony_l_inner', 0),

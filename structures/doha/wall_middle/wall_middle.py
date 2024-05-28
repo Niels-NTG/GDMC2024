@@ -7,9 +7,9 @@ from Adjacency import StructureAdjacency
 from StructureBase import Structure
 
 
-class WallL(Structure):
+class WallMiddle(Structure):
     adjecencies = StructureAdjacency(
-        name='wall_l',
+        name='wall_middle',
         xForward=[
             ('air', -1),
             ('wall_l', 2),
@@ -22,8 +22,8 @@ class WallL(Structure):
             ('corner_outer', 3),
         ],
         xBackward=[
-            ('wall_r', 2),
-            ('balcony_r', 2),
+            ('wall_middle', 2),
+            ('balcony_middle', 2),
         ],
         yForward=[
             ('air', -1),
@@ -52,23 +52,25 @@ class WallL(Structure):
             ('wall_lectern', -1),
         ],
         zForward=[
-            ('wall_r', 0),
-            ('corner_outer', 2),
+            ('wall_l_inner', 0),
+            ('corner_inner', 0),
+            ('t_junction', 0),
+            ('wall_lectern', 2),
         ],
         zBackward=[
             ('wall_r_inner', 0),
+            ('corner_inner', 1),
             ('t_junction', 0),
             ('wall_lectern', 2),
-            ('corner_inner', 1),
         ],
         walls=[
             'xForward',
             'yForward',
             'yBackward',
-        ],
+        ]
     )
 
-    weight = 0.8
+    weight = 0.08
 
     def __init__(
         self,

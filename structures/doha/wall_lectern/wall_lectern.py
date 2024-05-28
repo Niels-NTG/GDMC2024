@@ -14,8 +14,6 @@ class WallLectern(Structure):
             ('wall_lectern', 2),
             ('t_junction', 0),
             ('balcony_middle_inner', 0),
-            ('balcony_corner', 0),
-            ('balcony_corner', 3),
         ],
         xBackward=[
             ('air', -1),
@@ -24,6 +22,7 @@ class WallLectern(Structure):
             ('wall_l', 0),
             ('wall_l_inner', 0),
             ('wall_r_inner', 0),
+            ('wall_middle', 0),
             ('corner_outer', 1),
             ('corner_outer', 2),
         ],
@@ -37,6 +36,7 @@ class WallLectern(Structure):
             ('wall_r', -1),
             ('wall_l_inner', -1),
             ('wall_r_inner', -1),
+            ('wall_middle', -1),
             ('wall_lectern', -1),
         ],
         yBackward=[
@@ -49,14 +49,17 @@ class WallLectern(Structure):
             ('wall_r', -1),
             ('wall_l_inner', -1),
             ('wall_r_inner', -1),
+            ('wall_middle', -1),
             ('wall_lectern', -1),
         ],
         zForward=[
             ('wall_r', 2),
+            ('wall_middle', 2),
             ('corner_outer', 3),
         ],
         zBackward=[
             ('wall_l', 2),
+            ('wall_middle', 2),
             ('corner_outer', 0),
         ],
         walls=[

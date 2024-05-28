@@ -12,6 +12,7 @@ class CornerInner(Structure):
         name='corner_inner',
         xForward=[
             ('wall_l', 3),
+            ('wall_middle', 3),
         ],
         xBackward=[
             ('wall_r_inner', 2),
@@ -29,6 +30,7 @@ class CornerInner(Structure):
             ('wall_r', -1),
             ('wall_l_inner', -1),
             ('wall_r_inner', -1),
+            ('wall_middle', -1),
             ('wall_lectern', -1),
         ],
         yBackward=[
@@ -41,6 +43,7 @@ class CornerInner(Structure):
             ('wall_r', -1),
             ('wall_l_inner', -1),
             ('wall_r_inner', -1),
+            ('wall_middle', -1),
             ('wall_lectern', -1),
         ],
         zForward=[
@@ -51,6 +54,7 @@ class CornerInner(Structure):
         ],
         zBackward=[
             ('wall_r', 0),
+            ('wall_middle', 0),
         ],
         walls=[
             'yForward',

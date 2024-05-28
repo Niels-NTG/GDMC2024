@@ -103,7 +103,7 @@ def getBoxWallsAndCeiling(
                 if not (
                     x > box.begin.x and x < box.last.x and
                     z > box.begin.z and z < box.last.z
-                ) or y == box.last.y:
+                ) or (y == box.last.y and box.size.y > 1):
                     yield ivec3(x, y, z)
 
 

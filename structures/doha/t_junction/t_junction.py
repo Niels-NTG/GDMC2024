@@ -50,12 +50,10 @@ class TJunction(Structure):
         zForward=[
             ('wall_l', 0),
             ('wall_middle', 0),
-            ('corner_outer', 2),
         ],
         zBackward=[
             ('wall_r', 0),
             ('wall_middle', 0),
-            ('corner_outer', 1),
         ],
         walls=[
             'yForward',

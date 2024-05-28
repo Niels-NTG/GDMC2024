@@ -11,9 +11,6 @@ class CornerOuter(Structure):
     adjecencies = StructureAdjacency(
         name='corner_outer',
         xForward=[
-            ('wall_lectern', 1),
-            ('t_junction', 3),
-            ('wall_l_inner', 3),
             ('wall_r_inner', 3),
             ('wall_r', 3),
             ('corner_outer', 1),
@@ -56,9 +53,6 @@ class CornerOuter(Structure):
             ('wall_lectern', -1),
         ],
         zForward=[
-            ('wall_lectern', 0),
-            ('t_junction', 2),
-            ('wall_r_inner', 2),
             ('wall_l_inner', 2),
             ('wall_l', 2),
             ('corner_outer', 3),

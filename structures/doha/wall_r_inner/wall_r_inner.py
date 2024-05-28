@@ -56,10 +56,10 @@ class WallRInner(Structure):
         zForward=[
             ('wall_l', 0),
             ('wall_middle', 0),
-            ('corner_outer', 2),
         ],
         zBackward=[
             ('wall_l_inner', 0),
+            ('wall_l', 0),
             ('corner_outer', 1),
         ],
         walls=[

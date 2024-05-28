@@ -53,6 +53,7 @@ class WallL(Structure):
         ],
         zForward=[
             ('wall_r', 0),
+            ('wall_r_inner', 0),
             ('corner_outer', 2),
         ],
         zBackward=[

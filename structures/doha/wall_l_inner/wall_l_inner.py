@@ -55,12 +55,12 @@ class WallLInner(Structure):
         ],
         zForward=[
             ('wall_r_inner', 0),
+            ('wall_r', 0),
             ('corner_outer', 2),
         ],
         zBackward=[
             ('wall_r', 0),
             ('wall_middle', 0),
-            ('corner_outer', 1),
         ],
         walls=[
             'xForward',

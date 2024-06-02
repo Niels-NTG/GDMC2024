@@ -107,6 +107,19 @@ def getBoxWallsAndCeiling(
                     yield ivec3(x, y, z)
 
 
+def getBoxWalls(
+    box: Box
+) -> Iterator[ivec3]:
+    for x in range(box.begin.x, box.end.x):
+        for y in range(box.begin.y, box.end.y):
+            for z in range(box.begin.z, box.end.z):
+                if not (
+                    x > box.begin.x and x < box.last.x and
+                    z > box.begin.z and z < box.last.z
+                ):
+                    yield ivec3(x, y, z)
+
+
 def mergeRects(
     rectList: List[Rect],
 ) -> Rect:

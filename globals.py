@@ -73,7 +73,8 @@ def loadStructureFiles():
 
 def generateAdjacencies():
     for name, structureFolder in structureFolders.items():
-        defaultAdjacencies[name] = structureFolder.structureClass.adjecencies
+        if hasattr(structureFolder.structureClass, 'adjecencies'):
+            defaultAdjacencies[name] = structureFolder.structureClass.adjecencies
     Adjacency.checkSymmetry(defaultAdjacencies)
 
 

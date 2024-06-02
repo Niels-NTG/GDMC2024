@@ -21,6 +21,7 @@ from gdpc.src.gdpc import Box
 
 class WaveFunctionCollapse:
 
+    stateSpaceBox: Box
     stateSpace: Dict[ivec3, OrderedSet[StructureRotation]]
     lockedTiles: Dict[ivec3, bool]
     structureWeights: Dict[str, float]

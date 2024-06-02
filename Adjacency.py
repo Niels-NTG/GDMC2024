@@ -109,9 +109,6 @@ class StructureAdjacency:
                 openPositions.add(openPosition)
         return openPositions
 
-    def __hash__(self):
-        return hash(self.name)
-
 
 def createRotationSet(rotationTuples: List[Tuple[str, int]]) -> Set[StructureRotation]:
     rotationSet: Set[StructureRotation] = set()

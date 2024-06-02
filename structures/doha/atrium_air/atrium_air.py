@@ -39,7 +39,6 @@ class AtriumAir(Structure):
         ],
         yBackward=[
             ('atrium_air', -1),
-            # TODO create atrium floor
         ],
         zForward=[
             ('atrium_air', -1),

@@ -63,6 +63,9 @@ class WaveFunctionCollapse:
         self.initStateSpaceWithDefaultDomain()
         if initFunction:
             initFunction(self)
+        for index in self.stateSpace:
+            if not self.stateSpaceBox.contains(index):
+                raise IndexError(f'Index {index} not contained in state space box {self.stateSpaceBox}')
 
     def setupRNG(self, rngSeed: int | None = None):
         self.rng = np.random.default_rng(seed=rngSeed)

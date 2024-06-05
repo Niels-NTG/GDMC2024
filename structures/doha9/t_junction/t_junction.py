@@ -9,7 +9,7 @@ from StructureBase import Structure
 
 class TJunction(Structure):
     adjecencies = StructureAdjacency(
-        name='x_junction',
+        name='t_junction',
         xForward=[
             ('book_hallway_outer', 1),
             ('book_hallway_outer', 3),

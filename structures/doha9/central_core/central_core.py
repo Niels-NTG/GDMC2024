@@ -23,4 +23,4 @@ class CentralCore(Structure):
 
     @property
     def position(self) -> ivec3:
-        return self.offset + (self.tile * ivec3(5, 10, 5))
+        return self.offset + (self.tile * ivec3(9, 10, 9))

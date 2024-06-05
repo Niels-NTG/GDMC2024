@@ -52,6 +52,8 @@ class XJunction(Structure):
         ]
     )
 
+    weight = 0.6
+
     def __init__(
         self,
         withRotation: int = 0,

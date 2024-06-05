@@ -13,6 +13,9 @@ class TJunction(Structure):
         xForward=[
             ('book_hallway_outer', 1),
             ('book_hallway_outer', 3),
+            ('t_junction', 1),
+            ('t_junction', 2),
+            ('t_junction', 3),
         ],
         xBackward=[
             ('air', -1),
@@ -47,10 +50,16 @@ class TJunction(Structure):
         zForward=[
             ('book_hallway_outer', 0),
             ('book_hallway_outer', 2),
+            ('t_junction', 0),
+            ('t_junction', 2),
+            ('t_junction', 3),
         ],
         zBackward=[
             ('book_hallway_outer', 0),
             ('book_hallway_outer', 2),
+            ('t_junction', 0),
+            ('t_junction', 1),
+            ('t_junction', 2),
         ],
         walls=[
             'xBackward',

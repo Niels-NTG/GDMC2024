@@ -19,6 +19,9 @@ class Air(Structure):
             ('book_corner', 0),
             ('book_corner', 1),
             ('t_junction', 0),
+            ('book_end', 0),
+            ('book_end', 1),
+            ('book_end', 2),
         ],
         xBackward=[
             ('air', -1),
@@ -29,6 +32,9 @@ class Air(Structure):
             ('book_corner', 2),
             ('book_corner', 3),
             ('t_junction', 2),
+            ('book_end', 0),
+            ('book_end', 2),
+            ('book_end', 3),
         ],
         yForward=[
             ('air', -1),
@@ -38,6 +44,7 @@ class Air(Structure):
             ('book_corner', -1),
             ('t_junction', -1),
             ('x_junction', -1),
+            ('book_end', -1),
         ],
         yBackward=[
             ('air', -1),
@@ -47,6 +54,7 @@ class Air(Structure):
             ('book_corner', -1),
             ('t_junction', -1),
             ('x_junction', -1),
+            ('book_end', -1),
         ],
         zForward=[
             ('air', -1),
@@ -57,6 +65,9 @@ class Air(Structure):
             ('book_corner', 1),
             ('book_corner', 2),
             ('t_junction', 1),
+            ('book_end', 1),
+            ('book_end', 2),
+            ('book_end', 3),
         ],
         zBackward=[
             ('air', -1),
@@ -67,6 +78,9 @@ class Air(Structure):
             ('book_corner', 0),
             ('book_corner', 3),
             ('t_junction', 3),
+            ('book_end', 0),
+            ('book_end', 1),
+            ('book_end', 3),
         ]
     )
 

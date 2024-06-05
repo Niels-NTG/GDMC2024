@@ -32,6 +32,7 @@ class BookCorner(Structure):
             ('book_corner', -1),
             ('t_junction', -1),
             ('x_junction', -1),
+            ('book_end', -1),
         ],
         yBackward=[
             ('air', -1),
@@ -41,6 +42,7 @@ class BookCorner(Structure):
             ('book_corner', -1),
             ('t_junction', -1),
             ('x_junction', -1),
+            ('book_end', -1),
         ],
         zForward=[
             ('air', -1),

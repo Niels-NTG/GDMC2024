@@ -7,28 +7,28 @@ from Adjacency import StructureAdjacency
 from StructureBase import Structure
 
 
-class BookHallwayInner(Structure):
+class BookEnd(Structure):
     adjecencies = StructureAdjacency(
-        name='book_hallway_inner',
+        name='book_end',
         xForward=[
             ('air', -1),
-            ('book_hallway_inner', 0),
-            ('book_hallway_inner', 2),
-            ('book_hallway_outer', 0),
-            ('book_hallway_outer', 2),
-            ('book_corner', 0),
-            ('book_corner', 1),
-            ('t_junction', 0),
+            # ('book_hallway_inner', 0),
+            # ('book_hallway_inner', 2),
+            # ('book_hallway_outer', 0),
+            # ('book_hallway_outer', 2),
+            # ('book_corner', 0),
+            # ('book_corner', 1),
+            # ('t_junction', 0),
         ],
         xBackward=[
             ('air', -1),
-            ('book_hallway_inner', 0),
-            ('book_hallway_inner', 2),
-            ('book_hallway_outer', 0),
-            ('book_hallway_outer', 2),
-            ('book_corner', 2),
-            ('book_corner', 3),
-            ('t_junction', 2),
+            # ('book_hallway_inner', 0),
+            # ('book_hallway_inner', 2),
+            # ('book_hallway_outer', 0),
+            # ('book_hallway_outer', 2),
+            # ('book_corner', 2),
+            # ('book_corner', 3),
+            # ('t_junction', 2),
         ],
         yForward=[
             ('air', -1),
@@ -51,8 +51,7 @@ class BookHallwayInner(Structure):
             ('book_end', -1),
         ],
         zForward=[
-            ('book_hallway_outer', 0),
-            ('book_hallway_outer', 2),
+            ('air', -1),
         ],
         zBackward=[
             ('book_hallway_outer', 0),
@@ -60,6 +59,7 @@ class BookHallwayInner(Structure):
         ],
         walls=[
             'xForward',
+            'zForward',
             'xBackward',
             'yForward',
             'yBackward',

@@ -19,6 +19,9 @@ class Air(Structure):
             ('book_corner', 0),
             ('book_corner', 1),
             ('t_junction', 0),
+            ('central_core_hallway', 0),
+            ('central_core_hallway', 1),
+            ('central_core_hallway', 3),
         ],
         xBackward=[
             ('air', -1),
@@ -29,6 +32,9 @@ class Air(Structure):
             ('book_corner', 2),
             ('book_corner', 3),
             ('t_junction', 2),
+            ('central_core_hallway', 1),
+            ('central_core_hallway', 2),
+            ('central_core_hallway', 3),
         ],
         yForward=[
             ('air', -1),
@@ -39,6 +45,7 @@ class Air(Structure):
             ('t_junction', -1),
             ('x_junction', -1),
             ('book_end', -1),
+            ('central_core_hallway', -1),
         ],
         yBackward=[
             ('air', -1),
@@ -49,6 +56,7 @@ class Air(Structure):
             ('t_junction', -1),
             ('x_junction', -1),
             ('book_end', -1),
+            ('central_core_hallway', -1),
         ],
         zForward=[
             ('air', -1),
@@ -59,6 +67,9 @@ class Air(Structure):
             ('book_corner', 1),
             ('book_corner', 2),
             ('t_junction', 1),
+            ('central_core_hallway', 0),
+            ('central_core_hallway', 1),
+            ('central_core_hallway', 2),
         ],
         zBackward=[
             ('air', -1),
@@ -69,6 +80,9 @@ class Air(Structure):
             ('book_corner', 0),
             ('book_corner', 3),
             ('t_junction', 3),
+            ('central_core_hallway', 0),
+            ('central_core_hallway', 2),
+            ('central_core_hallway', 3),
         ]
     )
 

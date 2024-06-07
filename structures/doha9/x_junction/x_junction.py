@@ -17,6 +17,7 @@ class XJunction(Structure):
         xBackward=[
             ('book_hallway_outer', 1),
             ('book_hallway_outer', 3),
+            ('central_core_hallway', 0),
         ],
         yForward=[
             ('air', -1),

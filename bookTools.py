@@ -9,9 +9,6 @@ from pylatexenc.latex2text import latex2text
 import globals
 from gdpc.src.gdpc import Block, minecraft_tools
 
-if __name__ == '__main__':
-    globals.initialize()
-
 
 @functools.cache
 def categoryGroup(category: str) -> str:
@@ -96,7 +93,7 @@ def categoriesHeader(data: Dict) -> str:
 
 
 def lastVersionYear(data: Dict) -> str:
-    return '§7' + re.sub(r'^\w\w\w,\s\d+\s\w\w\w\s|\s.+$', '', data['versions'][-1]['created']) + '§r'
+    return re.sub(r'^\w\w\w,\s\d+\s\w\w\w\s|\s.+$', '', data['versions'][-1]['created'])
 
 
 def truncatedBookTitle(data: Dict) -> str:
@@ -105,7 +102,7 @@ def truncatedBookTitle(data: Dict) -> str:
         title += ' et al.'
     if len(title) > 25:
         title = title[:25] + '…'
-    title += ' (' + lastVersionYear(data) + ')'
+    title += ' (§7' + lastVersionYear(data) + '§r)'
     return title
 
 
@@ -118,9 +115,9 @@ def authorsHeader(data: Dict) -> str:
 
 def firstPage(data: Dict) -> str:
     s = categoriesHeader(data) + '\n'
-    s += '§6§l' + sanitizeForBook(entry['title']) + '§r\n\n'
+    s += '§6§l' + sanitizeForBook(data['title']) + '§r\n\n'
     s += authorsHeader(data) + '\n\n'
-    s += lastVersionYear(data) + '\f'
+    s += '§7' + lastVersionYear(data) + '§r\f'
     return s
 
 
@@ -186,36 +183,54 @@ def fillBookShelf(bookSources: List[Dict], block: Block) -> Block:
     return block
 
 
-# TODO entries in file are sorted by ArXiv ID. Think of a better sorting system.
-with open('dataset/arxiv-metadata-oai-snapshot.json') as f:
-    bookShelfEntries: List[Dict] = []
-    pos = ivec3(globals.buildarea.begin)
-    bookCount = 0
-    facing = 'north'
+def createMegaBookWall():
+    globals.initialize()
+    with open('dataset/arxiv-metadata-oai-snapshot.json') as f:
+        bookShelfEntries: List[Dict] = []
+        pos = ivec3(globals.buildarea.begin)
+        bookCount = 0
+        facing = 'north'
 
-    for line in f:
-        entry = json.loads(line)
-        # print(entry)
-        bookShelfEntries.append(entry)
-        if len(bookShelfEntries) == 6:
-            pos.x = pos.x + 1
-            if pos.x > globals.buildarea.end.x:
-                pos.y = pos.y + 1
-                pos.x = globals.buildarea.begin.x
+        for line in f:
+            entry = json.loads(line)
+            # print(entry)
+            bookShelfEntries.append(entry)
+            if len(bookShelfEntries) == 6:
+                pos.x = pos.x + 1
+                if pos.x > globals.buildarea.end.x:
+                    pos.y = pos.y + 1
+                    pos.x = globals.buildarea.begin.x
 
-            bookShelfBlock = Block(
-                id='minecraft:chiseled_bookshelf',
-                states={
-                    'facing': facing,
-                    'slot_0_occupied': 'true',
-                    'slot_1_occupied': 'true',
-                    'slot_2_occupied': 'true',
-                    'slot_3_occupied': 'true',
-                    'slot_4_occupied': 'true',
-                    'slot_5_occupied': 'true',
-                }
-            )
-            bookshelfBlock = fillBookShelf(bookShelfEntries, bookShelfBlock)
-            globals.editor.placeBlockGlobal(block=bookshelfBlock, position=pos)
-            bookShelfEntries = []
-        bookCount += 1
+                bookShelfBlock = Block(
+                    id='minecraft:chiseled_bookshelf',
+                    states={
+                        'facing': facing,
+                        'slot_0_occupied': 'true',
+                        'slot_1_occupied': 'true',
+                        'slot_2_occupied': 'true',
+                        'slot_3_occupied': 'true',
+                        'slot_4_occupied': 'true',
+                        'slot_5_occupied': 'true',
+                    }
+                )
+                bookshelfBlock = fillBookShelf(bookShelfEntries, bookShelfBlock)
+                globals.editor.placeBlockGlobal(block=bookshelfBlock, position=pos)
+                bookShelfEntries = []
+            bookCount += 1
+
+
+def writeCategoryFile(line: str, category: str, year: str):
+    with open(f'dataset/{category}-{year}.json', 'a') as f:
+        f.write(line)
+
+
+def splitByCategory():
+    with open('dataset/arxiv-metadata-oai-snapshot.json') as f:
+        for line in f:
+            entry = json.loads(line)
+            primaryCategory = entry['categories'].split(' ')[0]
+            year = lastVersionYear(entry)
+            writeCategoryFile(line, primaryCategory, year)
+
+
+splitByCategory()

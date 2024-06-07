@@ -59,6 +59,7 @@ class BookHallwayInner(Structure):
         zForward=[
             ('book_hallway_outer', 0),
             ('book_hallway_outer', 2),
+            ('central_core_hallway', 3),
         ],
         zBackward=[
             ('book_hallway_outer', 0),

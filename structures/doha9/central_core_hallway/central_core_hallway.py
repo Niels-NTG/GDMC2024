@@ -12,6 +12,8 @@ class CentralCoreHallway(Structure):
         name='central_core_hallway',
         xForward=[
             ('x_junction', 0),
+            ('t_junction', 2),
+            ('book_hallway_inner', 1),
         ],
         xBackward=[
             ('air', -1),

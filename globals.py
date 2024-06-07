@@ -53,14 +53,12 @@ def initialize():
     # editor.loadWorldSlice(rect=buildarea.toRect(), cache=True)
 
     # TODO implement algorithm to find and define an suitable build volume
-    # TODO system should be able to define multiple different build volumes for each
-    #   settlement type
     global buildVolume
     buildVolume = buildarea
 
 
 def loadStructureFiles():
-    namespace = 'doha'
+    namespace = 'doha9'
     for structureFolder in Path('.').glob(f'structures/{namespace}/*/'):
         if structureFolder.is_dir():
             structureName = structureFolder.name

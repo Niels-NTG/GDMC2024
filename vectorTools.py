@@ -85,6 +85,24 @@ def loop2DwithRects(
             yield newRect
 
 
+def loop3DwithBox(
+    outsideBox: Box,
+    stride: ivec3 = ivec3(1, 1, 1),
+    overlap: ivec3 = ivec3(1, 1, 1),
+) -> Iterator[Box]:
+    for x in range(outsideBox.begin.x, outsideBox.end.x, max(stride.x - overlap.x, 1)):
+        for y in range(outsideBox.begin.y, outsideBox.end.y, max(stride.y - overlap.y, 1)):
+            for z in range(outsideBox.begin.z, outsideBox.end.z, max(stride.z - overlap.z, 1)):
+                newBoxOffset = ivec3(x, y, z)
+                newBoxSize = stride
+                newBox = Box(
+                    offset=newBoxOffset,
+                    size=newBoxSize,
+                )
+                newBox.end = glm.min(newBox.end, outsideBox.end)
+                yield newBox
+
+
 def boxPositions(
     box: Box
 ) -> Iterator[ivec3]:

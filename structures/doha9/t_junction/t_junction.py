@@ -16,6 +16,7 @@ class TJunction(Structure):
             ('t_junction', 1),
             ('t_junction', 2),
             ('t_junction', 3),
+            ('central_core_hallway', 2),
         ],
         xBackward=[
             ('air', -1),

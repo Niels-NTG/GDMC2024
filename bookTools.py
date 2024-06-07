@@ -1,6 +1,8 @@
 import functools
 import json
 import re
+from datetime import datetime
+from glob import glob
 from typing import Dict, List
 
 from glm import ivec3
@@ -94,6 +96,10 @@ def categoriesHeader(data: Dict) -> str:
 
 def lastVersionYear(data: Dict) -> str:
     return re.sub(r'^\w\w\w,\s\d+\s\w\w\w\s|\s.+$', '', data['versions'][-1]['created'])
+
+
+def primaryAuthor(data: Dict) -> str:
+    return data['authors_parsed'][0][0]
 
 
 def truncatedBookTitle(data: Dict) -> str:
@@ -233,4 +239,20 @@ def splitByCategory():
             writeCategoryFile(line, primaryCategory, year)
 
 
-splitByCategory()
+def gatherBooksOfCategory(category: str = 'cs.') -> List[List[Dict]]:
+    groupedBooks = []
+    startYear = 1980
+    endYear = datetime.today().year
+    for year in range(startYear, endYear + 1):
+        bookGroup: List[Dict] = []
+        inputFiles = glob(f'dataset/{category}*-{year}.json')
+        for inputFile in inputFiles:
+            with open(inputFile) as f:
+                for line in f:
+                    bookGroup.append(json.loads(line))
+        bookGroup.sort(key=lambda x: primaryAuthor(x))
+        groupedBooks.append(bookGroup)
+    return groupedBooks
+
+
+gatheredBooks = gatherBooksOfCategory('cs.')

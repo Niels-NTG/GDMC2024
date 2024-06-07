@@ -94,18 +94,20 @@ class WaveFunctionCollapse:
     @property
     def uncollapsedCellIndicies(self) -> Iterator[ivec3]:
         for cellIndex, cellState in self.stateSpace.items():
-            if len(cellState) > 1:
+            if len(cellState) > 1 and self.lockedTiles[cellIndex] is False:
                 yield cellIndex
 
     def getCellIndicesWithEntropy(self, entropy: int = 1) -> Iterator[ivec3]:
         for cellIndex, cellState in self.stateSpace.items():
-            if len(cellState) == entropy:
+            if len(cellState) == entropy and self.lockedTiles[cellIndex] is False:
                 yield cellIndex
 
     @property
     def lowestEntropy(self) -> int:
         minEntrophy = len(self.defaultDomain) + 1
-        for cellState in self.stateSpace.values():
+        for cellIndex, cellState in self.stateSpace.items():
+            if self.lockedTiles[cellIndex] is True:
+                continue
             entrophySize = len(cellState)
             if entrophySize == 0:
                 return entrophySize
@@ -136,7 +138,9 @@ class WaveFunctionCollapse:
 
     @property
     def isCollapsed(self) -> bool:
-        return len(list(self.getCellIndicesWithEntropy(entropy=1))) == len(self.stateSpace)
+        return len(list(self.getCellIndicesWithEntropy(entropy=1))) == len(list(filter(
+            lambda item: item[1] is False and item[0] in self.stateSpace, self.lockedTiles.items()
+        )))
 
     def collapse(self) -> bool:
         while not self.isCollapsed:

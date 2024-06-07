@@ -4,7 +4,7 @@ import itertools
 import os
 from concurrent.futures import ProcessPoolExecutor, Future
 from copy import deepcopy
-from typing import Tuple, Callable, Iterator, Dict, Set
+from typing import Tuple, Callable, Iterator, Dict, Set, List
 
 import numpy as np
 from glm import ivec3
@@ -30,6 +30,7 @@ class WaveFunctionCollapse:
     rng: Generator
     validationFunction: Callable[[WaveFunctionCollapse], bool] | None
     workList: Dict[ivec3, OrderedSet[StructureRotation]]
+    foundBuildings: List[Set[ivec3]]
 
     def __init__(
         self,
@@ -59,6 +60,8 @@ class WaveFunctionCollapse:
 
         self.workList = dict()
         self.firstPositions = set()
+
+        self.foundBuildings = []
 
         self.initStateSpaceWithDefaultDomain()
         if initFunction:
@@ -288,6 +291,49 @@ class WaveFunctionCollapse:
             if cellState[0].structureName not in globals.structureFolders:
                 raise Exception(f'Structure file {cellState[0].structureName} not found in {globals.structureFolders}')
             yield cellState[0]
+
+    def scanForBuildings(self) -> List[Set[ivec3]]:
+        buildings: List[Set[ivec3]] = []
+        newBuilding: Set[ivec3] = set()
+        cellsVisited: Set[ivec3] = set()
+        stateSpaceKeys: List[ivec3] = list(self.stateSpace.keys())
+
+        while len(cellsVisited) != len(stateSpaceKeys):
+            randomIndex = self.randomCollapsedCellIndex
+            if randomIndex in cellsVisited:
+                continue
+
+            if self.stateSpace[randomIndex][0].structureName.endswith('air'):
+                cellsVisited.add(randomIndex)
+                continue
+
+            scanWorkList: List[ivec3] = [randomIndex]
+            while len(scanWorkList) > 0:
+                cellIndex = scanWorkList.pop()
+                if cellIndex in cellsVisited:
+                    continue
+                if cellIndex in self.lockedTiles and self.lockedTiles[cellIndex] is True:
+                    newBuilding.add(cellIndex)
+                    cellsVisited.add(cellIndex)
+                    continue
+
+                cellState: StructureRotation = self.stateSpace[cellIndex][0]
+                if cellState.structureName.endswith('air'):
+                    raise Exception(f'Wall leak found at {cellIndex} {cellState} in building {newBuilding}')
+
+                openPositions: Set[ivec3] = self.defaultAdjacencies[cellState.structureName].getNonWallPositions(
+                    cellState.rotation,
+                    cellIndex,
+                    stateSpaceKeys,
+                )
+                newBuilding.add(cellIndex)
+                newBuilding.update(openPositions)
+                scanWorkList.extend(openPositions)
+                cellsVisited.add(cellIndex)
+            buildings.append(newBuilding.copy())
+            newBuilding.clear()
+
+        return buildings
 
 
 def startWFCInstance(

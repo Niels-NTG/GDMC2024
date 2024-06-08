@@ -26,8 +26,8 @@ def rotatePointAroundOrigin3D(
 
 @functools.cache
 def rotatePointAroundOrigin2D(
-    origin: ivec2 = ivec3(0, 0, 0),
-    point: ivec2 = ivec3(0, 0, 0),
+    origin: ivec2 = ivec2(0, 0),
+    point: ivec2 = ivec2(0, 0),
     rotation: int = 0
 ) -> ivec2:
     if rotation == 0:

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
+
 if TYPE_CHECKING:
     from StructureBase import Structure
 
@@ -17,20 +18,6 @@ from gdpc.src.gdpc.block import Block
 from gdpc.src.gdpc.vector_tools import Box, Rect, loop2D
 
 DEFAULT_HEIGHTMAP_TYPE: str = 'MOTION_BLOCKING_NO_PLANTS'
-
-
-class PlacementInstruction:
-
-    def __init__(
-        self,
-        position: ivec3 = None,
-        block: Block = None
-    ):
-        self.position = position
-        self.block = block
-
-    def __hash__(self):
-        return hash(self.position)
 
 
 class SimpleEntity:
@@ -228,8 +215,8 @@ def calculateTreeCuttingCost(
 
 def getTreeCuttingInstructions(
     area: Rect
-) -> list[PlacementInstruction]:
-    treeCuttingInstructions: list[PlacementInstruction] = []
+) -> Dict[ivec3, Block]:
+    treeCuttingInstructions: Dict[ivec3, Block] = dict()
 
     innerArea = area.centeredSubRect(size=area.size + 4)
     outerArea = area.centeredSubRect(size=area.size + 10)
@@ -260,15 +247,9 @@ def getTreeCuttingInstructions(
                             not is2DPositionContainedInNodes(pos=pos2DInWorldSpace, exludeRect=innerArea):
                         replacementSapling = getSapling(block)
                         if replacementSapling:
-                            treeCuttingInstructions.append(PlacementInstruction(
-                                block=replacementSapling,
-                                position=pos3D
-                            ))
+                            treeCuttingInstructions[pos3D] = replacementSapling
                             continue
-                treeCuttingInstructions.append(PlacementInstruction(
-                    block=Block('minecraft:air'),
-                    position=pos3D
-                ))
+                treeCuttingInstructions[pos3D] = Block('minecraft:air')
 
     # NOTE: all pre-processing steps are applied, set /gamerule randomTickSpeed to 100, then after a few seconds set
     # it back to the default value of 3 and remove all items with globals.editor.runCommandGlobal('kill @e[type=item]')

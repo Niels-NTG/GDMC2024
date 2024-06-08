@@ -175,14 +175,24 @@ def writeBookData(data: Dict) -> str:
     )
 
 
+def createBookShelfBlock(facing: str) -> Block:
+    return Block(
+        id='minecraft:chiseled_bookshelf',
+        states={
+            'facing': facing,
+        },
+    )
+
+
 def fillBookShelf(bookSources: List[Dict], block: Block) -> Block:
     if len(bookSources) > 6:
         print('Too many book sources provided at once!')
         return block
     shelfSNBT = '{Items: ['
-    for slowIndex in range(6):
-        book = writeBookData(bookSources[slowIndex])
-        shelfSNBT += f'{{Slot: {slowIndex}b, Count: 1b, id: "minecraft:written_book", tag: {book}}},'
+    for bookIndex in range(6):
+        book = writeBookData(bookSources[bookIndex])
+        shelfSNBT += f'{{Slot: {bookIndex}b, Count: 1b, id: "minecraft:written_book", tag: {book}}},'
+        block.states[f'slot_{bookIndex}_occupied'] = 'true'
     shelfSNBT = shelfSNBT[:-1]
     shelfSNBT += ']}'
     block.data = shelfSNBT
@@ -207,18 +217,7 @@ def createMegaBookWall():
                     pos.y = pos.y + 1
                     pos.x = globals.buildarea.begin.x
 
-                bookShelfBlock = Block(
-                    id='minecraft:chiseled_bookshelf',
-                    states={
-                        'facing': facing,
-                        'slot_0_occupied': 'true',
-                        'slot_1_occupied': 'true',
-                        'slot_2_occupied': 'true',
-                        'slot_3_occupied': 'true',
-                        'slot_4_occupied': 'true',
-                        'slot_5_occupied': 'true',
-                    }
-                )
+                bookShelfBlock = createBookShelfBlock(facing)
                 bookshelfBlock = fillBookShelf(bookShelfEntries, bookShelfBlock)
                 globals.editor.placeBlockGlobal(block=bookshelfBlock, position=pos)
                 bookShelfEntries = []
@@ -239,7 +238,7 @@ def splitByCategory():
             writeCategoryFile(line, primaryCategory, year)
 
 
-def gatherBooksOfCategory(category: str = 'cs.') -> List[List[Dict]]:
+def gatherBooksOfCategory(category: str = 'cs.') -> List[Dict]:
     groupedBooks = []
     startYear = 1980
     endYear = datetime.today().year
@@ -251,8 +250,5 @@ def gatherBooksOfCategory(category: str = 'cs.') -> List[List[Dict]]:
                 for line in f:
                     bookGroup.append(json.loads(line))
         bookGroup.sort(key=lambda x: primaryAuthor(x))
-        groupedBooks.append(bookGroup)
+        groupedBooks.extend(bookGroup)
     return groupedBooks
-
-
-gatheredBooks = gatherBooksOfCategory('cs.')

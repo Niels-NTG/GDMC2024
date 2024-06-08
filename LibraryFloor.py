@@ -16,11 +16,13 @@ from gdpc.src.gdpc import Box
 class LibraryFloor:
 
     allStateSpace: Dict[ivec3, OrderedSet[StructureRotation]]
-    allLockedTiles: dict[ivec3, bool]
+    allLockedTiles: Dict[ivec3, bool]
     allDefaultAdjacencies: Dict[str, StructureAdjacency]
     subGridVolumes: List[Box]
     volumeGrid: Box
     volumeRotation: int
+    placedTiles: Dict[ivec3, Structure]
+    centralTile: ivec3
 
     def __init__(
         self,
@@ -75,6 +77,8 @@ class LibraryFloor:
             structureWeights=self.generateWeights(),
             onResolve=self.onResolve,
         )
+
+        self.placedTiles = dict()
 
         self.buildStructure(volume.offset)
 
@@ -219,7 +223,7 @@ class LibraryFloor:
 
     @staticmethod
     def removeOrphanedBuildings(wfc: WaveFunctionCollapse):
-        buildings = wfc.lockedTiles
+        buildings = wfc.foundBuildings
         print(f'Found {len(buildings)} distinct buildings, removing orphaned buildings…')
         largestBuilding = max(buildings, key=lambda x: len(x))
         for building in buildings:
@@ -244,6 +248,7 @@ class LibraryFloor:
         print('Placing tiles…')
         for building in self.getCollapsedState(buildVolumeOffset=buildVolumeOffset):
             building.place()
+            self.placedTiles[building.tile] = building
         # Build central atrium/staircase
         atriumCoreFolder = globals.structureFolders['central_core']
         atriumCoreBuildingInstance: Structure = atriumCoreFolder.structureClass(
@@ -252,3 +257,29 @@ class LibraryFloor:
             offset=buildVolumeOffset,
         )
         atriumCoreBuildingInstance.place()
+        self.placedTiles[atriumCoreBuildingInstance.tile] = atriumCoreBuildingInstance
+        self.centralTile = atriumCoreBuildingInstance.tile
+
+    @property
+    def bookCapacity(self) -> int:
+        capacity = 0
+        for building in self.placedTiles.values():
+            capacity += building.bookCapacity
+        return capacity
+
+    def placeBooks(self, books: List[Dict]):
+        tilesFilledWithBooks: List[ivec3] = []
+        for index, building in self.placedTiles.items():
+            if building.bookCapacity > 0:
+                tilesFilledWithBooks.append(index)
+        for index in tilesFilledWithBooks:
+            building = self.placedTiles[index]
+
+            bookCapacity = building.bookCapacity
+            booksForTile = books[:bookCapacity]
+
+            building.addBooks(booksForTile)
+
+            del books[:bookCapacity]
+
+            building.doPostProcessingSteps()

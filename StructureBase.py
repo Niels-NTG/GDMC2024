@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import functools
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Dict, List
+
+import bookTools
+import vectorTools
+from gdpc.src.gdpc import Block, block_state_tools
 
 if TYPE_CHECKING:
     from StructureFolder import StructureFolder
@@ -18,13 +22,14 @@ from gdpc.src.gdpc.vector_tools import Box, Rect
 
 class Structure:
 
-    decorationStructureFiles: dict[str, StructureFile]
-    transitionStructureFiles: dict[str, StructureFile]
+    decorationStructureFiles: Dict[str, StructureFile]
+    transitionStructureFiles: Dict[str, StructureFile]
     structureFile: StructureFile
 
-    customProperties: dict[str, Any]
+    customProperties: Dict[str, Any]
 
-    preProcessingSteps: list[worldTools.PlacementInstruction]
+    preProcessingSteps: Dict[ivec3, Block]
+    postProcessingSteps: Dict[ivec3, Block]
 
     adjecencies: StructureAdjacency
 
@@ -32,6 +37,8 @@ class Structure:
     tile: ivec3
 
     weight: float = 0.5
+
+    bookShelves: Dict[ivec3, str] = dict()
 
     def __init__(
         self,
@@ -47,7 +54,8 @@ class Structure:
 
         self.customProperties = dict()
 
-        self.preProcessingSteps = []
+        self.preProcessingSteps = dict()
+        self.postProcessingSteps = dict()
 
         self.rotation = withRotation
         self.tile = tile
@@ -116,7 +124,7 @@ class Structure:
         return False
 
     def doPreProcessingSteps(self):
-        self.preProcessingSteps.extend(worldTools.getTreeCuttingInstructions(self.rectInWorldSpace))
+        self.preProcessingSteps.update(worldTools.getTreeCuttingInstructions(self.rectInWorldSpace))
 
         for preProcessingStep in self.preProcessingSteps:
             globals.editor.placeBlockGlobal(
@@ -131,14 +139,37 @@ class Structure:
             pivot=self.structureFile.centerPivot
         )
 
-    @staticmethod
-    def doPostProcessingSteps():
-        postProcessingSteps: list[worldTools.PlacementInstruction] = []
-        for postProcessingStep in postProcessingSteps:
+    def doPostProcessingSteps(self):
+        for index, block in self.postProcessingSteps.items():
+            print(f'Run post processing step {index} {block}')
+            pos = vectorTools.rotatePointAroundOrigin3D(self.box.center, index, self.rotation)
             globals.editor.placeBlockGlobal(
-                position=postProcessingStep.position,
-                block=postProcessingStep.block,
+                position=pos + self.boxInWorldSpace.offset,
+                block=block,
             )
+
+    @property
+    def bookCapacity(self) -> int:
+        # The minecraft:chiseled_bookshelf block has a capacity of 6 books.
+        return len(self.bookShelves) * 6
+
+    def addBooks(self, booksData: List[Dict]):
+        # TODO this function could be ran in seperate threads if needed.
+        bookShelfEntries: List[Dict] = []
+        bookShelfBlockPositions = self.bookShelves.copy()
+        for book in booksData:
+            bookShelfEntries.append(book)
+            if len(bookShelfEntries) == 6:
+                # Remove first entry from the list of bookShelvePositions
+                bookShelfPosition = list(bookShelfBlockPositions.keys())[0]
+                bookShelfRotation = bookShelfBlockPositions.pop(bookShelfPosition)
+
+                bookShelfBlock = bookTools.createBookShelfBlock(
+                    block_state_tools.rotateFacing(bookShelfRotation, self.rotation)
+                )
+                bookShelfBlock = bookTools.fillBookShelf(bookShelfEntries, bookShelfBlock)
+                self.postProcessingSteps[bookShelfPosition] = bookShelfBlock
+                bookShelfEntries.clear()
 
     def __eq__(self, other):
         return hash(self) == hash(other)

@@ -267,7 +267,7 @@ class LibraryFloor:
             capacity += building.bookCapacity
         return capacity
 
-    def placeBooks(self, books: List[Dict]):
+    def placeBooks(self, books: List[str]):
         tilesFilledWithBooks: List[ivec3] = []
         for index, building in self.placedTiles.items():
             if building.bookCapacity > 0:

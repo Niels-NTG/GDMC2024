@@ -5,10 +5,8 @@ from datetime import datetime
 from glob import glob
 from typing import Dict, List
 
-from glm import ivec3
 from pylatexenc.latex2text import latex2text
 
-import globals
 from gdpc.src.gdpc import Block, minecraft_tools
 
 
@@ -98,8 +96,8 @@ def lastVersionYear(data: Dict) -> str:
     return re.sub(r'^\w\w\w,\s\d+\s\w\w\w\s|\s.+$', '', data['versions'][-1]['created'])
 
 
-def primaryAuthor(data: Dict) -> str:
-    return data['authors_parsed'][0][0]
+def primaryAuthor(snbt: str) -> str:
+    return re.sub(r'^.+?title:\'|(?: et al\.)? \(§7.+', '', snbt)
 
 
 def truncatedBookTitle(data: Dict) -> str:
@@ -184,14 +182,12 @@ def createBookShelfBlock(facing: str) -> Block:
     )
 
 
-def fillBookShelf(bookSources: List[Dict], block: Block) -> Block:
+def fillBookShelf(bookSources: List[str], block: Block) -> Block:
     if len(bookSources) > 6:
-        print('Too many book sources provided at once!')
-        return block
+        raise Exception('Too many book sources provided at once!')
     shelfSNBT = '{Items: ['
     for bookIndex in range(6):
-        book = writeBookData(bookSources[bookIndex])
-        shelfSNBT += f'{{Slot: {bookIndex}b, Count: 1b, id: "minecraft:written_book", tag: {book}}},'
+        shelfSNBT += f'{{Slot: {bookIndex}b, Count: 1b, id: "minecraft:written_book", tag: {bookSources[bookIndex]}}},'
         block.states[f'slot_{bookIndex}_occupied'] = 'true'
     shelfSNBT = shelfSNBT[:-1]
     shelfSNBT += ']}'
@@ -199,34 +195,10 @@ def fillBookShelf(bookSources: List[Dict], block: Block) -> Block:
     return block
 
 
-def createMegaBookWall():
-    globals.initialize()
-    with open('dataset/arxiv-metadata-oai-snapshot.json') as f:
-        bookShelfEntries: List[Dict] = []
-        pos = ivec3(globals.buildarea.begin)
-        bookCount = 0
-        facing = 'north'
-
-        for line in f:
-            entry = json.loads(line)
-            # print(entry)
-            bookShelfEntries.append(entry)
-            if len(bookShelfEntries) == 6:
-                pos.x = pos.x + 1
-                if pos.x > globals.buildarea.end.x:
-                    pos.y = pos.y + 1
-                    pos.x = globals.buildarea.begin.x
-
-                bookShelfBlock = createBookShelfBlock(facing)
-                bookshelfBlock = fillBookShelf(bookShelfEntries, bookShelfBlock)
-                globals.editor.placeBlockGlobal(block=bookshelfBlock, position=pos)
-                bookShelfEntries = []
-            bookCount += 1
-
-
 def writeCategoryFile(line: str, category: str, year: str):
     with open(f'dataset/{category}-{year}.json', 'a') as f:
         f.write(line)
+        f.write('\n')
 
 
 def splitByCategory():
@@ -235,20 +207,27 @@ def splitByCategory():
             entry = json.loads(line)
             primaryCategory = entry['categories'].split(' ')[0]
             year = lastVersionYear(entry)
-            writeCategoryFile(line, primaryCategory, year)
+            bookData = writeBookData(entry)
+            writeCategoryFile(bookData, primaryCategory, year)
 
 
-def gatherBooksOfCategory(category: str = 'cs.') -> List[Dict]:
+def gatherBooksOfCategory(category: str = 'cs.') -> List[str]:
     groupedBooks = []
     startYear = 1980
     endYear = datetime.today().year
     for year in range(startYear, endYear + 1):
-        bookGroup: List[Dict] = []
+        bookGroup: List[str] = []
         inputFiles = glob(f'dataset/{category}*-{year}.json')
         for inputFile in inputFiles:
             with open(inputFile) as f:
                 for line in f:
-                    bookGroup.append(json.loads(line))
+                    # Somewhere in the data is a bomb of 0.2 megabyte (221257 bytes).
+                    # To prevent Minecraft chunk size from growing such
+                    # that is crashes the game, skip all books that are
+                    # over roughly 10k bytes
+                    # TODO re-run book parser to trim the abstracts, notes and author lists down
+                    if len(line) < 10000:
+                        bookGroup.append(line)
         bookGroup.sort(key=lambda x: primaryAuthor(x))
         groupedBooks.extend(bookGroup)
     return groupedBooks

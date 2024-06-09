@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import functools
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple
 
 import bookTools
 import vectorTools
@@ -16,7 +16,7 @@ from glm import ivec3, ivec2
 import globals
 import worldTools
 from Adjacency import StructureAdjacency
-from gdpc.src.gdpc.interface import placeStructure
+from gdpc.src.gdpc.interface import placeStructure, placeBlocks
 from gdpc.src.gdpc.vector_tools import Box, Rect
 
 
@@ -29,7 +29,7 @@ class Structure:
     customProperties: Dict[str, Any]
 
     preProcessingSteps: Dict[ivec3, Block]
-    postProcessingSteps: Dict[ivec3, Block]
+    postProcessingSteps: List[Tuple[ivec3, Block]]
 
     adjecencies: StructureAdjacency
 
@@ -55,7 +55,7 @@ class Structure:
         self.customProperties = dict()
 
         self.preProcessingSteps = dict()
-        self.postProcessingSteps = dict()
+        self.postProcessingSteps = []
 
         self.rotation = withRotation
         self.tile = tile
@@ -140,22 +140,19 @@ class Structure:
         )
 
     def doPostProcessingSteps(self):
-        for index, block in self.postProcessingSteps.items():
-            print(f'Run post processing step {index} {block}')
-            pos = vectorTools.rotatePointAroundOrigin3D(self.box.center, index, self.rotation)
-            globals.editor.placeBlockGlobal(
-                position=pos + self.boxInWorldSpace.offset,
-                block=block,
-            )
+        placeBlocks(
+            blocks=self.postProcessingSteps,
+            doBlockUpdates=False,
+        )
 
     @property
     def bookCapacity(self) -> int:
         # The minecraft:chiseled_bookshelf block has a capacity of 6 books.
         return len(self.bookShelves) * 6
 
-    def addBooks(self, booksData: List[Dict]):
-        # TODO this function could be ran in seperate threads if needed.
-        bookShelfEntries: List[Dict] = []
+    def addBooks(self, booksData: List[str]):
+        # TODO for books consider modifying NBT data itself.
+        bookShelfEntries: List[str] = []
         bookShelfBlockPositions = self.bookShelves.copy()
         for book in booksData:
             bookShelfEntries.append(book)
@@ -168,7 +165,14 @@ class Structure:
                     block_state_tools.rotateFacing(bookShelfRotation, self.rotation)
                 )
                 bookShelfBlock = bookTools.fillBookShelf(bookShelfEntries, bookShelfBlock)
-                self.postProcessingSteps[bookShelfPosition] = bookShelfBlock
+
+                bookShelfPosition = vectorTools.rotatePointAroundOrigin3D(
+                    self.box.center, bookShelfPosition, self.rotation
+                ) + self.boxInWorldSpace.offset
+
+                self.postProcessingSteps.append(
+                    (bookShelfPosition, bookShelfBlock)
+                )
                 bookShelfEntries.clear()
 
     def __eq__(self, other):

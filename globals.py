@@ -49,7 +49,7 @@ def initialize():
     global buildarea
     buildarea = interface.getBuildArea()
     global editor
-    editor = Editor()
+    editor = Editor(buffering=True)
     # editor.loadWorldSlice(rect=buildarea.toRect(), cache=True)
 
     # TODO implement algorithm to find and define an suitable build volume

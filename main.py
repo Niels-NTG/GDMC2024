@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 from glm import ivec3
 from termcolor import cprint
@@ -12,8 +13,8 @@ os.system('color')
 
 globals.initialize()
 
-computerScienceBooks = bookTools.gatherBooksOfCategory('cs.')
-volumeRotatiom = 0
+computerScienceBooks: List[str] = bookTools.gatherBooksOfCategory('cs.')
+volumeRotation = 0
 volumeY = 100
 VOLUME_Y_SIZE = 10
 floorNumber = 0
@@ -32,7 +33,7 @@ while volumeY > -70 and len(computerScienceBooks) > 0:
     )
     libraryFloor = LibraryFloor(
         volume=floorVolume,
-        volumeRotation=volumeRotatiom,
+        volumeRotation=volumeRotation,
     )
 
     bookCapacity = libraryFloor.bookCapacity
@@ -43,5 +44,5 @@ while volumeY > -70 and len(computerScienceBooks) > 0:
     del computerScienceBooks[-bookCapacity:]
 
     volumeY -= VOLUME_Y_SIZE
-    volumeRotatiom += 1
+    volumeRotation += 1
     floorNumber -= 1

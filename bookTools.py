@@ -112,8 +112,13 @@ def truncatedBookTitle(data: Dict) -> str:
 
 def authorsHeader(data: Dict) -> str:
     s = '§8§o'
+    authorCount = 0
     for author in data['authors_parsed']:
+        if authorCount > 3:
+            s += f'+ {len(data["authors_parsed"]) - authorCount} others'
+            break
         s += f'{author[2]} {author[1]} {author[0]}'.strip() + '\n'
+        authorCount += 1
     return re.sub(r' {2,}', '', s).strip() + '§r'
 
 

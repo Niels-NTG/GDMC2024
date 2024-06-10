@@ -114,11 +114,15 @@ def authorsHeader(data: Dict) -> str:
     s = '§8§o'
     authorCount = 0
     for author in data['authors_parsed']:
+        authorCount += 1
         if authorCount > 3:
-            s += f'+ {len(data["authors_parsed"]) - authorCount} others'
+            remainingAuthorCount = len(data["authors_parsed"]) - authorCount
+            if remainingAuthorCount == 1:
+                s += f'{author[2]} {author[1]} {author[0]}'.strip()
+            elif remainingAuthorCount > 1:
+                s += f'+ {remainingAuthorCount} others'
             break
         s += f'{author[2]} {author[1]} {author[0]}'.strip() + '\n'
-        authorCount += 1
     return re.sub(r' {2,}', '', s).strip() + '§r'
 
 
@@ -157,11 +161,11 @@ def sanitizeForBook(s: str) -> str:
     try:
         s = latex2text(s)
     except:
-        print(f'latex2text: {s}')
+        pass
     try:
-        s = s.encode('raw_unicode_escape').decode('unicode_escape')
+        s = re.sub(r'\\[^ntvfu\'\"]', '', s).encode('raw_unicode_escape').decode('unicode_escape')
     except UnicodeDecodeError:
-        print(f'UnicodeDecodeError: {s}')
+        pass
     return s
 
 

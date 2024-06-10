@@ -39,7 +39,8 @@ while volumeY > -70 and len(computerScienceBooks) > 0:
     bookCapacity = libraryFloor.bookCapacity
     cprint(f'Filling floor {floorNumber} with {bookCapacity} books', 'black', 'on_green')
     booksForFloor = computerScienceBooks[-bookCapacity:]
-    libraryFloor.placeBooks(booksForFloor)
+    libraryFloor.addBooks(booksForFloor)
+    libraryFloor.placeStructure(floorVolume.offset)
 
     del computerScienceBooks[-bookCapacity:]
 

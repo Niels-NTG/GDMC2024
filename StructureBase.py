@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import functools
+from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Dict, List, Tuple
 
 import bookTools
-import vectorTools
-from gdpc.src.gdpc import Block, block_state_tools
+import nbtTools
+from gdpc.src.gdpc import Block
 
 if TYPE_CHECKING:
     from StructureFolder import StructureFolder
@@ -49,6 +50,7 @@ class Structure:
     ):
 
         self.structureFile = structureFolder.structureFile
+        self.nbt = deepcopy(self.structureFile.nbt)
         self.transitionStructureFiles = structureFolder.transitionStructureFiles
         self.decorationStructureFiles = structureFolder.decorationStructureFiles
 
@@ -134,16 +136,17 @@ class Structure:
 
     def place(self):
         placeStructure(
-            self.structureFile.file,
+            self.nbt,
             position=self.position, rotate=self.rotation, mirror=None,
-            pivot=self.structureFile.centerPivot
+            pivot=self.structureFile.centerPivot,
         )
 
     def doPostProcessingSteps(self):
-        placeBlocks(
-            blocks=self.postProcessingSteps,
-            doBlockUpdates=False,
-        )
+        if len(self.postProcessingSteps):
+            placeBlocks(
+                blocks=self.postProcessingSteps,
+                doBlockUpdates=False,
+            )
 
     @property
     def bookCapacity(self) -> int:
@@ -151,7 +154,6 @@ class Structure:
         return len(self.bookShelves) * 6
 
     def addBooks(self, booksData: List[str]):
-        # TODO for books consider modifying NBT data itself.
         bookShelfEntries: List[str] = []
         bookShelfBlockPositions = self.bookShelves.copy()
         for book in booksData:
@@ -162,17 +164,11 @@ class Structure:
                 bookShelfRotation = bookShelfBlockPositions.pop(bookShelfPosition)
 
                 bookShelfBlock = bookTools.createBookShelfBlock(
-                    block_state_tools.rotateFacing(bookShelfRotation, self.rotation)
+                    bookShelfRotation,
                 )
                 bookShelfBlock = bookTools.fillBookShelf(bookShelfEntries, bookShelfBlock)
 
-                bookShelfPosition = vectorTools.rotatePointAroundOrigin3D(
-                    self.box.center, bookShelfPosition, self.rotation
-                ) + self.boxInWorldSpace.offset
-
-                self.postProcessingSteps.append(
-                    (bookShelfPosition, bookShelfBlock)
-                )
+                nbtTools.setNBTAt(self.nbt, bookShelfPosition, bookShelfBlock)
                 bookShelfEntries.clear()
 
     def __eq__(self, other):

@@ -1,6 +1,6 @@
-from typing import Dict, List, Iterator
+from typing import Dict, List, Iterator, Tuple
 
-from glm import ivec3, ivec2
+from glm import ivec3
 from ordered_set import OrderedSet
 from termcolor import cprint
 
@@ -39,9 +39,7 @@ class LibraryFloor:
         self.subGridVolumes = []
 
         self.volumeGrid = Box(size=volume.size // tileSize)
-        # Ensure volume is an odd number to make rotation easier.
-        if self.volume.toRect().size % 2 == ivec2(0, 0):
-            self.volumeGrid.size = self.volumeGrid.size + ivec3(1, 0, 1)
+        self.volumeGrid.size = self.volumeGrid.size + ivec3(1, 0, 1)
         # Ensure volume is flat
         self.volumeGrid.size.y = 1
         print(f'Running WFC in volume {self.volumeGrid.size.x}x{self.volumeGrid.size.y}x{self.volumeGrid.size.z}')
@@ -79,8 +77,8 @@ class LibraryFloor:
         )
 
         self.placedTiles = dict()
-
-        self.buildStructure(volume.offset)
+        for index, building in self.getCollapsedState:
+            self.placedTiles[index] = building
 
     def reinitWFC(self, wfc: WaveFunctionCollapse):
         self.collapseVolumeEdgeToAir(wfc)
@@ -231,24 +229,24 @@ class LibraryFloor:
                 for index in building:
                     wfc.stateSpace[index] = OrderedSet({StructureRotation(structureName='air', rotation=0)})
 
-    def getCollapsedState(self, buildVolumeOffset: ivec3 = ivec3(0, 0, 0)) -> Iterator[Structure]:
-        for cellIndex in self.allStateSpace:
-            cellState: StructureRotation = self.allStateSpace[cellIndex][0]
+    @property
+    def getCollapsedState(self) -> Iterator[Tuple[ivec3, Structure]]:
+        for index in self.allStateSpace:
+            cellState: StructureRotation = self.allStateSpace[index][0]
             if cellState.structureName not in globals.structureFolders:
                 raise Exception(f'Structure file {cellState.structureName} not found in {globals.structureFolders}')
             structureFolder = globals.structureFolders[cellState.structureName]
             structureInstance: Structure = structureFolder.structureClass(
                 withRotation=cellState.rotation,
-                tile=cellIndex,
-                offset=buildVolumeOffset,
+                tile=index,
+                offset=self.volume.offset,
             )
-            yield structureInstance
+            yield index, structureInstance
 
-    def buildStructure(self, buildVolumeOffset: ivec3 = ivec3(0, 0, 0)):
+    def placeStructure(self, buildVolumeOffset: ivec3 = ivec3(0, 0, 0)):
         print('Placing tiles…')
-        for building in self.getCollapsedState(buildVolumeOffset=buildVolumeOffset):
+        for building in self.placedTiles.values():
             building.place()
-            self.placedTiles[building.tile] = building
         # Build central atrium/staircase
         atriumCoreFolder = globals.structureFolders['central_core']
         atriumCoreBuildingInstance: Structure = atriumCoreFolder.structureClass(
@@ -267,19 +265,13 @@ class LibraryFloor:
             capacity += building.bookCapacity
         return capacity
 
-    def placeBooks(self, books: List[str]):
-        tilesFilledWithBooks: List[ivec3] = []
-        for index, building in self.placedTiles.items():
-            if building.bookCapacity > 0:
-                tilesFilledWithBooks.append(index)
-        for index in tilesFilledWithBooks:
-            building = self.placedTiles[index]
+    def addBooks(self, books: List[str]):
 
-            bookCapacity = building.bookCapacity
-            booksForTile = books[:bookCapacity]
+        for building in self.placedTiles.values():
+            if building.bookCapacity == 0:
+                continue
 
+            booksForTile = books[:building.bookCapacity]
             building.addBooks(booksForTile)
+            del books[:building.bookCapacity]
 
-            del books[:bookCapacity]
-
-            building.doPostProcessingSteps()

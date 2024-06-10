@@ -1,5 +1,4 @@
 import nbtlib
-from nbt import nbt
 import numpy as np
 from glm import ivec3
 
@@ -23,16 +22,43 @@ def extractEntityId(compound: nbtlib.Compound) -> str:
     return compound.get('id')
 
 
-def getBlockAt(nbtFile: nbt.NBTFile, pos: ivec3) -> Block:
+def getBlockAt(nbtFile: nbtlib.Compound, pos: ivec3) -> Block:
     for nbtBlock in list(nbtFile['blocks']):
-        if nbtBlock['pos'][0].value == pos.x and \
-                nbtBlock['pos'][1].value == pos.y and \
-                nbtBlock['pos'][2].value == pos.z:
-            return Block.fromBlockStateTag(getBlockMaterial(nbtFile, nbtBlock))
+        if (
+            nbtBlock['pos'][0] == pos.x and
+            nbtBlock['pos'][1] == pos.y and
+            nbtBlock['pos'][2] == pos.z
+        ):
+            return Block.fromBlockStateTag(
+                getBlockMaterial(nbtFile, nbtBlock),
+                nbtBlock['nbt']
+            )
 
 
-def getBlockMaterial(nbtFile: nbt.NBTFile, block) -> nbt.TAG_Compound:
-    return nbtFile['palette'][block['state'].value]
+def setNBTAt(nbtFile: nbtlib.Compound, pos: ivec3, inputBlock: Block):
+    try:
+        newNBTTag = nbtlib.parse_nbt(inputBlock.data)
+    except Exception as e:
+        print(f'Could not parse {inputBlock.data}: {e}')
+        return
+    nbtFile['palette'].append(nbtlib.parse_nbt(
+        f'{{Properties: {inputBlock.stateString()}, Name: "{inputBlock.id}"}}'
+    ))
+    paletteId = len(nbtFile['palette']) - 1
+    for nbtBlock in nbtFile['blocks']:
+        if (
+            nbtBlock['pos'][0] == pos.x and
+            nbtBlock['pos'][1] == pos.y and
+            nbtBlock['pos'][2] == pos.z
+        ):
+            nbtBlock['nbt'] = newNBTTag
+            nbtBlock['state'] = nbtlib.Int(paletteId)
+            return
+    raise Exception(f'nbtFile has no block at position {pos}')
+
+
+def getBlockMaterial(nbtFile: nbtlib.Compound, block) -> nbtlib.Compound:
+    return nbtFile['palette'][block['state']]
 
 
 def setInventoryContents(inventoryBlock: Block, contents: list[dict]) -> Block:

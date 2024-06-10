@@ -197,7 +197,7 @@ def fillBookShelf(bookSources: List[str], block: Block) -> Block:
     shelfSNBT = '{Items: ['
     for bookIndex in range(6):
         shelfSNBT += f'{{Slot: {bookIndex}b, Count: 1b, id: "minecraft:written_book", tag: {bookSources[bookIndex]}}},'
-        block.states[f'slot_{bookIndex}_occupied'] = 'true'
+        block.states[f'slot_{bookIndex}_occupied'] = '"true"'
     shelfSNBT = shelfSNBT[:-1]
     shelfSNBT += ']}'
     block.data = shelfSNBT

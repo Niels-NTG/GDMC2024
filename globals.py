@@ -37,7 +37,7 @@ def initialize():
     #     'setbuildarea 20 -60 163 120 -50 263'
     # )
     interface.runCommand(
-        'setbuildarea 20 -60 160 200 0 340'
+        'setbuildarea 20 -60 160 210 0 350'
     )
     # interface.runCommand(
     #     'setbuildarea 20 -60 160 160 0 300'

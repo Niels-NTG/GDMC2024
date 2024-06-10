@@ -167,3 +167,4 @@ cython_debug/
 .idea/
 /dataset/*.zip
 /dataset/*.json
+/dataset/*/

@@ -241,6 +241,6 @@ def gatherBooksOfCategory(category: str = 'cs.') -> List[str]:
                     # TODO re-run book parser to trim the abstracts, notes and author lists down
                     if len(line) < 10000:
                         bookGroup.append(line)
-        bookGroup.sort(key=lambda x: primaryAuthorFromSNBT(x), reverse=True)
+        bookGroup.sort(key=lambda x: locale.strxfrm(primaryAuthorFromSNBT(x).casefold()), reverse=True)
         groupedBooks.extend(bookGroup)
     return groupedBooks

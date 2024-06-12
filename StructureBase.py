@@ -176,6 +176,8 @@ class Structure:
                 if len(books) == 0:
                     return
                 for bookIndex in range(6):
+                    if (len(books) - 1) < bookIndex:
+                        return
                     book = books[bookIndex]
                     bookYear = bookTools.yearFromSNBT(book)
                     bookAuthor = bookTools.primaryAuthorFromSNBT(book)

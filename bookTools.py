@@ -113,11 +113,11 @@ def lastVersionYear(data: Dict) -> str:
 
 
 def primaryAuthorFromSNBT(snbt: str) -> str:
-    return re.sub(r'^.+?title:\'|(?: et al\.)? \(§7.+', '', snbt)
+    return re.sub(r'^.+?title:[\'\"]|(?: et al\.)? \(§7.+', '', snbt)
 
 
 def yearFromSNBT(snbt: str) -> str:
-    return re.sub(r'^.+?title:\'.+?\(§7|§r\).+', '', snbt)
+    return re.sub(r'^.+?title:[\'\"].+?\(§7|§r\).+', '', snbt)
 
 
 def truncatedBookTitle(data: Dict) -> str:

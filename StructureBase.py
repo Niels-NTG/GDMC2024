@@ -4,9 +4,11 @@ import functools
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Dict, List, Tuple
 
+import nbtlib
+
 import bookTools
 import nbtTools
-from gdpc.src.gdpc import Block
+from gdpc.src.gdpc import Block, minecraft_tools
 
 if TYPE_CHECKING:
     from StructureFolder import StructureFolder
@@ -40,6 +42,8 @@ class Structure:
     weight: float = 0.5
 
     bookShelves: Dict[str, Dict[ivec3, str]] = []
+
+    signs: Dict[str, ivec3] = dict()
 
     def __init__(
         self,
@@ -164,6 +168,10 @@ class Structure:
         lastBookAuthor = bookTools.primaryAuthorFromSNBT(books[0])
         moveToNextWall = False
         for bookCabinet in self.bookShelves:
+
+            firstBookInCabinetYear = lastBookYear
+            firstBookInCabinetAuthor = lastBookAuthor
+
             for bookShelfPosition, bookShelfRotation in self.bookShelves[bookCabinet].items():
                 if len(books) == 0:
                     return
@@ -186,6 +194,25 @@ class Structure:
                 if moveToNextWall:
                     moveToNextWall = False
                     break
+
+            # lastBookInCabinetYear = lastBookYear
+            lastBookInCabinetAuthor = lastBookAuthor
+
+            signPosition = self.signs[bookCabinet]
+            signData = nbtlib.parse_nbt(minecraft_tools.signData(
+                frontLine1=firstBookInCabinetYear,
+                frontLine2=f'{firstBookInCabinetAuthor[:3]} — {lastBookInCabinetAuthor[:3]}',
+                frontIsGlowing=True,
+                isWaxed=True,
+            ))
+            signBlockId = nbtTools.getBlockIdAt(self.nbt, signPosition)['Name']
+            nbtTools.setStructureBlock(
+                self.nbt,
+                signPosition,
+                signBlockId,
+                None,
+                signData
+            )
 
     def fillBookShelf(self, pos: ivec3, rotation: str, bookShelfEntries: List[str]):
         blockState, blockData = bookTools.fillBookShelf(bookShelfEntries)

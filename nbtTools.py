@@ -20,31 +20,23 @@ def extractEntityId(compound: nbtlib.Compound) -> str:
     return compound.get('id')
 
 
-def getBlockInStructure(structureFile: nbtlib.Compound, pos: ivec3) -> Block:
+def getBlockIdAt(structureFile: nbtlib.Compound, pos: ivec3) -> nbtlib.Compound:
     for nbtBlock in list(structureFile['blocks']):
         if (
             nbtBlock['pos'][0] == pos.x and
             nbtBlock['pos'][1] == pos.y and
             nbtBlock['pos'][2] == pos.z
         ):
-            return Block.fromBlockStateTag(
-                getBlockMaterial(structureFile, nbtBlock),
-                nbtBlock['nbt']
-            )
+            return getStructurePalette(structureFile, nbtBlock)
 
 
 def setStructureBlock(
-    structureFile: nbtlib.Compound,
-    pos: ivec3,
-    inputBlockId: str,
-    inputBlockState: Dict[str, str],
-    inputBlockData: nbtlib.Compound,
-):
-    paletteId = setStructurePalette(
-        structureFile,
-        inputBlockId,
-        inputBlockState,
-    )
+        structureFile: nbtlib.Compound,
+        pos: ivec3,
+        inputBlockId: str,
+        inputBlockState: Dict[str, str] | None,
+        inputBlockData: nbtlib.Compound,
+) -> object:
     for nbtBlock in structureFile['blocks']:
         if (
             nbtBlock['pos'][0] == pos.x and
@@ -52,13 +44,17 @@ def setStructureBlock(
             nbtBlock['pos'][2] == pos.z
         ):
             nbtBlock['nbt'] = inputBlockData
-            if paletteId is not None:
-                nbtBlock['state'] = nbtlib.Int(paletteId)
+            if inputBlockState is not None:
+                nbtBlock['state'] = nbtlib.Int(setStructurePalette(
+                    structureFile,
+                    inputBlockId,
+                    inputBlockState,
+                ))
             return
     raise Exception(f'structureFile has no block at position {pos}')
 
 
-def getBlockMaterial(nbtFile: nbtlib.Compound, block) -> nbtlib.Compound:
+def getStructurePalette(nbtFile: nbtlib.Compound, block) -> nbtlib.Compound:
     return nbtFile['palette'][block['state']]
 
 

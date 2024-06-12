@@ -8,6 +8,8 @@ from StructureBase import Structure
 
 class CentralCore(Structure):
 
+    # TODO add bookShelves definition for central core
+
     def __init__(
         self,
         withRotation: int = 0,

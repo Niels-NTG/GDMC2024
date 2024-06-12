@@ -39,7 +39,7 @@ class Structure:
 
     weight: float = 0.5
 
-    bookShelves: Dict[ivec3, str] = dict()
+    bookShelves: Dict[str, Dict[ivec3, str]] = []
 
     def __init__(
         self,
@@ -151,38 +151,52 @@ class Structure:
     @property
     def bookCapacity(self) -> int:
         # The minecraft:chiseled_bookshelf block has a capacity of 6 books.
-        return len(self.bookShelves) * 6
+        bookShelfCount = 0
+        for bookWall in self.bookShelves:
+            bookShelfCount += len(self.bookShelves[bookWall])
+        return bookShelfCount * 6
 
     def addBooks(self, books: List[str]):
-        bookShelfEntries: List[str] = []
-        bookShelfBlockPositions = self.bookShelves.copy()
         if len(books) == 0:
             return
-        lastBookYear = bookTools.yearFromSNBT(books[-1])
-        while len(bookShelfBlockPositions) > 0 and len(books) > 0:
-            bookYear = bookTools.yearFromSNBT(books[-1])
-            if bookYear != lastBookYear:
-                self.fillBookShelf(bookShelfBlockPositions, bookShelfEntries)
-                break
-            bookShelfEntries.append(books.pop())
-            lastBookYear = bookYear
-            if len(bookShelfEntries) == 6 or len(books) == 0:
-                self.fillBookShelf(bookShelfBlockPositions, bookShelfEntries)
 
-    def fillBookShelf(self, bookShelfBlockPositions: Dict[ivec3, str], bookShelfEntries: List[str]):
-        if len(bookShelfEntries) == 0:
-            return
-        # Remove first entry from the list of bookShelvePositions
-        bookShelfPosition = list(bookShelfBlockPositions.keys())[0]
-        bookShelfRotation = bookShelfBlockPositions.pop(bookShelfPosition)
+        lastBookYear = bookTools.yearFromSNBT(books[0])
+        lastBookAuthor = bookTools.primaryAuthorFromSNBT(books[0])
+        moveToNextWall = False
+        for bookCabinet in self.bookShelves:
+            for bookShelfPosition, bookShelfRotation in self.bookShelves[bookCabinet].items():
+                if len(books) == 0:
+                    return
+                for bookIndex in range(6):
+                    book = books[bookIndex]
+                    bookYear = bookTools.yearFromSNBT(book)
+                    bookAuthor = bookTools.primaryAuthorFromSNBT(book)
+                    if bookYear != lastBookYear or not bookTools.isSameFirstCharacter(bookAuthor, lastBookAuthor):
+                        self.fillBookShelf(bookShelfPosition, bookShelfRotation, books[:bookIndex])
+                        del books[:bookIndex]
+                        lastBookYear = bookYear
+                        lastBookAuthor = bookAuthor
+                        moveToNextWall = True
+                        break
+                    if bookIndex == 5:
+                        self.fillBookShelf(bookShelfPosition, bookShelfRotation, books[:6])
+                        del books[:6]
+                    lastBookYear = bookYear
+                    lastBookAuthor = bookAuthor
+                if moveToNextWall:
+                    moveToNextWall = False
+                    break
 
-        bookShelfBlock = bookTools.createBookShelfBlock(
-            bookShelfRotation,
+    def fillBookShelf(self, pos: ivec3, rotation: str, bookShelfEntries: List[str]):
+        blockState, blockData = bookTools.fillBookShelf(bookShelfEntries)
+        blockState['facing'] = rotation
+        nbtTools.setStructureBlock(
+            self.nbt,
+            pos,
+            'minecraft:chiseled_bookshelf',
+            blockState,
+            blockData,
         )
-        bookShelfBlock = bookTools.fillBookShelf(bookShelfEntries, bookShelfBlock)
-
-        nbtTools.setBlockInStructure(self.nbt, bookShelfPosition, bookShelfBlock)
-        bookShelfEntries.clear()
 
     def __eq__(self, other):
         return hash(self) == hash(other)

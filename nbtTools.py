@@ -1,3 +1,5 @@
+from typing import Dict
+
 import nbtlib
 import numpy as np
 from glm import ivec3
@@ -31,30 +33,49 @@ def getBlockInStructure(structureFile: nbtlib.Compound, pos: ivec3) -> Block:
             )
 
 
-def setBlockInStructure(structureFile: nbtlib.Compound, pos: ivec3, inputBlock: Block):
-    try:
-        newNBTTag = nbtlib.parse_nbt(inputBlock.data)
-    except Exception as e:
-        print(f'Could not parse {inputBlock.data}: {e}')
-        return
-    structureFile['palette'].append(nbtlib.parse_nbt(
-        f'{{Properties: {inputBlock.stateString()}, Name: "{inputBlock.id}"}}'
-    ))
-    paletteId = len(structureFile['palette']) - 1
+def setStructureBlock(
+    structureFile: nbtlib.Compound,
+    pos: ivec3,
+    inputBlockId: str,
+    inputBlockState: Dict[str, str],
+    inputBlockData: nbtlib.Compound,
+):
+    paletteId = setStructurePalette(
+        structureFile,
+        inputBlockId,
+        inputBlockState,
+    )
     for nbtBlock in structureFile['blocks']:
         if (
             nbtBlock['pos'][0] == pos.x and
             nbtBlock['pos'][1] == pos.y and
             nbtBlock['pos'][2] == pos.z
         ):
-            nbtBlock['nbt'] = newNBTTag
-            nbtBlock['state'] = nbtlib.Int(paletteId)
+            nbtBlock['nbt'] = inputBlockData
+            if paletteId is not None:
+                nbtBlock['state'] = nbtlib.Int(paletteId)
             return
     raise Exception(f'structureFile has no block at position {pos}')
 
 
 def getBlockMaterial(nbtFile: nbtlib.Compound, block) -> nbtlib.Compound:
     return nbtFile['palette'][block['state']]
+
+
+def setStructurePalette(
+    structureFile: nbtlib.Compound,
+    inputBlockId: str,
+    blockState: Dict[str, str],
+) -> int:
+    stateString = ','.join([f'{key}:{value}' for key, value in blockState.items()])
+    if stateString:
+        try:
+            structureFile['palette'].append(nbtlib.parse_nbt(
+                f'{{Properties: {{{stateString}}}, Name: "{inputBlockId}"}}'
+            ))
+            return len(structureFile['palette']) - 1
+        except Exception as e:
+            print(f'Invalid block state {stateString} - {e}')
 
 
 def setInventoryContents(inventoryBlock: Block, contents: list[dict]) -> Block:

@@ -1,13 +1,29 @@
 import functools
 import json
+import locale
 import re
 from datetime import datetime
 from glob import glob
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
+import nbtlib
 from pylatexenc.latex2text import latex2text
+from unidecode import unidecode
 
-from gdpc.src.gdpc import Block, minecraft_tools
+from gdpc.src.gdpc import minecraft_tools
+
+
+def isSameFirstCharacter(a: str, b: str) -> bool:
+    return isTransliteration(a[0], b[0])
+
+
+def isTransliteration(a: str, b: str) -> bool:
+    return transliterate(a) == transliterate(b)
+
+
+@functools.cache
+def transliterate(s: str) -> str:
+    return unidecode(s).casefold()
 
 
 @functools.cache
@@ -186,26 +202,22 @@ def writeBookData(data: Dict) -> str:
     )
 
 
-def createBookShelfBlock(facing: str) -> Block:
-    return Block(
-        id='minecraft:chiseled_bookshelf',
-        states={
-            'facing': facing,
-        },
-    )
-
-
-def fillBookShelf(bookSources: List[str], block: Block) -> Block:
+def fillBookShelf(bookSources: List[str]) -> Tuple[Dict[str, str], nbtlib.Compound]:
     if len(bookSources) > 6:
         raise Exception('Too many book sources provided at once!')
-    shelfSNBT = '{Items: ['
+    blockState = dict()
+    blockData = nbtlib.Compound()
+    items: List[str] = []
     for bookIndex in range(len(bookSources)):
-        shelfSNBT += f'{{Slot: {bookIndex}b, Count: 1b, id: "minecraft:written_book", tag: {bookSources[bookIndex]}}},'
-        block.states[f'slot_{bookIndex}_occupied'] = '"true"'
-    shelfSNBT = shelfSNBT[:-1]
-    shelfSNBT += ']}'
-    block.data = shelfSNBT
-    return block
+        try:
+            items.append(nbtlib.parse_nbt(
+                f'{{Slot: {bookIndex}b, Count: 1b, id: "minecraft:written_book", tag: {bookSources[bookIndex]} }}'
+            ))
+            blockState[f'slot_{bookIndex}_occupied'] = '"true"'
+        except Exception as e:
+            print(f'Failed to parse {bookSources[bookIndex]} - {e}')
+    blockData['Items'] = nbtlib.List(items)
+    return blockState, blockData
 
 
 def writeCategoryFile(line: str, category: str, year: str):
@@ -228,7 +240,7 @@ def gatherBooksOfCategory(category: str = 'cs.') -> List[str]:
     groupedBooks = []
     startYear = 1980
     endYear = datetime.today().year
-    for year in range(startYear, endYear + 1):
+    for year in range(endYear, startYear + 1, -1):
         bookGroup: List[str] = []
         inputFiles = glob(f'dataset/{category}*-{year}.json')
         for inputFile in inputFiles:
@@ -241,6 +253,6 @@ def gatherBooksOfCategory(category: str = 'cs.') -> List[str]:
                     # TODO re-run book parser to trim the abstracts, notes and author lists down
                     if len(line) < 10000:
                         bookGroup.append(line)
-        bookGroup.sort(key=lambda x: locale.strxfrm(primaryAuthorFromSNBT(x).casefold()), reverse=True)
+        bookGroup.sort(key=lambda x: locale.strxfrm(primaryAuthorFromSNBT(x).casefold()))
         groupedBooks.extend(bookGroup)
     return groupedBooks

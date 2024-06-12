@@ -36,13 +36,9 @@ while volumeY > -70 and len(computerScienceBooks) > 0:
         volumeRotation=volumeRotation,
     )
 
-    bookCapacity = libraryFloor.bookCapacity
-    cprint(f'Filling floor {floorNumber} with {bookCapacity} books', 'black', 'on_green')
-    booksForFloor = computerScienceBooks[-bookCapacity:]
-    libraryFloor.addBooks(booksForFloor)
+    cprint(f'Filling floor {floorNumber} with {libraryFloor.bookCapacity} books', 'black', 'on_green')
+    libraryFloor.addBooks(computerScienceBooks)
     libraryFloor.placeStructure(floorVolume.offset)
-
-    del computerScienceBooks[-bookCapacity:]
 
     volumeY -= VOLUME_Y_SIZE
     volumeRotation += 1

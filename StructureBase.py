@@ -153,23 +153,36 @@ class Structure:
         # The minecraft:chiseled_bookshelf block has a capacity of 6 books.
         return len(self.bookShelves) * 6
 
-    def addBooks(self, booksData: List[str]):
+    def addBooks(self, books: List[str]):
         bookShelfEntries: List[str] = []
         bookShelfBlockPositions = self.bookShelves.copy()
-        for book in booksData:
-            bookShelfEntries.append(book)
-            if len(bookShelfEntries) == 6:
-                # Remove first entry from the list of bookShelvePositions
-                bookShelfPosition = list(bookShelfBlockPositions.keys())[0]
-                bookShelfRotation = bookShelfBlockPositions.pop(bookShelfPosition)
+        if len(books) == 0:
+            return
+        lastBookYear = bookTools.yearFromSNBT(books[-1])
+        while len(bookShelfBlockPositions) > 0 and len(books) > 0:
+            bookYear = bookTools.yearFromSNBT(books[-1])
+            if bookYear != lastBookYear:
+                self.fillBookShelf(bookShelfBlockPositions, bookShelfEntries)
+                break
+            bookShelfEntries.append(books.pop())
+            lastBookYear = bookYear
+            if len(bookShelfEntries) == 6 or len(books) == 0:
+                self.fillBookShelf(bookShelfBlockPositions, bookShelfEntries)
 
-                bookShelfBlock = bookTools.createBookShelfBlock(
-                    bookShelfRotation,
-                )
-                bookShelfBlock = bookTools.fillBookShelf(bookShelfEntries, bookShelfBlock)
+    def fillBookShelf(self, bookShelfBlockPositions: Dict[ivec3, str], bookShelfEntries: List[str]):
+        if len(bookShelfEntries) == 0:
+            return
+        # Remove first entry from the list of bookShelvePositions
+        bookShelfPosition = list(bookShelfBlockPositions.keys())[0]
+        bookShelfRotation = bookShelfBlockPositions.pop(bookShelfPosition)
 
-                nbtTools.setNBTAt(self.nbt, bookShelfPosition, bookShelfBlock)
-                bookShelfEntries.clear()
+        bookShelfBlock = bookTools.createBookShelfBlock(
+            bookShelfRotation,
+        )
+        bookShelfBlock = bookTools.fillBookShelf(bookShelfEntries, bookShelfBlock)
+
+        nbtTools.setBlockInStructure(self.nbt, bookShelfPosition, bookShelfBlock)
+        bookShelfEntries.clear()
 
     def __eq__(self, other):
         return hash(self) == hash(other)

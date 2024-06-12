@@ -270,8 +270,7 @@ class LibraryFloor:
         for building in self.placedTiles.values():
             if building.bookCapacity == 0:
                 continue
+            if len(books) == 0:
+                break
 
-            booksForTile = books[:building.bookCapacity]
-            building.addBooks(booksForTile)
-            del books[:building.bookCapacity]
-
+            building.addBooks(books)

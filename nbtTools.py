@@ -6,10 +6,6 @@ from gdpc.src.gdpc.block import Block
 from gdpc.src.gdpc.lookup import INVENTORY_BLOCKS, CONTAINER_BLOCK_TO_INVENTORY_SIZE
 
 
-def SnbttoNbt(snbt: str) -> nbtlib.Compound:
-    return nbtlib.parse_nbt(snbt)
-
-
 def extractEntityBlockPos(compound: nbtlib.Compound) -> ivec3:
     return ivec3(
         np.floor(compound.get('Pos').get(0)),
@@ -22,30 +18,30 @@ def extractEntityId(compound: nbtlib.Compound) -> str:
     return compound.get('id')
 
 
-def getBlockAt(nbtFile: nbtlib.Compound, pos: ivec3) -> Block:
-    for nbtBlock in list(nbtFile['blocks']):
+def getBlockInStructure(structureFile: nbtlib.Compound, pos: ivec3) -> Block:
+    for nbtBlock in list(structureFile['blocks']):
         if (
             nbtBlock['pos'][0] == pos.x and
             nbtBlock['pos'][1] == pos.y and
             nbtBlock['pos'][2] == pos.z
         ):
             return Block.fromBlockStateTag(
-                getBlockMaterial(nbtFile, nbtBlock),
+                getBlockMaterial(structureFile, nbtBlock),
                 nbtBlock['nbt']
             )
 
 
-def setNBTAt(nbtFile: nbtlib.Compound, pos: ivec3, inputBlock: Block):
+def setBlockInStructure(structureFile: nbtlib.Compound, pos: ivec3, inputBlock: Block):
     try:
         newNBTTag = nbtlib.parse_nbt(inputBlock.data)
     except Exception as e:
         print(f'Could not parse {inputBlock.data}: {e}')
         return
-    nbtFile['palette'].append(nbtlib.parse_nbt(
+    structureFile['palette'].append(nbtlib.parse_nbt(
         f'{{Properties: {inputBlock.stateString()}, Name: "{inputBlock.id}"}}'
     ))
-    paletteId = len(nbtFile['palette']) - 1
-    for nbtBlock in nbtFile['blocks']:
+    paletteId = len(structureFile['palette']) - 1
+    for nbtBlock in structureFile['blocks']:
         if (
             nbtBlock['pos'][0] == pos.x and
             nbtBlock['pos'][1] == pos.y and
@@ -54,7 +50,7 @@ def setNBTAt(nbtFile: nbtlib.Compound, pos: ivec3, inputBlock: Block):
             nbtBlock['nbt'] = newNBTTag
             nbtBlock['state'] = nbtlib.Int(paletteId)
             return
-    raise Exception(f'nbtFile has no block at position {pos}')
+    raise Exception(f'structureFile has no block at position {pos}')
 
 
 def getBlockMaterial(nbtFile: nbtlib.Compound, block) -> nbtlib.Compound:

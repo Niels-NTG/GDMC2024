@@ -29,7 +29,7 @@ class SimpleEntity:
     ):
         self.uuid = uuid
         if snbt:
-            self._nbt = nbtTools.SnbttoNbt(snbt)
+            self._nbt = nbtlib.parse_nbt(snbt)
             self._position = nbtTools.extractEntityBlockPos(self._nbt)
             self._id = nbtTools.extractEntityId(self._nbt)
 

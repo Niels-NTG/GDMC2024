@@ -96,8 +96,12 @@ def lastVersionYear(data: Dict) -> str:
     return re.sub(r'^\w\w\w,\s\d+\s\w\w\w\s|\s.+$', '', data['versions'][-1]['created'])
 
 
-def primaryAuthor(snbt: str) -> str:
+def primaryAuthorFromSNBT(snbt: str) -> str:
     return re.sub(r'^.+?title:\'|(?: et al\.)? \(§7.+', '', snbt)
+
+
+def yearFromSNBT(snbt: str) -> str:
+    return re.sub(r'^.+?title:\'.+?\(§7|§r\).+', '', snbt)
 
 
 def truncatedBookTitle(data: Dict) -> str:
@@ -195,7 +199,7 @@ def fillBookShelf(bookSources: List[str], block: Block) -> Block:
     if len(bookSources) > 6:
         raise Exception('Too many book sources provided at once!')
     shelfSNBT = '{Items: ['
-    for bookIndex in range(6):
+    for bookIndex in range(len(bookSources)):
         shelfSNBT += f'{{Slot: {bookIndex}b, Count: 1b, id: "minecraft:written_book", tag: {bookSources[bookIndex]}}},'
         block.states[f'slot_{bookIndex}_occupied'] = '"true"'
     shelfSNBT = shelfSNBT[:-1]
@@ -237,6 +241,6 @@ def gatherBooksOfCategory(category: str = 'cs.') -> List[str]:
                     # TODO re-run book parser to trim the abstracts, notes and author lists down
                     if len(line) < 10000:
                         bookGroup.append(line)
-        bookGroup.sort(key=lambda x: primaryAuthor(x))
+        bookGroup.sort(key=lambda x: primaryAuthorFromSNBT(x), reverse=True)
         groupedBooks.extend(bookGroup)
     return groupedBooks

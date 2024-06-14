@@ -177,6 +177,7 @@ class Structure:
         bookShelfKeys = list(self.bookShelves.keys())
         if isDirectionInverted:
             bookShelfKeys.reverse()
+        bookCabinetIndex = 0
         for bookCabinet in bookShelfKeys:
 
             firstBookInCabinetYear = lastBookYear
@@ -214,11 +215,12 @@ class Structure:
                 frontLine1=categoryLabel,
                 frontLine2=firstBookInCabinetYear,
                 frontLine3=f'{bookTools.getAuthorTLA(firstBookInCabinetAuthor)} — {bookTools.getAuthorTLA(lastBookInCabinetAuthor)}',
-                frontLine4=f'[{floorNumber}.{self.tile.x}.{self.tile.z}]',
+                frontLine4=f'[{floorNumber}.{self.tile.x}.{self.tile.z}].{chr(65 + bookCabinetIndex)}',
                 frontIsGlowing=True,
                 isWaxed=True,
             )
             self.writeSign(bookCabinet, signData)
+            bookCabinetIndex += 1
 
         return lastBook
 

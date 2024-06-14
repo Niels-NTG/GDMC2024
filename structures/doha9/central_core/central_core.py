@@ -1,9 +1,12 @@
 from pathlib import Path
+from typing import Dict
 
 from glm import ivec3
 
+import bookTools
 import globals
 from StructureBase import Structure
+from gdpc.src.gdpc import minecraft_tools
 
 
 class CentralCore(Structure):
@@ -269,8 +272,8 @@ class CentralCore(Structure):
         'down1': ivec3(8, 6, 17),
         'down2': ivec3(8, 5, 17),
         'floor1': ivec3(7, 3, 23),
-        'floor2': ivec3(7, 3, 24),
-        'floor3': ivec3(7, 3, 25),
+        'floor2': ivec3(7, 3, 22),
+        'floor3': ivec3(7, 3, 21),
         'south_hallway1': ivec3(21, 5, 7),
         'south_hallway2': ivec3(23, 5, 7),
         'west_hallway1': ivec3(37, 5, 21),
@@ -295,3 +298,99 @@ class CentralCore(Structure):
     @property
     def position(self) -> ivec3:
         return self.offset + (self.tile * ivec3(9, 10, 9))
+
+    def addWayFinding(self, data: Dict[str, str]):
+        firstYear = bookTools.yearFromSNBT(data['firstBook'])
+        firstAuthorTLA = bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(data['firstBook']))
+        lastYear = bookTools.yearFromSNBT(data['lastBook'])
+        lastAuthorTLA = bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(data['lastBook']))
+
+        self.writeSign(
+            signIndex='floor1',
+            signData=minecraft_tools.signData(
+                frontLine2='FROM',
+                frontLine3=firstYear,
+                frontLine4=firstAuthorTLA,
+                isWaxed=True,
+            )
+        )
+        self.writeSign(
+            signIndex='floor2',
+            signData=minecraft_tools.signData(
+                frontLine1=data['categoryLabel'],
+                frontLine2=f'FLOOR {data["floorNumber"]}',
+                frontLine3='⬌',
+                isWaxed=True,
+            )
+        )
+        self.writeSign(
+            signIndex='floor3',
+            signData=minecraft_tools.signData(
+                frontLine2='TO',
+                frontLine3=lastYear,
+                frontLine4=lastAuthorTLA,
+                isWaxed=True,
+            )
+        )
+
+        self.writeSign(
+            signIndex='up1',
+            signData=minecraft_tools.signData(
+                frontLine1='⬆⬆⬆',
+                frontLine2='FLOOR',
+                frontLine3=f'{int(data["floorNumber"]) + 1}',
+                frontIsGlowing=True,
+                backLine1='⬌',
+                backLine2=data['categoryLabel'],
+                backLine3=f'FLOOR {data["floorNumber"]}',
+                backLine4='⬌',
+                backIsGlowing=True,
+                isWaxed=True,
+            )
+        )
+        self.writeSign(
+            signIndex='up2',
+            signData=minecraft_tools.signData(
+                frontLine2=data['categoryLabel'],
+                frontLine3=f'{int(firstYear) + 1}',
+                frontLine4='⬆⬆⬆',
+                frontIsGlowing=True,
+                backLine1='⭩⭩⭩',
+                backLine2=data['categoryLabel'],
+                backLine3=f'{int(lastYear) - 1}',
+                backLine4='⭩⭩⭩',
+                backIsGlowing=True,
+                isWaxed=True,
+            )
+        )
+
+        self.writeSign(
+            signIndex='down1',
+            signData=minecraft_tools.signData(
+                frontLine1='⬇⬇⬇',
+                frontLine2='FLOOR',
+                frontLine3=f'{int(data["floorNumber"]) - 1}',
+                frontIsGlowing=True,
+                backLine1='⬌',
+                backLine2=data['categoryLabel'],
+                backLine3=f'FLOOR {data["floorNumber"]}',
+                backLine4='⬌',
+                backIsGlowing=True,
+                isWaxed=True,
+            )
+        )
+        self.writeSign(
+            signIndex='down2',
+            signData=minecraft_tools.signData(
+                frontLine2=data['categoryLabel'],
+                frontLine3=f'{int(lastYear) - 1}',
+                frontLine4='⬇⬇⬇',
+                frontIsGlowing=True,
+                backLine1='⬈⬈⬈',
+                backLine2=data['categoryLabel'],
+                backLine3=f'{int(lastYear) + 1}',
+                backLine4='⬈⬈⬈',
+                backIsGlowing=True,
+                isWaxed=True,
+            )
+        )

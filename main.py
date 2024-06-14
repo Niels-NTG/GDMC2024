@@ -13,6 +13,7 @@ os.system('color')
 
 globals.initialize()
 
+categoryName = 'CS'
 computerScienceBooks: List[str] = bookTools.gatherBooksOfCategory('cs.')
 volumeRotation = 0
 volumeY = 100
@@ -37,8 +38,8 @@ while volumeY > -70 and len(computerScienceBooks) > 0:
     )
 
     cprint(f'Filling floor {floorNumber} with {libraryFloor.bookCapacity} books', 'black', 'on_green')
-    libraryFloor.addBooks(computerScienceBooks)
-    libraryFloor.placeStructure(floorVolume.offset)
+    libraryFloor.addBooks(computerScienceBooks, categoryName, floorNumber)
+    libraryFloor.placeStructure()
 
     volumeY -= VOLUME_Y_SIZE
     volumeRotation += 1

@@ -252,7 +252,7 @@ class LibraryFloor:
             )
             yield index, structureInstance
 
-    def placeStructure(self, buildVolumeOffset: ivec3 = ivec3(0, 0, 0)):
+    def placeStructure(self):
         print('Placing tiles…')
         for building in self.placedTiles.values():
             building.place()
@@ -264,7 +264,10 @@ class LibraryFloor:
             capacity += building.bookCapacity
         return capacity
 
-    def addBooks(self, books: List[str]):
+    def addBooks(self, books: List[str], categoryLabel: str, floorNumber: int):
+
+        firstBook = books[0]
+        lastBook = firstBook
 
         for building in self.placedTiles.values():
             if building.bookCapacity == 0:
@@ -272,4 +275,12 @@ class LibraryFloor:
             if len(books) == 0:
                 break
 
-            building.addBooks(books)
+            lastBook = building.addBooks(books, categoryLabel, floorNumber)
+
+        centralCore: Structure = self.placedTiles[self.centralTile]
+        centralCore.addWayFinding(data={
+            'firstBook': firstBook,
+            'lastBook': lastBook,
+            'categoryLabel': categoryLabel,
+            'floorNumber': floorNumber,
+        })

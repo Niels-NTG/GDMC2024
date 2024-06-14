@@ -160,18 +160,18 @@ class Structure:
             bookShelfCount += len(self.bookShelves[bookWall])
         return bookShelfCount * 6
 
-    def addBooks(self, books: List[str]):
+    def addBooks(self, books: List[str], categoryLabel: str, floorNumber: int) -> str | None:
         if len(books) == 0:
             return
 
         lastBookYear = bookTools.yearFromSNBT(books[0])
         lastBookAuthor = bookTools.primaryAuthorFromSNBT(books[0])
+        lastBook = books[0]
         moveToNextWall = False
         for bookCabinet in self.bookShelves:
 
             firstBookInCabinetYear = lastBookYear
             firstBookInCabinetAuthor = lastBookAuthor
-            # lastBookInCabinetYear = lastBookYear
             lastBookInCabinetAuthor = lastBookAuthor
 
             for bookShelfPosition, bookShelfRotation in self.bookShelves[bookCabinet].items():
@@ -179,11 +179,11 @@ class Structure:
                     return
                 for bookIndex in range(6):
                     if (len(books) - 1) < bookIndex:
-                        return
+                        return lastBook
                     book = books[bookIndex]
+                    lastBook = book
                     bookYear = bookTools.yearFromSNBT(book)
                     bookAuthor = bookTools.primaryAuthorFromSNBT(book)
-                    # lastBookInCabinetYear = lastBookYear
                     lastBookInCabinetAuthor = lastBookAuthor
                     if bookYear != lastBookYear or not bookTools.isSameFirstCharacter(bookAuthor, lastBookAuthor):
                         self.fillBookShelf(bookShelfPosition, bookShelfRotation, books[:bookIndex])
@@ -201,21 +201,17 @@ class Structure:
                     moveToNextWall = False
                     break
 
-            signPosition = self.signs[bookCabinet]
-            signData = nbtlib.parse_nbt(minecraft_tools.signData(
+            signData = minecraft_tools.signData(
+                frontLine1=categoryLabel,
                 frontLine2=firstBookInCabinetYear,
                 frontLine3=f'{bookTools.getAuthorTLA(firstBookInCabinetAuthor)} — {bookTools.getAuthorTLA(lastBookInCabinetAuthor)}',
+                frontLine4=f'[{floorNumber}.{self.tile.x}.{self.tile.z}]',
                 frontIsGlowing=True,
                 isWaxed=True,
-            ))
-            signBlockId = nbtTools.getBlockIdAt(self.nbt, signPosition)['Name']
-            nbtTools.setStructureBlock(
-                self.nbt,
-                signPosition,
-                signBlockId,
-                None,
-                signData
             )
+            self.writeSign(bookCabinet, signData)
+
+        return lastBook
 
     def fillBookShelf(self, pos: ivec3, rotation: str, bookShelfEntries: List[str]):
         blockState, blockData = bookTools.fillBookShelf(bookShelfEntries)
@@ -227,6 +223,21 @@ class Structure:
             blockState,
             blockData,
         )
+
+    def writeSign(self, signIndex: str, signData: str):
+        signData = nbtlib.parse_nbt(signData)
+        signPosition = self.signs[signIndex]
+        signBlockId = nbtTools.getBlockIdAt(self.nbt, signPosition)['Name']
+        nbtTools.setStructureBlock(
+            self.nbt,
+            signPosition,
+            signBlockId,
+            None,
+            signData
+        )
+
+    def addWayFinding(self, data: Dict[str, str]):
+        pass
 
     def __eq__(self, other):
         return hash(self) == hash(other)

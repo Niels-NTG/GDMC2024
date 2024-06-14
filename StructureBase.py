@@ -215,7 +215,7 @@ class Structure:
                 frontLine1=categoryLabel,
                 frontLine2=firstBookInCabinetYear,
                 frontLine3=f'{bookTools.getAuthorTLA(firstBookInCabinetAuthor)} — {bookTools.getAuthorTLA(lastBookInCabinetAuthor)}',
-                frontLine4=f'[{floorNumber}.{self.tile.x}.{self.tile.z}].{chr(65 + bookCabinetIndex)}',
+                frontLine4=f'[{floorNumber}.{self.tile.x}.{self.tile.z}.{chr(65 + bookCabinetIndex)}]',
                 frontIsGlowing=True,
                 isWaxed=True,
             )

@@ -1,10 +1,12 @@
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
+import nbtlib
 from glm import ivec3
 
 import bookTools
 import globals
+import nbtTools
 from Adjacency import StructureAdjacency
 from StructureBase import Structure
 from gdpc.src.gdpc import minecraft_tools
@@ -318,18 +320,17 @@ class CentralCore(Structure):
     def position(self) -> ivec3:
         return self.offset + (self.tile * ivec3(9, 10, 9))
 
-    def addWayFinding(self, data: Dict[str, str]):
-        firstYear = bookTools.yearFromSNBT(data['firstBook'])
-        firstAuthorTLA = bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(data['firstBook']))
-        lastYear = bookTools.yearFromSNBT(data['lastBook'])
-        lastAuthorTLA = bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(data['lastBook']))
+    def addWayFinding(self, categoryLabel: str, floorNumber: int, data: Dict[int, List[Dict[str, str]]]):
+        floorData = data[floorNumber]
+        upperFloor = data.get(floorNumber + 1, None)
+        lowerFloor = data.get(floorNumber - 1, None)
 
         self.writeSign(
             signIndex='floor1',
             signData=minecraft_tools.signData(
                 frontLine2='FROM',
-                frontLine3=firstYear,
-                frontLine4=firstAuthorTLA,
+                frontLine3=bookTools.yearFromSNBT(floorData[-1]['lastBook']),
+                frontLine4=bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(floorData[0]['firstBook'])),
                 frontIsGlowing=True,
                 isWaxed=True,
             )
@@ -337,8 +338,8 @@ class CentralCore(Structure):
         self.writeSign(
             signIndex='floor2',
             signData=minecraft_tools.signData(
-                frontLine1=data['categoryLabel'],
-                frontLine2=f'FLOOR {data["floorNumber"]}',
+                frontLine1=categoryLabel,
+                frontLine2=f'FLOOR {floorNumber}',
                 frontLine3='⬌',
                 frontIsGlowing=True,
                 isWaxed=True,
@@ -348,8 +349,8 @@ class CentralCore(Structure):
             signIndex='floor3',
             signData=minecraft_tools.signData(
                 frontLine2='TO',
-                frontLine3=lastYear,
-                frontLine4=lastAuthorTLA,
+                frontLine3=bookTools.yearFromSNBT(floorData[0]['firstBook']),
+                frontLine4=bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(floorData[-1]['lastBook'])),
                 frontIsGlowing=True,
                 isWaxed=True,
             )
@@ -358,13 +359,14 @@ class CentralCore(Structure):
         self.writeSign(
             signIndex='up1',
             signData=minecraft_tools.signData(
-                frontLine1='⬆⬆⬆',
-                frontLine2='FLOOR',
-                frontLine3=f'{int(data["floorNumber"]) + 1}',
+                frontLine1='⬆⬆⬆' if upperFloor else '',
+                frontLine2='FLOOR' if upperFloor else '',
+                frontLine3=f'{floorNumber + 1}' if upperFloor else '',
+                frontLine4=categoryLabel if upperFloor else '',
                 frontIsGlowing=True,
                 backLine1='⬌',
-                backLine2=data['categoryLabel'],
-                backLine3=f'FLOOR {data["floorNumber"]}',
+                backLine2=categoryLabel,
+                backLine3=f'FLOOR {floorNumber}',
                 backLine4='⬌',
                 backIsGlowing=True,
                 isWaxed=True,
@@ -373,13 +375,14 @@ class CentralCore(Structure):
         self.writeSign(
             signIndex='up2',
             signData=minecraft_tools.signData(
-                frontLine2=data['categoryLabel'],
-                frontLine3=f'{int(firstYear) + 1}',
-                frontLine4='⬆⬆⬆',
+                frontLine1=bookTools.yearFromSNBT(upperFloor[-1]["lastBook"]) if upperFloor else '',
+                frontLine2='—' if upperFloor else '',
+                frontLine3=bookTools.yearFromSNBT(upperFloor[0]["firstBook"]) if upperFloor else '',
+                frontLine4='⬆⬆⬆' if upperFloor else '',
                 frontIsGlowing=True,
-                backLine1='⭩⭩⭩',
-                backLine2=data['categoryLabel'],
-                backLine3=f'{int(lastYear) - 1}',
+                backLine1=bookTools.yearFromSNBT(lowerFloor[-1]["lastBook"]) if lowerFloor else '',
+                backLine2='—',
+                backLine3=bookTools.yearFromSNBT(lowerFloor[0]["firstBook"]) if lowerFloor else '',
                 backLine4='⭩⭩⭩',
                 backIsGlowing=True,
                 isWaxed=True,
@@ -389,13 +392,14 @@ class CentralCore(Structure):
         self.writeSign(
             signIndex='down1',
             signData=minecraft_tools.signData(
-                frontLine1='⬇⬇⬇',
-                frontLine2='FLOOR',
-                frontLine3=f'{int(data["floorNumber"]) - 1}',
+                frontLine1='⬇⬇⬇' if lowerFloor else '',
+                frontLine2='FLOOR' if lowerFloor else '',
+                frontLine3=f'{floorNumber - 1}' if lowerFloor else '',
+                frontLine4=categoryLabel if lowerFloor else '',
                 frontIsGlowing=True,
                 backLine1='⬌',
-                backLine2=data['categoryLabel'],
-                backLine3=f'FLOOR {data["floorNumber"]}',
+                backLine2=categoryLabel,
+                backLine3=f'FLOOR {floorNumber}',
                 backLine4='⬌',
                 backIsGlowing=True,
                 isWaxed=True,
@@ -404,15 +408,45 @@ class CentralCore(Structure):
         self.writeSign(
             signIndex='down2',
             signData=minecraft_tools.signData(
-                frontLine2=data['categoryLabel'],
-                frontLine3=f'{int(lastYear) - 1}',
-                frontLine4='⬇⬇⬇',
+                frontLine1=bookTools.yearFromSNBT(lowerFloor[-1]["lastBook"]) if lowerFloor else '',
+                frontLine2='—' if lowerFloor else '',
+                frontLine3=bookTools.yearFromSNBT(lowerFloor[0]["firstBook"]) if lowerFloor else '',
+                frontLine4='⬇⬇⬇' if lowerFloor else '',
                 frontIsGlowing=True,
-                backLine1='⬈⬈⬈',
-                backLine2=data['categoryLabel'],
-                backLine3=f'{int(lastYear) + 1}',
-                backLine4='⬈⬈⬈',
+                backLine1=bookTools.yearFromSNBT(upperFloor[-1]["lastBook"]) if upperFloor else '',
+                backLine2='—' if upperFloor else '',
+                backLine3=bookTools.yearFromSNBT(upperFloor[0]["firstBook"]) if upperFloor else '',
+                backLine4='⬈⬈⬈' if upperFloor else '',
                 backIsGlowing=True,
                 isWaxed=True,
             )
+        )
+
+        indexBookText = ''
+        lastYear = ''
+        for cabinet in floorData:
+            year = bookTools.yearFromSNBT(cabinet["firstBook"])
+            if lastYear != year:
+                indexBookText += f'§7§l§n{year}§r\\n'
+            firstAuthor = bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(cabinet['firstBook']))
+            lastAuthor = bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(cabinet['lastBook']))
+            indexBookText += f'{firstAuthor}—{lastAuthor} §5{cabinet["cabinet"]}§r\\n'
+            lastYear = year
+
+        lecternData = nbtlib.parse_nbt(minecraft_tools.lecternData(
+            bookData=minecraft_tools.bookData(
+                title=f'Floor {floorNumber} index',
+                author='The Librarian',
+                text=indexBookText,
+            )
+        ))
+        nbtTools.setStructureBlock(
+            self.nbt,
+            ivec3(7, 1, 22),
+            'minecraft:lectern',
+            {
+                'has_book': '"true"',
+                'facing': 'east',
+            },
+            lecternData
         )

@@ -257,7 +257,12 @@ class LibraryFloor:
     def placeStructure(self):
         print('Placing tiles…')
         for building in self.placedTiles.values():
-            building.place()
+            if building is not self.centralCore:
+                building.place()
+
+    @property
+    def centralCore(self) -> Structure:
+        return self.placedTiles[self.centralTile]
 
     @property
     def bookCapacity(self) -> int:
@@ -266,19 +271,15 @@ class LibraryFloor:
             capacity += building.bookCapacity
         return capacity
 
-    def addBooks(self, books: List[str], categoryLabel: str, floorNumber: int):
-        firstBook = books[0]
-        lastBook = firstBook
-
-        centralCore: Structure = self.placedTiles[self.centralTile]
-
+    def addBooks(self, books: List[str], categoryLabel: str, floorNumber: int) -> List[Dict[str, str]]:
+        bookRanges: List[Dict[str, str]] = []
         rng = np.random.default_rng(seed=globals.rngSeed)
         stateSpaceKeys: List[ivec3] = list(self.placedTiles.keys())
         tilesVisited: Set[ivec3] = {self.centralTile}
-        currentBuilding = centralCore
+        currentBuilding = self.centralCore
         isDirectionInverted = False
         while len(tilesVisited) != len(self.placedTiles):
-            lastBook = currentBuilding.addBooks(books, categoryLabel, floorNumber, isDirectionInverted)
+            bookRanges.extend(currentBuilding.addBooks(books, categoryLabel, floorNumber, isDirectionInverted))
 
             openPositions: Set[ivec3] = self.allDefaultAdjacencies[currentBuilding.name].getNonWallPositions(
                 currentBuilding.rotation,
@@ -299,9 +300,4 @@ class LibraryFloor:
             isDirectionInverted = nextBuilding.rotation != currentBuilding.rotation
             currentBuilding = nextBuilding
 
-        centralCore.addWayFinding(data={
-            'firstBook': firstBook,
-            'lastBook': lastBook,
-            'categoryLabel': categoryLabel,
-            'floorNumber': floorNumber,
-        })
+        return bookRanges

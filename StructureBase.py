@@ -166,32 +166,47 @@ class Structure:
             bookShelfCount += len(self.bookShelves[bookWall])
         return bookShelfCount * 6
 
-    def addBooks(self, books: List[str], categoryLabel: str, floorNumber: int, isDirectionInverted: bool) -> str | None:
+    def addBooks(
+        self,
+        books: List[str],
+        categoryLabel: str,
+        floorNumber: int,
+        isDirectionInverted: bool
+    ) -> List[Dict[str, str]]:
         if len(books) == 0 or self.bookCapacity == 0:
-            return
+            return []
 
+        lastBook = books[0]
         lastBookYear = bookTools.yearFromSNBT(books[0])
         lastBookAuthor = bookTools.primaryAuthorFromSNBT(books[0])
-        lastBook = books[0]
         moveToNextWall = False
         bookShelfKeys = list(self.bookShelves.keys())
         if isDirectionInverted:
             bookShelfKeys.reverse()
         bookCabinetIndex = 0
+        bookRanges = []
         for bookCabinet in bookShelfKeys:
 
             firstBookInCabinetYear = lastBookYear
             firstBookInCabinetAuthor = lastBookAuthor
             lastBookInCabinetAuthor = lastBookAuthor
 
+            bookCabinetLocationLabel = f'{floorNumber}.{self.tile.x}.{self.tile.z}.{chr(65 + bookCabinetIndex)}'
+
+            bookRanges.append({
+                'firstBook': books[0],
+                'lastBook': books[0],
+                'cabinet': bookCabinetLocationLabel,
+            })
+
             for bookShelfPosition, bookShelfRotation in self.bookShelves[bookCabinet].items():
                 if len(books) == 0:
-                    return
+                    return bookRanges
                 for bookIndex in range(6):
                     if (len(books) - 1) < bookIndex:
-                        return lastBook
                         self.fillBookShelf(bookShelfPosition, bookShelfRotation, books[:bookIndex])
                         del books[:bookIndex]
+                        return bookRanges
                     book = books[bookIndex]
                     lastBook = book
                     bookYear = bookTools.yearFromSNBT(book)
@@ -213,18 +228,19 @@ class Structure:
                     moveToNextWall = False
                     break
 
+            bookRanges[bookCabinetIndex]['lastBook'] = lastBook
             signData = minecraft_tools.signData(
                 frontLine1=categoryLabel,
                 frontLine2=firstBookInCabinetYear,
                 frontLine3=f'{bookTools.getAuthorTLA(firstBookInCabinetAuthor)} — {bookTools.getAuthorTLA(lastBookInCabinetAuthor)}',
-                frontLine4=f'[{floorNumber}.{self.tile.x}.{self.tile.z}.{chr(65 + bookCabinetIndex)}]',
+                frontLine4=bookCabinetLocationLabel,
                 frontIsGlowing=True,
                 isWaxed=True,
             )
             self.writeSign(bookCabinet, signData)
             bookCabinetIndex += 1
 
-        return lastBook
+        return bookRanges
 
     def fillBookShelf(self, pos: ivec3, rotation: str, bookShelfEntries: List[str]):
         blockState, blockData = bookTools.fillBookShelf(bookShelfEntries)
@@ -249,7 +265,7 @@ class Structure:
             signData
         )
 
-    def addWayFinding(self, data: Dict[str, str]):
+    def addWayFinding(self, categoryLabel: str, floorNumber: int, data: Dict[int, List[Dict[str, str]]]):
         pass
 
     def __eq__(self, other):

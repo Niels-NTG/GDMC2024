@@ -31,11 +31,11 @@ def getBlockIdAt(structureFile: nbtlib.Compound, pos: ivec3) -> nbtlib.Compound:
 
 
 def setStructureBlock(
-        structureFile: nbtlib.Compound,
-        pos: ivec3,
-        inputBlockId: str,
-        inputBlockState: Dict[str, str] | None,
-        inputBlockData: nbtlib.Compound,
+    structureFile: nbtlib.Compound,
+    pos: ivec3,
+    inputBlockId: str,
+    inputBlockState: Dict[str, str] | None,
+    inputBlockData: nbtlib.Compound,
 ) -> object:
     for nbtBlock in structureFile['blocks']:
         if (

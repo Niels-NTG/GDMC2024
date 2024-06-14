@@ -26,6 +26,10 @@ def transliterate(s: str) -> str:
     return unidecode(s).casefold()
 
 
+def getAuthorTLA(s: str) -> str:
+    return re.sub(r'\W+', '', s[:3]).strip()
+
+
 @functools.cache
 def categoryGroup(category: str) -> str:
     # Computer science

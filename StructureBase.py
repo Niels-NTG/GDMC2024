@@ -202,8 +202,8 @@ class Structure:
 
             signPosition = self.signs[bookCabinet]
             signData = nbtlib.parse_nbt(minecraft_tools.signData(
-                frontLine1=firstBookInCabinetYear,
-                frontLine2=f'{firstBookInCabinetAuthor[:3]} — {lastBookInCabinetAuthor[:3]}',
+                frontLine2=firstBookInCabinetYear,
+                frontLine3=f'{bookTools.getAuthorTLA(firstBookInCabinetAuthor)} — {bookTools.getAuthorTLA(lastBookInCabinetAuthor)}',
                 frontIsGlowing=True,
                 isWaxed=True,
             ))

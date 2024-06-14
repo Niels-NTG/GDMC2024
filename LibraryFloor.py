@@ -37,6 +37,7 @@ class LibraryFloor:
         self.allLockedTiles = dict()
         self.allDefaultAdjacencies = dict()
         self.subGridVolumes = []
+        self.placedTiles = dict()
 
         self.volumeGrid = Box(size=volume.size // tileSize)
         self.volumeGrid.size = self.volumeGrid.size + ivec3(1, 0, 1)
@@ -75,10 +76,6 @@ class LibraryFloor:
             structureWeights=self.generateWeights(),
             onResolve=self.onResolve,
         )
-
-        self.placedTiles = dict()
-        for index, building in self.getCollapsedState:
-            self.placedTiles[index] = building
 
     def reinitWFC(self, wfc: WaveFunctionCollapse):
         self.collapseVolumeEdgeToAir(wfc)
@@ -219,6 +216,18 @@ class LibraryFloor:
         self.allDefaultAdjacencies.update(wfc.defaultAdjacencies)
         self.subGridVolumes.append(wfc.stateSpaceBox)
 
+        for index, building in self.getCollapsedState:
+            self.placedTiles[index] = building
+        # Add central atrium/staircase
+        atriumCoreFolder = globals.structureFolders['central_core']
+        atriumCoreBuildingInstance: Structure = atriumCoreFolder.structureClass(
+            withRotation=self.volumeRotation,
+            tile=self.atriumBox.offset,
+            offset=self.volume.offset,
+        )
+        self.placedTiles[atriumCoreBuildingInstance.tile] = atriumCoreBuildingInstance
+        self.centralTile = atriumCoreBuildingInstance.tile
+
     @staticmethod
     def removeOrphanedBuildings(wfc: WaveFunctionCollapse):
         buildings = wfc.foundBuildings
@@ -247,16 +256,6 @@ class LibraryFloor:
         print('Placing tiles…')
         for building in self.placedTiles.values():
             building.place()
-        # Build central atrium/staircase
-        atriumCoreFolder = globals.structureFolders['central_core']
-        atriumCoreBuildingInstance: Structure = atriumCoreFolder.structureClass(
-            withRotation=self.volumeRotation,
-            tile=ivec3(*self.atriumBox.offset),
-            offset=buildVolumeOffset,
-        )
-        atriumCoreBuildingInstance.place()
-        self.placedTiles[atriumCoreBuildingInstance.tile] = atriumCoreBuildingInstance
-        self.centralTile = atriumCoreBuildingInstance.tile
 
     @property
     def bookCapacity(self) -> int:

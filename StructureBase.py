@@ -171,6 +171,8 @@ class Structure:
 
             firstBookInCabinetYear = lastBookYear
             firstBookInCabinetAuthor = lastBookAuthor
+            # lastBookInCabinetYear = lastBookYear
+            lastBookInCabinetAuthor = lastBookAuthor
 
             for bookShelfPosition, bookShelfRotation in self.bookShelves[bookCabinet].items():
                 if len(books) == 0:
@@ -181,6 +183,8 @@ class Structure:
                     book = books[bookIndex]
                     bookYear = bookTools.yearFromSNBT(book)
                     bookAuthor = bookTools.primaryAuthorFromSNBT(book)
+                    # lastBookInCabinetYear = lastBookYear
+                    lastBookInCabinetAuthor = lastBookAuthor
                     if bookYear != lastBookYear or not bookTools.isSameFirstCharacter(bookAuthor, lastBookAuthor):
                         self.fillBookShelf(bookShelfPosition, bookShelfRotation, books[:bookIndex])
                         del books[:bookIndex]
@@ -196,9 +200,6 @@ class Structure:
                 if moveToNextWall:
                     moveToNextWall = False
                     break
-
-            # lastBookInCabinetYear = lastBookYear
-            lastBookInCabinetAuthor = lastBookAuthor
 
             signPosition = self.signs[bookCabinet]
             signData = nbtlib.parse_nbt(minecraft_tools.signData(

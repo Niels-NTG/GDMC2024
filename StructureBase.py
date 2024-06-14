@@ -190,6 +190,8 @@ class Structure:
                 for bookIndex in range(6):
                     if (len(books) - 1) < bookIndex:
                         return lastBook
+                        self.fillBookShelf(bookShelfPosition, bookShelfRotation, books[:bookIndex])
+                        del books[:bookIndex]
                     book = books[bookIndex]
                     lastBook = book
                     bookYear = bookTools.yearFromSNBT(book)

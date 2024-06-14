@@ -22,6 +22,9 @@ class BookHallwayInner(Structure):
             ('book_end', 0),
             ('book_end', 1),
             ('book_end', 2),
+            ('bed', 0),
+            ('bed', 1),
+            ('bed', 2),
         ],
         xBackward=[
             ('air', -1),
@@ -35,6 +38,9 @@ class BookHallwayInner(Structure):
             ('book_end', 0),
             ('book_end', 2),
             ('book_end', 3),
+            ('bed', 0),
+            ('bed', 2),
+            ('bed', 3),
         ],
         yForward=[
             ('air', -1),
@@ -45,6 +51,7 @@ class BookHallwayInner(Structure):
             ('t_junction', -1),
             ('x_junction', -1),
             ('book_end', -1),
+            ('bed', -1),
         ],
         yBackward=[
             ('air', -1),
@@ -55,6 +62,7 @@ class BookHallwayInner(Structure):
             ('t_junction', -1),
             ('x_junction', -1),
             ('book_end', -1),
+            ('bed', -1),
         ],
         zForward=[
             ('book_hallway_outer', 0),

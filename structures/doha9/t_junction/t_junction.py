@@ -37,6 +37,7 @@ class TJunction(Structure):
             ('t_junction', -1),
             ('x_junction', -1),
             ('book_end', -1),
+            ('bed', -1),
         ],
         yBackward=[
             ('air', -1),
@@ -47,6 +48,7 @@ class TJunction(Structure):
             ('t_junction', -1),
             ('x_junction', -1),
             ('book_end', -1),
+            ('bed', -1),
         ],
         zForward=[
             ('book_hallway_outer', 0),

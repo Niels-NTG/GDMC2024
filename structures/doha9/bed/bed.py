@@ -7,22 +7,20 @@ from Adjacency import StructureAdjacency
 from StructureBase import Structure
 
 
-class BookCorner(Structure):
+class Bed(Structure):
     adjecencies = StructureAdjacency(
-        name='book_corner',
+        name='bed',
         xForward=[
-            ('book_hallway_outer', 1),
-            ('book_hallway_outer', 3),
-        ],
-        xBackward=[
-            ('air', -1),
             ('book_hallway_inner', 0),
             ('book_hallway_inner', 2),
             ('book_hallway_outer', 0),
             ('book_hallway_outer', 2),
-            ('book_corner', 2),
-            ('book_corner', 3),
-            ('t_junction', 2),
+        ],
+        xBackward=[
+            ('book_hallway_inner', 0),
+            ('book_hallway_inner', 2),
+            ('book_hallway_outer', 0),
+            ('book_hallway_outer', 2),
         ],
         yForward=[
             ('air', -1),
@@ -47,20 +45,17 @@ class BookCorner(Structure):
             ('bed', -1),
         ],
         zForward=[
-            ('air', -1),
             ('book_hallway_inner', 1),
             ('book_hallway_inner', 3),
             ('book_hallway_outer', 1),
             ('book_hallway_outer', 3),
-            ('book_corner', 1),
-            ('book_corner', 2),
-            ('t_junction', 1),
         ],
         zBackward=[
             ('book_hallway_outer', 0),
             ('book_hallway_outer', 2),
         ],
         walls=[
+            'xForward',
             'zForward',
             'xBackward',
             'yForward',
@@ -68,49 +63,7 @@ class BookCorner(Structure):
         ]
     )
 
-    weight = 0.2
-
-    bookShelves = {
-        'north': {
-            ivec3(7, 4, 7): 'north',
-            ivec3(6, 4, 7): 'north',
-            ivec3(5, 4, 7): 'north',
-            ivec3(4, 4, 7): 'north',
-            ivec3(3, 4, 7): 'north',
-            ivec3(7, 3, 7): 'north',
-            ivec3(6, 3, 7): 'north',
-            ivec3(5, 3, 7): 'north',
-            ivec3(4, 3, 7): 'north',
-            ivec3(3, 3, 7): 'north',
-            ivec3(7, 2, 7): 'north',
-            ivec3(6, 2, 7): 'north',
-            ivec3(5, 2, 7): 'north',
-            ivec3(4, 2, 7): 'north',
-            ivec3(3, 2, 7): 'north',
-        },
-        'east': {
-            ivec3(1, 4, 5): 'east',
-            ivec3(1, 4, 4): 'east',
-            ivec3(1, 4, 3): 'east',
-            ivec3(1, 4, 2): 'east',
-            ivec3(1, 4, 1): 'east',
-            ivec3(1, 3, 5): 'east',
-            ivec3(1, 3, 4): 'east',
-            ivec3(1, 3, 3): 'east',
-            ivec3(1, 3, 2): 'east',
-            ivec3(1, 3, 1): 'east',
-            ivec3(1, 2, 5): 'east',
-            ivec3(1, 2, 4): 'east',
-            ivec3(1, 2, 3): 'east',
-            ivec3(1, 2, 2): 'east',
-            ivec3(1, 2, 1): 'east',
-        },
-    }
-
-    signs = {
-        'east': ivec3(2, 6, 3),
-        'north': ivec3(5, 6, 6),
-    }
+    weight = 0.008
 
     def __init__(
         self,

@@ -45,6 +45,7 @@ class Air(Structure):
             ('t_junction', -1),
             ('x_junction', -1),
             ('book_end', -1),
+            ('bed', -1),
             ('central_core_hallway', -1),
         ],
         yBackward=[
@@ -56,6 +57,7 @@ class Air(Structure):
             ('t_junction', -1),
             ('x_junction', -1),
             ('book_end', -1),
+            ('bed', -1),
             ('central_core_hallway', -1),
         ],
         zForward=[

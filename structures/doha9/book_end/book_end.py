@@ -31,6 +31,7 @@ class BookEnd(Structure):
             ('t_junction', -1),
             ('x_junction', -1),
             ('book_end', -1),
+            ('bed', -1),
         ],
         yBackward=[
             ('air', -1),
@@ -41,6 +42,7 @@ class BookEnd(Structure):
             ('t_junction', -1),
             ('x_junction', -1),
             ('book_end', -1),
+            ('bed', -1),
         ],
         zForward=[
             ('book_hallway_inner', 1),

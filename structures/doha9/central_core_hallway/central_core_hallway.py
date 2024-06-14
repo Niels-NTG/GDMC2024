@@ -17,6 +17,9 @@ class CentralCoreHallway(Structure):
         ],
         xBackward=[
             ('air', -1),
+            ('central_core', 0),
+            ('central_core', 1),
+            ('central_core', 3),
         ],
         yForward=[
             ('air', -1),
@@ -31,6 +34,12 @@ class CentralCoreHallway(Structure):
         ],
         zBackward=[
             ('air', -1),
+        ],
+        walls=[
+            'zForward',
+            'zBackward',
+            'yForward',
+            'yBackward',
         ]
     )
 

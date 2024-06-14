@@ -167,8 +167,6 @@ def checkSymmetry(adjacencies: Dict[str, StructureAdjacency]):
 
         for axis in AXES:
             rules: Set[StructureRotation] = getattr(adjacency, axis)
-            if len(rules) == 0:
-                raise Exception(f'Ruleset {structureName} {axis} cannot be empty!')
             for rule in rules:
                 if rule.structureName not in adjacencies:
                     raise KeyError(f'{rule.structureName} in rules for {structureName} is not a valid structure!')

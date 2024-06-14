@@ -27,6 +27,7 @@ class Structure:
 
     decorationStructureFiles: Dict[str, StructureFile]
     transitionStructureFiles: Dict[str, StructureFile]
+    structureFolder: StructureFolder
     structureFile: StructureFile
 
     customProperties: Dict[str, Any]
@@ -53,6 +54,7 @@ class Structure:
         offset: ivec3 = ivec3(0, 0, 0),
     ):
 
+        self.structureFolder = structureFolder
         self.structureFile = structureFolder.structureFile
         self.nbt = deepcopy(self.structureFile.nbt)
         self.transitionStructureFiles = structureFolder.transitionStructureFiles
@@ -116,6 +118,10 @@ class Structure:
     def rectInWorldSpace(self) -> Rect:
         return self.boxInWorldSpace.toRect()
 
+    @property
+    def name(self):
+        return self.structureFolder.name
+
     def isIntersection(self, otherStructure: Structure = None) -> bool:
         if otherStructure is None:
             return False
@@ -160,15 +166,18 @@ class Structure:
             bookShelfCount += len(self.bookShelves[bookWall])
         return bookShelfCount * 6
 
-    def addBooks(self, books: List[str], categoryLabel: str, floorNumber: int) -> str | None:
-        if len(books) == 0:
+    def addBooks(self, books: List[str], categoryLabel: str, floorNumber: int, isDirectionInverted: bool) -> str | None:
+        if len(books) == 0 or self.bookCapacity == 0:
             return
 
         lastBookYear = bookTools.yearFromSNBT(books[0])
         lastBookAuthor = bookTools.primaryAuthorFromSNBT(books[0])
         lastBook = books[0]
         moveToNextWall = False
-        for bookCabinet in self.bookShelves:
+        bookShelfKeys = list(self.bookShelves.keys())
+        if isDirectionInverted:
+            bookShelfKeys.reverse()
+        for bookCabinet in bookShelfKeys:
 
             firstBookInCabinetYear = lastBookYear
             firstBookInCabinetAuthor = lastBookAuthor

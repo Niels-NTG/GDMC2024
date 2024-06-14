@@ -5,11 +5,30 @@ from glm import ivec3
 
 import bookTools
 import globals
+from Adjacency import StructureAdjacency
 from StructureBase import Structure
 from gdpc.src.gdpc import minecraft_tools
 
 
 class CentralCore(Structure):
+
+    adjecencies = StructureAdjacency(
+        name='central_core',
+        xForward=[
+            ('central_core_hallway', 0),
+        ],
+        xBackward=[],
+        yForward=[],
+        yBackward=[],
+        zForward=[
+            ('central_core_hallway', 1),
+        ],
+        zBackward=[
+            ('central_core_hallway', 3),
+        ]
+    )
+
+    weight = 0.0001
 
     bookShelves = {
         'east1': {
@@ -311,6 +330,7 @@ class CentralCore(Structure):
                 frontLine2='FROM',
                 frontLine3=firstYear,
                 frontLine4=firstAuthorTLA,
+                frontIsGlowing=True,
                 isWaxed=True,
             )
         )
@@ -320,6 +340,7 @@ class CentralCore(Structure):
                 frontLine1=data['categoryLabel'],
                 frontLine2=f'FLOOR {data["floorNumber"]}',
                 frontLine3='⬌',
+                frontIsGlowing=True,
                 isWaxed=True,
             )
         )
@@ -329,6 +350,7 @@ class CentralCore(Structure):
                 frontLine2='TO',
                 frontLine3=lastYear,
                 frontLine4=lastAuthorTLA,
+                frontIsGlowing=True,
                 isWaxed=True,
             )
         )

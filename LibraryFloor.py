@@ -1,5 +1,6 @@
-from typing import Dict, List, Iterator, Tuple
+from typing import Dict, List, Iterator, Tuple, Set
 
+import numpy as np
 from glm import ivec3
 from ordered_set import OrderedSet
 from termcolor import cprint
@@ -128,7 +129,7 @@ class LibraryFloor:
             # Remove central_core_hallway from all other cells.
             if wfc.lockedTiles[index] is False:
                 wfc.stateSpace[index] = OrderedSet(filter(
-                    lambda state: not state.structureName == 'central_core_hallway', wfc.stateSpace[index]
+                    lambda state: not state.structureName.startswith('central_core_hallway'), wfc.stateSpace[index]
                 ))
 
         self.collapseSpaceAroundConnector(wfc, self.atriumExitPos1)
@@ -217,7 +218,8 @@ class LibraryFloor:
         self.subGridVolumes.append(wfc.stateSpaceBox)
 
         for index, building in self.getCollapsedState:
-            self.placedTiles[index] = building
+            if not building.name.startswith('air'):
+                self.placedTiles[index] = building
         # Add central atrium/staircase
         atriumCoreFolder = globals.structureFolders['central_core']
         atriumCoreBuildingInstance: Structure = atriumCoreFolder.structureClass(
@@ -265,19 +267,38 @@ class LibraryFloor:
         return capacity
 
     def addBooks(self, books: List[str], categoryLabel: str, floorNumber: int):
-
         firstBook = books[0]
         lastBook = firstBook
 
-        for building in self.placedTiles.values():
-            if building.bookCapacity == 0:
-                continue
-            if len(books) == 0:
-                break
-
-            lastBook = building.addBooks(books, categoryLabel, floorNumber)
-
         centralCore: Structure = self.placedTiles[self.centralTile]
+
+        rng = np.random.default_rng(seed=globals.rngSeed)
+        stateSpaceKeys: List[ivec3] = list(self.placedTiles.keys())
+        tilesVisited: Set[ivec3] = {self.centralTile}
+        currentBuilding = centralCore
+        isDirectionInverted = False
+        while len(tilesVisited) != len(self.placedTiles):
+            lastBook = currentBuilding.addBooks(books, categoryLabel, floorNumber, isDirectionInverted)
+
+            openPositions: Set[ivec3] = self.allDefaultAdjacencies[currentBuilding.name].getNonWallPositions(
+                currentBuilding.rotation,
+                currentBuilding.tile,
+                stateSpaceKeys,
+            ).difference(tilesVisited)
+            if len(openPositions) == 0:
+                # noinspection PyTypeChecker
+                nextPosition = ivec3(rng.choice(list(set(self.placedTiles).difference(tilesVisited))))
+                tilesVisited.add(nextPosition)
+                isDirectionInverted = False
+                currentBuilding = self.placedTiles[nextPosition]
+                continue
+            # noinspection PyTypeChecker
+            nextPosition = ivec3(rng.choice(list(openPositions)))
+            tilesVisited.add(nextPosition)
+            nextBuilding = self.placedTiles[nextPosition]
+            isDirectionInverted = nextBuilding.rotation != currentBuilding.rotation
+            currentBuilding = nextBuilding
+
         centralCore.addWayFinding(data={
             'firstBook': firstBook,
             'lastBook': lastBook,

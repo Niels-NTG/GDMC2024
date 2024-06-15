@@ -423,7 +423,7 @@ class CentralCore(Structure):
                 nbtTools.setStructureBlock(
                     self.nbt,
                     pos,
-                    'minecraft:stripped:spruce_log',
+                    'minecraft:stripped_spruce_log',
                     {
                         'axis': 'y',
                     },

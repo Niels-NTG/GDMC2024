@@ -63,7 +63,7 @@ class Bed(Structure):
         ]
     )
 
-    weight = 0.008
+    weight = 0.01
 
     def __init__(
         self,

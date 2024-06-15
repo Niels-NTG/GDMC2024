@@ -46,6 +46,7 @@ surfaceTower = SurfaceTower(
     tile=surfaceTowerBox.offset,
     offset=ivec3(volume.offset.x - 1, surfaceY, volume.offset.z - 1),
 )
+surfaceTower.addWayFinding('Computer Science', 0, dict())
 surfaceTower.place()
 
 floorNumber -= 1

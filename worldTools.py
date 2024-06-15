@@ -52,14 +52,18 @@ def getSurfaceStandardDeviation(
     heightmapFragment: list[int] = []
     points = rect.inner
     for point in points:
-        heightmapFragment.append(getHeightAt(pos=point, heightmapType=heightmapType))
+        height = getHeightAt(pos=point, heightmapType=heightmapType)
+        if height is not None:
+            heightmapFragment.append(height)
+    if len(heightmapFragment) == 0:
+        return 99999999, 0, 0
     return float(np.std(heightmapFragment)), min(heightmapFragment), max(heightmapFragment)
 
 
 def getHeightAt(
     pos: ivec3 | ivec2,
     heightmapType: str = DEFAULT_HEIGHTMAP_TYPE
-) -> int:
+) -> int | None:
     # WORLD_SURFACE
     # Stores the Y-level of the highest non-air block.
     #
@@ -77,8 +81,10 @@ def getHeightAt(
         pos = ivec2(pos.x, pos.z)
     heightmap = globals.heightMaps[heightmapType]
 
-    positionRelativeToWorldSlice = (pos - globals.buildVolume.toRect().offset)
-    return heightmap[positionRelativeToWorldSlice.x][positionRelativeToWorldSlice.y]
+    positionRelativeToWorldSlice = pos - globals.buildVolume.toRect().offset
+    if globals.buildVolume.toRect().contains(positionRelativeToWorldSlice):
+        return heightmap[positionRelativeToWorldSlice.x][positionRelativeToWorldSlice.y]
+    return None
 
 
 def getSurfacePositionAt(

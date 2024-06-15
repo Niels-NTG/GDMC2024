@@ -35,7 +35,7 @@ print(f'Suitable area found at {area}')
 bookRangesByFloor: Dict[int, List[Dict[str, str]]] = dict()
 centralAtriumBuildings: Dict[int, Structure] = dict()
 
-volume = area.toBox().centeredSubBox(size=ivec3(22, 1, 22) * tileSize)
+volume = area.toBox().centeredSubBox(size=ivec3(24, 1, 24) * tileSize)
 surfaceStandardDeviation = worldTools.getSurfaceStandardDeviation(
     area.centeredSubRect(size=ivec2(50, 50)),
     'MOTION_BLOCKING_NO_PLANTS',
@@ -108,10 +108,13 @@ for floorNumber, building in centralAtriumBuildings.items():
     time.sleep(4)
     building.place()
 
-cprint(f'Placing garden at floor {floorNumber} ({ivec3(volume.offset.x, surfaceY - VOLUME_Y_SIZE, volume.offset.z)})', 'black', 'on_green')
+cprint(
+    f'Placing garden at floor {floorNumber} ({ivec3(volume.offset.x, surfaceY - VOLUME_Y_SIZE, volume.offset.z)})',
+    'black', 'on_green'
+)
 bottomGarden = BottomGarden(
     tile=surfaceTowerBox.offset,
-    offset=ivec3(volume.offset.x, yOffset - VOLUME_Y_SIZE, volume.offset.z),
+    offset=ivec3(volume.offset.x, yOffset, volume.offset.z),
 )
 bottomGarden.place()
 

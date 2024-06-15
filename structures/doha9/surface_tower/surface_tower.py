@@ -4,8 +4,11 @@ from typing import Dict, List
 from glm import ivec3
 
 import globals
+import vectorTools
+import worldTools
 from StructureBase import Structure
-from gdpc.src.gdpc import minecraft_tools
+from gdpc.src.gdpc import minecraft_tools, Box, Block
+from gdpc.src.gdpc.interface import placeBlocks
 
 
 class SurfaceTower(Structure):
@@ -46,6 +49,47 @@ class SurfaceTower(Structure):
     @property
     def position(self) -> ivec3:
         return self.offset + (self.tile * ivec3(9, 10, 9))
+
+    def doPreProcessingSteps(self):
+        self.preProcessingSteps.update(worldTools.getTreeCuttingInstructions(self.rectInWorldSpace))
+        foundations: List[ivec3] = []
+        for y in range(self.box.size.y):
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(0, -1, 0) + self.position + ivec3(0, -y, 0), ivec3(0, -1, 21) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(0, -1, 21) + self.position + ivec3(0, -y, 0), ivec3(7, -1, 21) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(8, -1, 21) + self.position + ivec3(0, -y, 0), ivec3(8, -1, 25) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(8, -1, 25) + self.position + ivec3(0, -y, 0), ivec3(3, -1, 25) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(3, -1, 25) + self.position + ivec3(0, -y, 0), ivec3(3, -1, 37) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(4, -1, 37) + self.position + ivec3(0, -y, 0), ivec3(4, -1, 42) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(4, -1, 42) + self.position + ivec3(0, -y, 0), ivec3(9, -1, 42) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(9, -1, 42) + self.position + ivec3(0, -y, 0), ivec3(9, -1, 43) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(9, -1, 43) + self.position + ivec3(0, -y, 0), ivec3(21, -1, 43) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(21, -1, 42) + self.position + ivec3(0, -y, 0), ivec3(24, -1, 42) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(25, -1, 43) + self.position + ivec3(0, -y, 0), ivec3(37, -1, 43) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(42, -1, 42) + self.position + ivec3(0, -y, 0), ivec3(37, -1, 43) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(42, -1, 42) + self.position + ivec3(0, -y, 0), ivec3(42, -1, 37) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(43, -1, 37) + self.position + ivec3(0, -y, 0), ivec3(43, -1, 25) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(42, -1, 25) + self.position + ivec3(0, -y, 0), ivec3(42, -1, 21) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(43, -1, 21) + self.position + ivec3(0, -y, 0), ivec3(42, -1, 9) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(42, -1, 9) + self.position + ivec3(0, -y, 0), ivec3(42, -1, 4) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(42, -1, 4) + self.position + ivec3(0, -y, 0), ivec3(37, -1, 4) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(37, -1, 4) + self.position + ivec3(0, -y, 0), ivec3(25, -1, 3) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(25, -1, 4) + self.position + ivec3(0, -y, 0), ivec3(21, -1, 4) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(25, -1, 4) + self.position + ivec3(0, -y, 0), ivec3(15, -1, 3) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(15, -1, 3) + self.position + ivec3(0, -y, 0), ivec3(15, -1, 7) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(15, -1, 7) + self.position + ivec3(0, -y, 0), ivec3(11, -1, 7) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(11, -1, 7) + self.position + ivec3(0, -y, 0), ivec3(11, -1, 0) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(11, -1, 0) + self.position + ivec3(0, -y, 0), ivec3(0, -1, 0) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(9, -1, 44) + self.position + ivec3(0, -y, 0), ivec3(21, -1, 46) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(25, -1, 43) + self.position + ivec3(0, -y, 0), ivec3(37, -1, 46) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(43, -1, 37) + self.position + ivec3(0, -y, 0), ivec3(46, -1, 25) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(43, -1, 21) + self.position + ivec3(0, -y, 0), ivec3(46, -1, 9) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(37, -1, 3) + self.position + ivec3(0, -y, 0), ivec3(25, -1, 0) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(21, -1, 0) + self.position + ivec3(0, -y, 0), ivec3(15, -1, 6) + self.position + ivec3(0, -y, 0)))))
+            foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(0, -1, 25) + self.position + ivec3(0, -y, 0), ivec3(3, -1, 37) + self.position + ivec3(0, -y, 0)))))
+        for foundation in foundations:
+            self.preProcessingSteps[foundation] = Block(id='minecraft:polished_andesite')
+
+        placeBlocks(blocks=self.preProcessingSteps.items())
 
     def place(self):
         self.doPreProcessingSteps()

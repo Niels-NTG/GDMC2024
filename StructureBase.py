@@ -132,7 +132,6 @@ class Structure:
         return False
 
     def doPreProcessingSteps(self):
-        self.preProcessingSteps.update(worldTools.getTreeCuttingInstructions(self.rectInWorldSpace))
         placeBlocks(blocks=self.preProcessingSteps.items())
 
     def place(self):

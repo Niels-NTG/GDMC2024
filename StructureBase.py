@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 import nbtlib
 
@@ -191,7 +191,7 @@ class Structure:
             firstBookInCabinetAuthor = lastBookAuthor
             lastBookInCabinetAuthor = lastBookAuthor
 
-            bookCabinetLocationLabel = f'{floorNumber}.{self.tile.x}.{self.tile.z}.{chr(65 + bookCabinetIndex)}'
+            bookCabinetLocationLabel = f'{abs(floorNumber)}.{self.tile.x}.{self.tile.z}.{chr(65 + bookCabinetIndex)}'
 
             bookRanges.append({
                 'firstBook': books[0],

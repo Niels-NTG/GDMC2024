@@ -7,9 +7,10 @@ from glm import ivec3
 import bookTools
 import globals
 import nbtTools
+import vectorTools
 from Adjacency import StructureAdjacency
 from StructureBase import Structure
-from gdpc.src.gdpc import minecraft_tools
+from gdpc.src.gdpc import minecraft_tools, Box
 
 
 class CentralCore(Structure):
@@ -375,46 +376,73 @@ class CentralCore(Structure):
                 frontLine4='⬆⬆⬆' if upperFloor else '',
                 frontIsGlowing=True,
                 backLine1=bookTools.yearFromSNBT(lowerFloor[-1]["lastBook"]) if lowerFloor else '',
-                backLine2='—',
+                backLine2='—' if lowerFloor else '',
                 backLine3=bookTools.yearFromSNBT(lowerFloor[0]["firstBook"]) if lowerFloor else '',
-                backLine4='⭩⭩⭩',
+                backLine4='⭩⭩⭩' if lowerFloor else '',
                 backIsGlowing=True,
                 isWaxed=True,
             )
         )
 
-        self.writeSign(
-            signIndex='down1',
-            signData=minecraft_tools.signData(
-                frontLine1='⬇⬇⬇' if lowerFloor else '',
-                frontLine2='FLOOR' if lowerFloor else '',
-                frontLine3=f'{floorNumber - 1}' if lowerFloor else '',
-                frontLine4=categoryLabel if lowerFloor else '',
-                frontIsGlowing=True,
-                backLine1='⬌',
-                backLine2=categoryLabel,
-                backLine3=f'FLOOR {floorNumber}',
-                backLine4='⬌',
-                backIsGlowing=True,
-                isWaxed=True,
+        if lowerFloor:
+            self.writeSign(
+                signIndex='down1',
+                signData=minecraft_tools.signData(
+                    frontLine1='⬇⬇⬇' if lowerFloor else '',
+                    frontLine2='FLOOR' if lowerFloor else '',
+                    frontLine3=f'{floorNumber - 1}' if lowerFloor else '',
+                    frontLine4=categoryLabel if lowerFloor else '',
+                    frontIsGlowing=True,
+                    backLine1='⬌',
+                    backLine2=categoryLabel,
+                    backLine3=f'FLOOR {floorNumber}',
+                    backLine4='⬌',
+                    backIsGlowing=True,
+                    isWaxed=True,
+                )
             )
-        )
-        self.writeSign(
-            signIndex='down2',
-            signData=minecraft_tools.signData(
-                frontLine1=bookTools.yearFromSNBT(lowerFloor[-1]["lastBook"]) if lowerFloor else '',
-                frontLine2='—' if lowerFloor else '',
-                frontLine3=bookTools.yearFromSNBT(lowerFloor[0]["firstBook"]) if lowerFloor else '',
-                frontLine4='⬇⬇⬇' if lowerFloor else '',
-                frontIsGlowing=True,
-                backLine1=bookTools.yearFromSNBT(upperFloor[-1]["lastBook"]) if upperFloor else '',
-                backLine2='—' if upperFloor else '',
-                backLine3=bookTools.yearFromSNBT(upperFloor[0]["firstBook"]) if upperFloor else '',
-                backLine4='⬈⬈⬈' if upperFloor else '',
-                backIsGlowing=True,
-                isWaxed=True,
+            self.writeSign(
+                signIndex='down2',
+                signData=minecraft_tools.signData(
+                    frontLine1=bookTools.yearFromSNBT(lowerFloor[-1]["lastBook"]) if lowerFloor else '',
+                    frontLine2='—' if lowerFloor else '',
+                    frontLine3=bookTools.yearFromSNBT(lowerFloor[0]["firstBook"]) if lowerFloor else '',
+                    frontLine4='⬇⬇⬇' if lowerFloor else '',
+                    frontIsGlowing=True,
+                    backLine1=bookTools.yearFromSNBT(upperFloor[-1]["lastBook"]) if upperFloor else '',
+                    backLine2='—' if upperFloor else '',
+                    backLine3=bookTools.yearFromSNBT(upperFloor[0]["firstBook"]) if upperFloor else '',
+                    backLine4='⬈⬈⬈' if upperFloor else '',
+                    backIsGlowing=True,
+                    isWaxed=True,
+                )
             )
-        )
+        else:
+            blockWall = Box.between(ivec3(6, 1, 18), ivec3(6, 7, 16))
+            for pos in vectorTools.boxPositions(blockWall):
+                nbtTools.setStructureBlock(
+                    self.nbt,
+                    pos,
+                    'minecraft:stripped:spruce_log',
+                    {
+                        'axis': 'y',
+                    },
+                    None,
+                )
+            nbtTools.setStructureBlock(
+                self.nbt,
+                self.signs['down1'],
+                'minecraft:air',
+                dict(),
+                None,
+            )
+            nbtTools.setStructureBlock(
+                self.nbt,
+                self.signs['down2'],
+                'minecraft:air',
+                dict(),
+                None,
+            )
 
         indexBookText = '\\\\s'
         lineNumber = 0

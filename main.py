@@ -1,4 +1,5 @@
 import os
+import time
 from typing import List, Dict
 
 from glm import ivec3
@@ -85,15 +86,24 @@ for yOffset in range(surfaceY, -60, -VOLUME_Y_SIZE):
     centralAtriumBuildings[floorNumber] = libraryFloor.centralCore
     libraryFloor.placeStructure()
 
+    # Bandage to give Minecraft time to catch up.
+    time.sleep(2)
+
     volumeRotation += 1
     floorNumber -= 1
 
 for floorNumber, building in centralAtriumBuildings.items():
+    cprint(f'Placing atrium for floor {floorNumber}', 'black', 'on_green')
     building.addWayFinding(categoryName, floorNumber, bookRangesByFloor)
+    # Bandage to give Minecraft time to catch up.
+    time.sleep(4)
     building.place()
 
+cprint(f'Placing garden at floor {floorNumber}', 'black', 'on_green')
 bottomGarden = BottomGarden(
     tile=surfaceTowerBox.offset,
     offset=ivec3(volume.offset.x, yOffset - (VOLUME_Y_SIZE * 2), volume.offset.z),
 )
 bottomGarden.place()
+
+cprint(f'Completed construction of {categoryName} library', 'black', 'on_green')

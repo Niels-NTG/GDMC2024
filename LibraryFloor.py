@@ -12,6 +12,7 @@ from Adjacency import StructureAdjacency, StructureRotation
 from StructureBase import Structure
 from WaveFunctionCollapse import WaveFunctionCollapse, startMultiThreadedWFC
 from gdpc.src.gdpc import Box
+from structures.doha9.central_core.central_core import CentralCore
 
 
 class LibraryFloor:
@@ -28,7 +29,7 @@ class LibraryFloor:
     def __init__(
         self,
         volume: Box,
-        tileSize: ivec3 = ivec3(9, 10, 9),
+        volumeGrid: Box,
         volumeRotation: int = 0,
     ):
 
@@ -40,8 +41,7 @@ class LibraryFloor:
         self.subGridVolumes = []
         self.placedTiles = dict()
 
-        self.volumeGrid = Box(size=volume.size // tileSize)
-        self.volumeGrid.size = self.volumeGrid.size + ivec3(1, 0, 1)
+        self.volumeGrid = volumeGrid
         # Ensure volume is flat
         self.volumeGrid.size.y = 1
         print(f'Running WFC in volume {self.volumeGrid.size.x}x{self.volumeGrid.size.y}x{self.volumeGrid.size.z}')
@@ -221,8 +221,7 @@ class LibraryFloor:
             if not building.name.startswith('air'):
                 self.placedTiles[index] = building
         # Add central atrium/staircase
-        atriumCoreFolder = globals.structureFolders['central_core']
-        atriumCoreBuildingInstance: Structure = atriumCoreFolder.structureClass(
+        atriumCoreBuildingInstance = CentralCore(
             withRotation=self.volumeRotation,
             tile=self.atriumBox.offset,
             offset=self.volume.offset,

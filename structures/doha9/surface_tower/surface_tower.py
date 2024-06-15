@@ -76,3 +76,36 @@ class SurfaceTower(Structure):
                     isWaxed=True,
                 )
             )
+        self.writeSign(
+            signIndex='down1',
+            signData=minecraft_tools.signData(
+                frontLine1='⬇⬇⬇⬇⬇⬇⬇⬇',
+                frontLine2='⬇⬇⬇⬇⬇⬇⬇⬇',
+                frontLine3='⬇⬇⬇⬇⬇⬇⬇⬇',
+                frontLine4='⬇⬇⬇⬇⬇⬇⬇⬇',
+                frontIsGlowing=True,
+                isWaxed=True,
+            )
+        )
+        self.writeSign(
+            signIndex='down2',
+            signData=minecraft_tools.signData(
+                frontLine1='⬇⬇⬇⬇⬇⬇⬇⬇',
+                frontLine2='TO',
+                frontLine3='COLLECTION',
+                frontLine4='⬇⬇⬇⬇⬇⬇⬇⬇',
+                frontIsGlowing=True,
+                isWaxed=True,
+            )
+        )
+        self.writeSign(
+            signIndex='down3',
+            signData=minecraft_tools.signData(
+                frontLine1='⬇⬇⬇⬇⬇⬇⬇⬇',
+                frontLine2='⬇⬇⬇⬇⬇⬇⬇⬇',
+                frontLine3='⬇⬇⬇⬇⬇⬇⬇⬇',
+                frontLine4='⬇⬇⬇⬇⬇⬇⬇⬇',
+                frontIsGlowing=True,
+                isWaxed=True,
+            )
+        )

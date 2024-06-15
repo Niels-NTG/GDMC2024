@@ -9,6 +9,7 @@ from LibraryFloor import LibraryFloor
 import globals
 from StructureBase import Structure
 from gdpc.src.gdpc import Box
+from structures.doha9.bottom_garden.bottom_garden import BottomGarden
 from structures.doha9.subsurface_tower.subsurface_tower import SubsurfaceTower
 from structures.doha9.surface_tower.surface_tower import SurfaceTower
 
@@ -58,7 +59,8 @@ centralAtriumBuildings[floorNumber] = subSurfaceTower
 
 floorNumber -= 1
 
-for yOffset in range(surfaceY, -70, -VOLUME_Y_SIZE):
+yOffset = surfaceY
+for yOffset in range(surfaceY, -60, -VOLUME_Y_SIZE):
     if len(books) == 0:
         break
 
@@ -89,3 +91,9 @@ for yOffset in range(surfaceY, -70, -VOLUME_Y_SIZE):
 for floorNumber, building in centralAtriumBuildings.items():
     building.addWayFinding(categoryName, floorNumber, bookRangesByFloor)
     building.place()
+
+bottomGarden = BottomGarden(
+    tile=surfaceTowerBox.offset,
+    offset=ivec3(volume.offset.x, yOffset - (VOLUME_Y_SIZE * 2), volume.offset.z),
+)
+bottomGarden.place()

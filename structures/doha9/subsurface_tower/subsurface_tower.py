@@ -305,7 +305,7 @@ class SubsurfaceTower(Structure):
             signData=minecraft_tools.signData(
                 frontLine2='FROM',
                 frontLine3=bookTools.yearFromSNBT(floorData[-1]['lastBook']),
-                frontLine4=bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(floorData[0]['firstBook'])),
+                frontLine4=bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(floorData[-1]['lastBook'])),
                 frontIsGlowing=True,
                 isWaxed=True,
             )
@@ -325,7 +325,7 @@ class SubsurfaceTower(Structure):
             signData=minecraft_tools.signData(
                 frontLine2='TO',
                 frontLine3=bookTools.yearFromSNBT(floorData[0]['firstBook']),
-                frontLine4=bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(floorData[-1]['lastBook'])),
+                frontLine4=bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(floorData[0]['firstBook'])),
                 frontIsGlowing=True,
                 isWaxed=True,
             )

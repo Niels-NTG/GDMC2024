@@ -194,11 +194,14 @@ def sanitizeForBook(s: str) -> str:
 
 
 def writeBookData(data: Dict) -> str:
+    abstract = sanitizeForBook(data['abstract'])
+    if len(abstract) > 200:
+        abstract = abstract[:200] + '…'
     return minecraft_tools.bookData(
         '\\\\s' + firstPage(data) +
-        sanitizeForBook(data['abstract']) + '§r\f' +
+        abstract + '§r\f' +
         '\\\\s' + lastPage(data),
-        # NOTE title cam be max 32 charachters
+        # NOTE title can be max 32 charachters
         title=truncatedBookTitle(data),
         author=bookAuthors(data),
         description='arXiv:' + data['id'],
@@ -225,7 +228,7 @@ def fillBookShelf(bookSources: List[str]) -> Tuple[Dict[str, str], nbtlib.Compou
 
 
 def writeCategoryFile(line: str, category: str, year: str):
-    with open(f'dataset/{category}-{year}.json', 'a') as f:
+    with open(f'dataset/parsed-books-no-abstract/{category}-{year}.json', 'a') as f:
         f.write(line)
         f.write('\n')
 
@@ -246,7 +249,7 @@ def gatherBooksOfCategory(category: str = 'cs.') -> List[str]:
     endYear = datetime.today().year
     for year in range(endYear, startYear + 1, -1):
         bookGroup: List[str] = []
-        inputFiles = glob(f'dataset/{category}*-{year}.json')
+        inputFiles = glob(f'dataset/parsed-books-no-abstract/{category}*-{year}.json')
         for inputFile in inputFiles:
             with open(inputFile) as f:
                 for line in f:
@@ -254,7 +257,6 @@ def gatherBooksOfCategory(category: str = 'cs.') -> List[str]:
                     # To prevent Minecraft chunk size from growing such
                     # that is crashes the game, skip all books that are
                     # over roughly 10k bytes
-                    # TODO re-run book parser to trim the abstracts, notes and author lists down
                     if len(line) < 10000:
                         bookGroup.append(line)
         bookGroup.sort(key=lambda x: locale.strxfrm(primaryAuthorFromSNBT(x).casefold()))

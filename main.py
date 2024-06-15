@@ -40,7 +40,7 @@ surfaceStandardDeviation = worldTools.getSurfaceStandardDeviation(
     area.centeredSubRect(size=ivec2(50, 50)),
     'MOTION_BLOCKING_NO_PLANTS',
 )
-surfaceY = int(surfaceStandardDeviation[1] + surfaceStandardDeviation[0])
+surfaceY = int(surfaceStandardDeviation[2] - surfaceStandardDeviation[0])
 volumeGrid = Box(
     size=volume.size // tileSize
 )

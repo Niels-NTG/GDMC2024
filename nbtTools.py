@@ -64,15 +64,21 @@ def setStructurePalette(
     inputBlockId: str,
     blockState: Dict[str, str],
 ) -> int:
-    stateString = ','.join([f'{key}:{value}' for key, value in blockState.items()])
-    if stateString:
-        try:
-            structureFile['palette'].append(nbtlib.parse_nbt(
-                f'{{Properties: {{{stateString}}}, Name: "{inputBlockId}"}}'
-            ))
-            return len(structureFile['palette']) - 1
-        except Exception as e:
-            print(f'Invalid block state {stateString} - {e}')
+    if len(blockState.keys()) == 0:
+        structureFile['palette'].append(nbtlib.parse_nbt(
+            f'{{Name: "{inputBlockId}"}}'
+        ))
+        return len(structureFile['palette']) - 1
+    else:
+        stateString = ','.join([f'{key}:{value}' for key, value in blockState.items()])
+        if stateString:
+            try:
+                structureFile['palette'].append(nbtlib.parse_nbt(
+                    f'{{Properties: {{{stateString}}}, Name: "{inputBlockId}"}}'
+                ))
+                return len(structureFile['palette']) - 1
+            except Exception as e:
+                print(f'Invalid block state {stateString} - {e}')
 
 
 def setInventoryContents(inventoryBlock: Block, contents: list[dict]) -> Block:

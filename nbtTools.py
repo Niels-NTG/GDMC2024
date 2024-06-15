@@ -35,7 +35,7 @@ def setStructureBlock(
     pos: ivec3,
     inputBlockId: str,
     inputBlockState: Dict[str, str] | None,
-    inputBlockData: nbtlib.Compound,
+    inputBlockData: nbtlib.Compound | None,
 ) -> object:
     for nbtBlock in structureFile['blocks']:
         if (
@@ -43,7 +43,8 @@ def setStructureBlock(
             nbtBlock['pos'][1] == pos.y and
             nbtBlock['pos'][2] == pos.z
         ):
-            nbtBlock['nbt'] = inputBlockData
+            if inputBlockData is not None:
+                nbtBlock['nbt'] = inputBlockData
             if inputBlockState is not None:
                 nbtBlock['state'] = nbtlib.Int(setStructurePalette(
                     structureFile,

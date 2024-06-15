@@ -295,12 +295,6 @@ class CentralCore(Structure):
         'floor1': ivec3(7, 3, 23),
         'floor2': ivec3(7, 3, 22),
         'floor3': ivec3(7, 3, 21),
-        'south_hallway1': ivec3(21, 5, 7),
-        'south_hallway2': ivec3(23, 5, 7),
-        'west_hallway1': ivec3(37, 5, 21),
-        'west_hallway2': ivec3(37, 5, 23),
-        'north_hallway1': ivec3(23, 5, 37),
-        'north_hallway2': ivec3(21, 5, 77),
     }
 
     def __init__(
@@ -422,16 +416,18 @@ class CentralCore(Structure):
             )
         )
 
-        indexBookText = ''
-        lastYear = ''
+        indexBookText = '\\\\s'
+        lineNumber = 0
         for cabinet in floorData:
-            year = bookTools.yearFromSNBT(cabinet["firstBook"])
-            if lastYear != year:
-                indexBookText += f'§7§l§n{year}§r\\n'
+            if lineNumber == 0:
+                indexBookText += f'§7§l§n{bookTools.yearFromSNBT(cabinet["firstBook"])}§r\n'
             firstAuthor = bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(cabinet['firstBook']))
             lastAuthor = bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(cabinet['lastBook']))
-            indexBookText += f'{firstAuthor}—{lastAuthor} §5{cabinet["cabinet"]}§r\\n'
-            lastYear = year
+            indexBookText += f'{firstAuthor}—{lastAuthor} §5{cabinet["cabinet"]}§r\n'
+            lineNumber += 1
+            if lineNumber == 10:
+                lineNumber = 0
+                indexBookText += '\f\\\\s'
 
         lecternData = nbtlib.parse_nbt(minecraft_tools.lecternData(
             bookData=minecraft_tools.bookData(

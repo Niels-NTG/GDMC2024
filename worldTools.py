@@ -229,22 +229,21 @@ def getTreeCuttingInstructions(
     rng = np.random.default_rng()
 
     for xzPos in treePositions:
-        pos2DInWorldSpace = ivec2(xzPos[0], xzPos[1]) + globals.editor.worldSlice.rect.offset
+        pos2DInWorldSpace = ivec2(xzPos[0], xzPos[1]) + globals.buildVolume.toRect().offset
         if not outerArea.contains(pos2DInWorldSpace):
             continue
         for y in range(diffHeightmap[xzPos[0], xzPos[1]]):
             pos3D = ivec3(
                 pos2DInWorldSpace.x,
-                y + globals.editor.worldSlice.heightmaps['MOTION_BLOCKING_NO_PLANTS'][xzPos[0], xzPos[1]],
+                y + globals.heightMaps['MOTION_BLOCKING_NO_PLANTS'][xzPos[0]][xzPos[1]],
                 pos2DInWorldSpace.y
             )
-            block: Block = globals.editor.worldSlice.getBlockGlobal(pos3D)
+            block: Block = getBlocks(position=pos3D, includeData=False, includeState=False)[0][1]
             if block.id in lookup.PLANT_BLOCKS:
                 if not innerArea.contains(pos2DInWorldSpace):
                     if block.id in lookup.LEAVES and rng.random() > 0.25:
                         continue
-                    if y == 0 and rng.random() > 0.25 and block.id in lookup.LOGS and \
-                            not is2DPositionContainedInNodes(pos=pos2DInWorldSpace, exludeRect=innerArea):
+                    if y == 0 and rng.random() > 0.25 and block.id in lookup.LOGS:
                         replacementSapling = getSapling(block)
                         if replacementSapling:
                             treeCuttingInstructions[pos3D] = replacementSapling

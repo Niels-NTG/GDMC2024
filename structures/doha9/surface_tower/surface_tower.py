@@ -47,6 +47,10 @@ class SurfaceTower(Structure):
     def position(self) -> ivec3:
         return self.offset + (self.tile * ivec3(9, 10, 9))
 
+    def place(self):
+        self.doPreProcessingSteps()
+        super().place()
+
     def addWayFinding(self, categoryLabel: str, floorNumber: int, data: Dict[int, List[Dict[str, str]]]):
         outdoorSigns = [
             'surface1',

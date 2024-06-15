@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 
 from glm import ivec3, ivec2
 
-import globals
 import worldTools
 from Adjacency import StructureAdjacency
 from gdpc.src.gdpc.interface import placeStructure, placeBlocks
@@ -30,7 +29,6 @@ class Structure:
     structureFolder: StructureFolder
     structureFile: StructureFile
 
-    customProperties: Dict[str, Any]
 
     preProcessingSteps: Dict[ivec3, Block]
     postProcessingSteps: List[Tuple[ivec3, Block]]
@@ -59,8 +57,6 @@ class Structure:
         self.nbt = deepcopy(self.structureFile.nbt)
         self.transitionStructureFiles = structureFolder.transitionStructureFiles
         self.decorationStructureFiles = structureFolder.decorationStructureFiles
-
-        self.customProperties = dict()
 
         self.preProcessingSteps = dict()
         self.postProcessingSteps = []
@@ -137,12 +133,7 @@ class Structure:
 
     def doPreProcessingSteps(self):
         self.preProcessingSteps.update(worldTools.getTreeCuttingInstructions(self.rectInWorldSpace))
-
-        for preProcessingStep in self.preProcessingSteps:
-            globals.editor.placeBlockGlobal(
-                position=preProcessingStep.position,
-                block=preProcessingStep.block,
-            )
+        placeBlocks(blocks=self.preProcessingSteps.items())
 
     def place(self):
         placeStructure(

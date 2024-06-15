@@ -399,9 +399,16 @@ class SubsurfaceTower(Structure):
 
         indexBookText = '\\\\s'
         lineNumber = 0
+        lastYear = bookTools.yearFromSNBT(floorData[0]["firstBook"])
         for cabinet in floorData:
+            year = bookTools.yearFromSNBT(cabinet["firstBook"])
+            if year != lastYear:
+                lineNumber = 0
+                indexBookText += '\f\\\\s'
+                lastYear = year
+                continue
             if lineNumber == 0:
-                indexBookText += f'§7§l§n{bookTools.yearFromSNBT(cabinet["firstBook"])}§r\n'
+                indexBookText += f'§7§l§n{year}§r\n'
             firstAuthor = bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(cabinet['firstBook']))
             lastAuthor = bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(cabinet['lastBook']))
             indexBookText += f'{firstAuthor}—{lastAuthor} §5{cabinet["cabinet"]}§r\n'
@@ -409,6 +416,7 @@ class SubsurfaceTower(Structure):
             if lineNumber == 10:
                 lineNumber = 0
                 indexBookText += '\f\\\\s'
+            lastYear = year
 
         lecternData = nbtlib.parse_nbt(minecraft_tools.lecternData(
             bookData=minecraft_tools.bookData(

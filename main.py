@@ -2,10 +2,11 @@ import os
 import time
 from typing import List, Dict
 
-from glm import ivec3
+from glm import ivec3, ivec2
 from termcolor import cprint
 
 import bookTools
+import worldTools
 from LibraryFloor import LibraryFloor
 import globals
 from StructureBase import Structure
@@ -16,31 +17,34 @@ from structures.doha9.surface_tower.surface_tower import SurfaceTower
 
 os.system('color')
 
-globals.initialize()
-
 categoryName = 'CS'
 books: List[str] = bookTools.gatherBooksOfCategory('cs.')
-volumeRotation = 2
+volumeRotation = 0
 VOLUME_Y_SIZE = 10
 floorNumber = 0
+tileSize = ivec3(9, VOLUME_Y_SIZE, 9)
+
+globals.initialize()
+
+area = worldTools.findSuitableArea(ivec2(6, 6) * ivec2(9, 9))
+if area is None:
+    print(f'No suitable area found in build area {globals.buildVolume}')
+    exit()
+print(f'Suitable area found at {area}')
 
 bookRangesByFloor: Dict[int, List[Dict[str, str]]] = dict()
 centralAtriumBuildings: Dict[int, Structure] = dict()
 
-# TODO should be become an algorithm that samples candiate areas inside the build area for suitable flatness.
-# TODO should be equal to highest position heightmap within area.
-volume = Box(
-    offset=globals.buildVolume.offset,
-    size=globals.buildVolume.size,
+volume = area.toBox().centeredSubBox(size=ivec3(22, 1, 22) * tileSize)
+surfaceStandardDeviation = worldTools.getSurfaceStandardDeviation(
+    area.centeredSubRect(size=ivec2(50, 50)),
+    'MOTION_BLOCKING_NO_PLANTS',
 )
-surfaceY = 120
-
-tileSize = ivec3(9, 10, 9)
+surfaceY = int(surfaceStandardDeviation[1] + surfaceStandardDeviation[0])
 volumeGrid = Box(
     size=volume.size // tileSize
 )
 
-volumeGrid.size = volumeGrid.size + ivec3(1, 0, 1)
 surfaceTowerBox = volumeGrid.centeredSubBox(size=ivec3(5, 1, 5))
 surfaceTower = SurfaceTower(
     tile=surfaceTowerBox.offset,
@@ -50,16 +54,20 @@ surfaceTower.addWayFinding('Computer Science', 0, dict())
 surfaceTower.place()
 
 floorNumber -= 1
+surfaceY -= VOLUME_Y_SIZE
+volumeRotation += 1
 
-subSurfaceTower = SubsurfaceTower(
-    tile=surfaceTowerBox.offset,
-    offset=ivec3(volume.offset.x, surfaceY - VOLUME_Y_SIZE, volume.offset.z),
-    withRotation=1,
-)
-bookRangesByFloor[floorNumber] = subSurfaceTower.addBooks(books, categoryName, floorNumber, False)
-centralAtriumBuildings[floorNumber] = subSurfaceTower
-
-floorNumber -= 1
+while surfaceY > 40:
+    subSurfaceTower = SubsurfaceTower(
+        tile=surfaceTowerBox.offset,
+        offset=ivec3(volume.offset.x, surfaceY, volume.offset.z),
+        withRotation=volumeRotation,
+    )
+    bookRangesByFloor[floorNumber] = subSurfaceTower.addBooks(books, categoryName, floorNumber, False)
+    centralAtriumBuildings[floorNumber] = subSurfaceTower
+    floorNumber -= 1
+    surfaceY -= VOLUME_Y_SIZE
+    volumeRotation += 1
 
 yOffset = surfaceY
 for yOffset in range(surfaceY, -60, -VOLUME_Y_SIZE):
@@ -100,10 +108,10 @@ for floorNumber, building in centralAtriumBuildings.items():
     time.sleep(4)
     building.place()
 
-cprint(f'Placing garden at floor {floorNumber}', 'black', 'on_green')
+cprint(f'Placing garden at floor {floorNumber} ({ivec3(volume.offset.x, surfaceY - VOLUME_Y_SIZE, volume.offset.z)})', 'black', 'on_green')
 bottomGarden = BottomGarden(
     tile=surfaceTowerBox.offset,
-    offset=ivec3(volume.offset.x, yOffset - (VOLUME_Y_SIZE * 2), volume.offset.z),
+    offset=ivec3(volume.offset.x, yOffset - VOLUME_Y_SIZE, volume.offset.z),
 )
 bottomGarden.place()
 

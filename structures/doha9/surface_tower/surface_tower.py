@@ -52,6 +52,7 @@ class SurfaceTower(Structure):
         super().place()
 
     def addWayFinding(self, categoryLabel: str, floorNumber: int, data: Dict[int, List[Dict[str, str]]]):
+        labels = (categoryLabel + ' ').split(' ')
         outdoorSigns = [
             'surface1',
             'surface2',
@@ -74,8 +75,8 @@ class SurfaceTower(Structure):
                 signData=minecraft_tools.signData(
                     frontLine1='Library',
                     frontLine2='of',
-                    frontLine3='Computer',
-                    frontLine4='Science',
+                    frontLine3=labels[0],
+                    frontLine4=labels[1],
                     frontIsGlowing=True,
                     isWaxed=True,
                 )

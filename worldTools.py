@@ -6,81 +6,17 @@ from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING:
     from StructureBase import Structure
 
-import nbtlib
 import numpy as np
 from glm import ivec2, ivec3
 
 import globals
-import nbtTools
 import vectorTools
-from gdpc.src.gdpc import lookup, interface
+from gdpc.src.gdpc import lookup
 from gdpc.src.gdpc.block import Block
 from gdpc.src.gdpc.vector_tools import Box, Rect, loop2D
+from gdpc.src.gdpc.interface import getBlocks
 
 DEFAULT_HEIGHTMAP_TYPE: str = 'MOTION_BLOCKING_NO_PLANTS'
-
-
-class SimpleEntity:
-
-    def __init__(
-        self,
-        uuid: str,
-        snbt: str = None,
-    ):
-        self.uuid = uuid
-        if snbt:
-            self._nbt = nbtlib.parse_nbt(snbt)
-            self._position = nbtTools.extractEntityBlockPos(self._nbt)
-            self._id = nbtTools.extractEntityId(self._nbt)
-
-    @property
-    def position(self) -> ivec3 | None:
-        if self._position:
-            return self._position
-
-    @property
-    def id(self) -> str:
-        if self._id:
-            return self._id
-        return ''
-
-    @property
-    def nbt(self) -> nbtlib.Compound:
-        if self._nbt:
-            return self._nbt
-        return nbtlib.Compound()
-
-    @property
-    def isAboveGround(self) -> bool:
-        if self.position:
-            try:
-                return self.position.y >= getHeightAt(pos=self.position, heightmapType='OCEAN_FLOOR')
-            except IndexError:
-                return False
-        return False
-
-    def __hash__(self):
-        return hash(self.nbt)
-
-
-class EntitiesPerArea:
-
-    def __init__(
-        self,
-        area: Box,
-        entityList: list[SimpleEntity] = None,
-    ):
-        self.area = area
-        self.entityList = entityList if entityList else []
-
-    def __len__(self):
-        return len(self.entityList)
-
-    def __hash__(self):
-        return hash(self.area)
-
-    def __eq__(self, other):
-        return hash(self) == hash(other)
 
 
 def isStructureInsideBuildArea(structure: Structure) -> bool:
@@ -139,10 +75,10 @@ def getHeightAt(
     # fluid (water, lava, or waterlogging blocks), except various leaves. Used only on the server side.
     if isinstance(pos, ivec3):
         pos = ivec2(pos.x, pos.z)
-    heightmap = globals.editor.worldSlice.heightmaps[heightmapType]
+    heightmap = globals.heightMaps[heightmapType]
 
-    positionRelativeToWorldSlice = (pos - globals.editor.worldSlice.rect.offset)
-    return heightmap[positionRelativeToWorldSlice.x, positionRelativeToWorldSlice.y]
+    positionRelativeToWorldSlice = (pos - globals.buildVolume.toRect().offset)
+    return heightmap[positionRelativeToWorldSlice.x][positionRelativeToWorldSlice.y]
 
 
 def getSurfacePositionAt(
@@ -199,11 +135,11 @@ def getSapling(
 def calculateTreeCuttingCost(
     area: Rect
 ) -> int:
-    diffHeightmap = globals.editor.worldSlice.heightmaps['MOTION_BLOCKING_NO_LEAVES'] - \
-                    globals.editor.worldSlice.heightmaps['MOTION_BLOCKING_NO_PLANTS']
+    diffHeightmap = globals.heightMaps['MOTION_BLOCKING_NO_LEAVES'] - \
+                    globals.heightMaps['MOTION_BLOCKING_NO_PLANTS']
     outerArea = area.centeredSubRect(size=area.size + 10)
     outerAreaRelativeToBuildArea = Rect(
-        offset=outerArea.offset - globals.editor.worldSlice.rect.offset,
+        offset=outerArea.offset - globals.buildVolume.toRect().offset,
         size=outerArea.size
     )
     diffHeightmap = diffHeightmap[
@@ -221,8 +157,10 @@ def getTreeCuttingInstructions(
     innerArea = area.centeredSubRect(size=area.size + 4)
     outerArea = area.centeredSubRect(size=area.size + 10)
 
-    diffHeightmap = globals.editor.worldSlice.heightmaps['MOTION_BLOCKING'] - \
-        globals.editor.worldSlice.heightmaps['MOTION_BLOCKING_NO_PLANTS']
+    diffHeightmap = np.subtract(
+        globals.heightMaps['MOTION_BLOCKING'],
+        globals.heightMaps['MOTION_BLOCKING_NO_PLANTS']
+    )
 
     treePositions = np.argwhere(diffHeightmap > 0)
 
@@ -255,88 +193,21 @@ def getTreeCuttingInstructions(
     return treeCuttingInstructions
 
 
-def is2DPositionContainedInNodes(
-    pos: ivec2,
-    exludeRect: Rect = None
-) -> bool:
-    if exludeRect and exludeRect.contains(pos):
-        return True
-    for node in globals.nodeList:
-        nodeRect: Rect = node.structure.rectInWorldSpace
-        if nodeRect.centeredSubRect(size=nodeRect.size + 4).contains(pos):
-            return True
-    return False
-
-
-def buildAreaSqrt() -> float:
-    return np.sqrt(globals.buildarea.area)
-
-
-def facingBlockState(facing: int = 0) -> str:
-    facing = facing % 4
-    facingStates = ['east', 'south', 'west', 'north']
-    return facingStates[facing]
-
-
-def getEntities(
-    area: Box = None,
-    query: dict = None,
-    includeData: bool = False,
-    dimension: str = None,
-) -> list[SimpleEntity]:
-    foundEntities = interface.getEntities(
-        selector=getEntitySelectorQuery(area, query),
-        includeData=includeData,
-        dimension=dimension,
-    )
-    entityList: list[SimpleEntity] = []
-    for entity in foundEntities:
-        entityList.append(SimpleEntity(
-            uuid=entity.get('uuid'),
-            snbt=entity.get('data'),
-        ))
-    return entityList
-
-
-def getEntitiesPerGrid(
-    area: Box = None,
-    query: dict = None,
-    includeData: bool = False,
-    dimension: str = None,
-    gridSize: ivec2 = ivec2(128, 128),
-) -> list[EntitiesPerArea]:
-    if area is None:
-        area = globals.editor.worldSlice.box
-    entityListPerArea: list[EntitiesPerArea] = []
+def findSuitableArea(
+    volumeRectSize: ivec2 = ivec2(55, 55),
+) -> Rect | None:
+    area: Box = globals.buildVolume
+    flattestArea = None
+    lowestGradient = 999999
     for subArea in vectorTools.loop2DwithRects(
         begin=area.toRect().begin,
         end=area.toRect().end,
-        stride=gridSize,
+        stride=volumeRectSize,
     ):
-        searchBox = Box(
-            offset=ivec3(subArea.offset.x, area.offset.y, subArea.offset.y),
-            size=ivec3(subArea.size.x, area.size.y, subArea.size.y),
-        )
-        entityList = getEntities(area=searchBox, query=query, includeData=includeData, dimension=dimension)
-        if len(entityList) > 0:
-            entityListPerArea.append(
-                EntitiesPerArea(
-                    area=searchBox,
-                    entityList=entityList,
-                )
-            )
-    return entityListPerArea
-
-
-def getEntitySelectorQuery(area: Box = None, query: dict = None) -> str:
-    if area is None:
-        area = globals.editor.worldSlice.box
-    if query is None:
-        query = dict()
-    query['x'] = area.offset.x
-    query['y'] = area.offset.y
-    query['z'] = area.offset.z
-    query['dx'] = area.size.x
-    query['dy'] = area.size.y
-    query['dz'] = area.size.z
-    return f"@e[{','.join([f'{key}={value}' for key, value in query.items()])}]"
+        gradientOfArea = getSurfaceStandardDeviation(subArea, 'OCEAN_FLOOR_NO_PLANTS')
+        if gradientOfArea[1] < 64 or gradientOfArea[0] > 10:
+            continue
+        if abs(gradientOfArea[0]) < lowestGradient:
+            lowestGradient = abs(gradientOfArea[0])
+            flattestArea = subArea
+    return flattestArea

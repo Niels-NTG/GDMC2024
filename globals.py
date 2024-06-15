@@ -12,14 +12,14 @@ global defaultAdjacencies
 global defaultStructureWeights
 
 global buildarea
-global editor
+global heightMaps
 
 global buildVolume
 
 
 def initialize():
     global rngSeed
-    rngSeed = 89347849
+    rngSeed = None
 
     global structureFolders
     structureFolders = dict()
@@ -33,26 +33,19 @@ def initialize():
     defaultStructureWeights = dict()
     setupStructureWeights()
 
-    # interface.runCommand(
-    #     'setbuildarea 20 -60 163 120 -50 263'
-    # )
-    interface.runCommand(
-        'setbuildarea 20 -60 160 210 0 350'
-    )
-    # interface.runCommand(
-    #     'setbuildarea 20 -60 160 160 0 300'
-    # )
     interface.runCommand(
         'kill @e[type=minecraft:item]'
     )
 
     global buildarea
     buildarea = interface.getBuildArea()
-    global editor
-    editor = Editor(buffering=True)
-    # editor.loadWorldSlice(rect=buildarea.toRect(), cache=True)
 
-    # TODO implement algorithm to find and define an suitable build volume
+    global heightMaps
+    heightMaps = dict()
+    updateHeightMap('MOTION_BLOCKING_NO_PLANTS')
+    updateHeightMap('MOTION_BLOCKING')
+    updateHeightMap('OCEAN_FLOOR_NO_PLANTS')
+
     global buildVolume
     buildVolume = buildarea
 
@@ -79,3 +72,7 @@ def generateAdjacencies():
 def setupStructureWeights():
     for name, structureFolder in structureFolders.items():
         defaultStructureWeights[name] = structureFolder.structureClass.weight
+
+
+def updateHeightMap(heightMapType: str = 'WORLD_SURFACE'):
+    heightMaps[heightMapType] = interface.getHeightMap(heightMapType)

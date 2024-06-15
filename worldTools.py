@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, Dict
 
+import glm
+
 if TYPE_CHECKING:
     from StructureBase import Structure
 
@@ -81,7 +83,11 @@ def getHeightAt(
         pos = ivec2(pos.x, pos.z)
     heightmap = globals.heightMaps[heightmapType]
 
-    positionRelativeToWorldSlice = pos - globals.buildVolume.toRect().offset
+    positionRelativeToWorldSlice = glm.clamp(
+        pos - globals.buildVolume.toRect().offset,
+        ivec2(0, 0),
+        globals.buildVolume.toRect().size - 1
+    )
     if globals.buildVolume.toRect().contains(positionRelativeToWorldSlice):
         return heightmap[positionRelativeToWorldSlice.x][positionRelativeToWorldSlice.y]
     return None

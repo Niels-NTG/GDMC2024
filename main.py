@@ -96,7 +96,7 @@ for yOffset in range(surfaceY, -60, -VOLUME_Y_SIZE):
     libraryFloor.placeStructure()
 
     # Bandage to give Minecraft time to catch up.
-    time.sleep(2)
+    time.sleep(4)
 
     volumeRotation += 1
     floorNumber -= 1

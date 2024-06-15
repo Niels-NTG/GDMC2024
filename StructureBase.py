@@ -137,7 +137,7 @@ class Structure:
     def place(self):
         placeStructure(
             self.nbt,
-            position=self.position, rotate=self.rotation, mirror=None,
+            position=self.position, rotate=self.rotation, mirror=None, doBlockUpdates=False,
             pivot=self.structureFile.centerPivot,
         )
 

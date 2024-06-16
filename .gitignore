@@ -166,5 +166,3 @@ cython_debug/
 # PyCharm
 .idea/
 /dataset/*.zip
-/dataset/*.json
-/dataset/*/

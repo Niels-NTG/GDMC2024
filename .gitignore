@@ -166,3 +166,5 @@ cython_debug/
 # PyCharm
 .idea/
 /dataset/*.zip
+/dataset/parsed-books/
+/dataset/parsed-books-1-page-abstract/

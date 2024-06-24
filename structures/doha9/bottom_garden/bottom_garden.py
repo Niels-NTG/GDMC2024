@@ -3,6 +3,7 @@ from pathlib import Path
 from glm import ivec3
 
 import globals
+import nbtTools
 from StructureBase import Structure
 
 
@@ -24,3 +25,15 @@ class BottomGarden(Structure):
     @property
     def position(self) -> ivec3:
         return self.offset + (self.tile * ivec3(9, 10, 9))
+
+    def place(self):
+        nbtTools.setStructureBlock(
+            self.nbt,
+            pos=ivec3(23, 5, 22),
+            inputBlockId='minecraft:cherry_sapling',
+            inputBlockState={
+                'stage': '"1"'
+            },
+            inputBlockData=None,
+        )
+        super().place()

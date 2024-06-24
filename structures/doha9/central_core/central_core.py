@@ -324,8 +324,8 @@ class CentralCore(Structure):
             signIndex='floor1',
             signData=minecraft_tools.signData(
                 frontLine2='FROM',
-                frontLine3=bookTools.yearFromSNBT(floorData[-1]['lastBook']),
-                frontLine4=bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(floorData[-1]['lastBook'])),
+                frontLine3=bookTools.yearFromSNBT(floorData[0]['firstBook']),
+                frontLine4=bookTools.getAuthor4LA(bookTools.primaryAuthorFromSNBT(floorData[0]['firstBook'])),
                 frontIsGlowing=True,
                 isWaxed=True,
             )
@@ -334,8 +334,8 @@ class CentralCore(Structure):
             signIndex='floor2',
             signData=minecraft_tools.signData(
                 frontLine1=categoryLabel,
-                frontLine2=f'FLOOR {floorNumber}',
-                frontLine3='⬌',
+                frontLine2='⬌',
+                frontLine3=f'FLOOR {floorNumber}',
                 frontIsGlowing=True,
                 isWaxed=True,
             )
@@ -344,8 +344,8 @@ class CentralCore(Structure):
             signIndex='floor3',
             signData=minecraft_tools.signData(
                 frontLine2='TO',
-                frontLine3=bookTools.yearFromSNBT(floorData[0]['firstBook']),
-                frontLine4=bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(floorData[0]['firstBook'])),
+                frontLine3=bookTools.yearFromSNBT(floorData[-1]['lastBook']),
+                frontLine4=bookTools.getAuthor4LA(bookTools.primaryAuthorFromSNBT(floorData[-1]['lastBook'])),
                 frontIsGlowing=True,
                 isWaxed=True,
             )
@@ -354,9 +354,9 @@ class CentralCore(Structure):
         self.writeSign(
             signIndex='up1',
             signData=minecraft_tools.signData(
-                frontLine1='⬆⬆⬆' if upperFloor else '',
-                frontLine2='FLOOR' if upperFloor else '',
-                frontLine3=f'{floorNumber + 1}' if upperFloor else '',
+                frontLine1='⬆⬆⬆',
+                frontLine2='FLOOR',
+                frontLine3=f'{floorNumber + 1}',
                 frontLine4=categoryLabel if upperFloor else '',
                 frontIsGlowing=True,
                 backLine1='⬌',
@@ -370,14 +370,14 @@ class CentralCore(Structure):
         self.writeSign(
             signIndex='up2',
             signData=minecraft_tools.signData(
-                frontLine1=bookTools.yearFromSNBT(upperFloor[-1]["lastBook"]) if upperFloor else '',
-                frontLine2='—' if upperFloor else '',
-                frontLine3=bookTools.yearFromSNBT(upperFloor[0]["firstBook"]) if upperFloor else '',
+                frontLine3=bookTools.yearFromSNBT(upperFloor[-1]["lastBook"]) if upperFloor else '',
+                frontLine2='—' if upperFloor else 'EXIT',
+                frontLine1=bookTools.yearFromSNBT(upperFloor[0]["firstBook"]) if upperFloor else '',
                 frontLine4='⬆⬆⬆' if upperFloor else '',
                 frontIsGlowing=True,
-                backLine1=bookTools.yearFromSNBT(lowerFloor[-1]["lastBook"]) if lowerFloor else '',
+                backLine3=bookTools.yearFromSNBT(lowerFloor[-1]["lastBook"]) if lowerFloor else '',
                 backLine2='—' if lowerFloor else '',
-                backLine3=bookTools.yearFromSNBT(lowerFloor[0]["firstBook"]) if lowerFloor else '',
+                backLine1=bookTools.yearFromSNBT(lowerFloor[0]["firstBook"]) if lowerFloor else '',
                 backLine4='⭩⭩⭩' if lowerFloor else '',
                 backIsGlowing=True,
                 isWaxed=True,
@@ -404,14 +404,14 @@ class CentralCore(Structure):
             self.writeSign(
                 signIndex='down2',
                 signData=minecraft_tools.signData(
-                    frontLine1=bookTools.yearFromSNBT(lowerFloor[-1]["lastBook"]) if lowerFloor else '',
+                    frontLine3=bookTools.yearFromSNBT(lowerFloor[-1]["lastBook"]) if lowerFloor else '',
                     frontLine2='—' if lowerFloor else '',
-                    frontLine3=bookTools.yearFromSNBT(lowerFloor[0]["firstBook"]) if lowerFloor else '',
+                    frontLine1=bookTools.yearFromSNBT(lowerFloor[0]["firstBook"]) if lowerFloor else '',
                     frontLine4='⬇⬇⬇' if lowerFloor else '',
                     frontIsGlowing=True,
-                    backLine1=bookTools.yearFromSNBT(upperFloor[-1]["lastBook"]) if upperFloor else '',
+                    backLine3=bookTools.yearFromSNBT(upperFloor[-1]["lastBook"]) if upperFloor else '',
                     backLine2='—' if upperFloor else '',
-                    backLine3=bookTools.yearFromSNBT(upperFloor[0]["firstBook"]) if upperFloor else '',
+                    backLine1=bookTools.yearFromSNBT(upperFloor[0]["firstBook"]) if upperFloor else '',
                     backLine4='⬈⬈⬈' if upperFloor else '',
                     backIsGlowing=True,
                     isWaxed=True,
@@ -446,23 +446,21 @@ class CentralCore(Structure):
 
         indexBookText = '\\\\s'
         lineNumber = 0
+        cabinetCount = 0
         lastYear = bookTools.yearFromSNBT(floorData[0]["firstBook"])
         for cabinet in floorData:
             year = bookTools.yearFromSNBT(cabinet["firstBook"])
-            if year != lastYear:
+            if lineNumber == 10 or year != lastYear:
                 lineNumber = 0
-                indexBookText += '\f\\\\s'
-                lastYear = year
-                continue
+                if cabinetCount < len(floorData):
+                    indexBookText += '\f\\\\s'
             if lineNumber == 0:
                 indexBookText += f'§7§l§n{year}§r\n'
-            firstAuthor = bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(cabinet['firstBook']))
-            lastAuthor = bookTools.getAuthorTLA(bookTools.primaryAuthorFromSNBT(cabinet['lastBook']))
-            indexBookText += f'{firstAuthor}—{lastAuthor} §5{cabinet["cabinet"]}§r\n'
+            firstAuthor = bookTools.getAuthor4LA(bookTools.primaryAuthorFromSNBT(cabinet['firstBook']))
+            lastAuthor = bookTools.getAuthor4LA(bookTools.primaryAuthorFromSNBT(cabinet['lastBook']))
+            indexBookText += f'{firstAuthor}–{lastAuthor} §5{cabinet["cabinet"]}§r\n'
             lineNumber += 1
-            if lineNumber == 10:
-                lineNumber = 0
-                indexBookText += '\f\\\\s'
+            cabinetCount += 1
             lastYear = year
 
         lecternData = nbtlib.parse_nbt(minecraft_tools.lecternData(

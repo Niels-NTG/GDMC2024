@@ -26,8 +26,8 @@ def transliterate(s: str) -> str:
     return unidecode(s).casefold()
 
 
-def getAuthorTLA(s: str) -> str:
-    return re.sub(r'\W+', '', s[:3]).strip()
+def getAuthor4LA(s: str) -> str:
+    return re.sub(r'\W+', '', s[:4]).strip()
 
 
 @functools.cache
@@ -245,7 +245,7 @@ def gatherBooksOfCategory(category: str = 'cs.') -> List[str]:
     groupedBooks = []
     startYear = 1980
     endYear = datetime.today().year
-    for year in range(endYear, startYear + 1, -1):
+    for year in range(startYear, endYear + 1):
         bookGroup: List[str] = []
         inputFiles = glob(f'dataset/parsed-books-no-abstract/{category}*-{year}.json')
         for inputFile in inputFiles:

@@ -28,7 +28,6 @@ class Structure:
     structureFolder: StructureFolder
     structureFile: StructureFile
 
-
     preProcessingSteps: Dict[ivec3, Block]
     postProcessingSteps: List[Tuple[ivec3, Block]]
 
@@ -196,9 +195,9 @@ class Structure:
                     if (len(books) - 1) < bookIndex:
                         self.fillBookShelf(bookShelfPosition, bookShelfRotation, books[:bookIndex])
                         del books[:bookIndex]
+                        bookRanges[bookCabinetIndex]['lastBook'] = lastBook
                         return bookRanges
                     book = books[bookIndex]
-                    lastBook = book
                     bookYear = bookTools.yearFromSNBT(book)
                     bookAuthor = bookTools.primaryAuthorFromSNBT(book)
                     lastBookInCabinetAuthor = lastBookAuthor
@@ -212,6 +211,7 @@ class Structure:
                     if bookIndex == 5:
                         self.fillBookShelf(bookShelfPosition, bookShelfRotation, books[:6])
                         del books[:6]
+                    lastBook = book
                     lastBookYear = bookYear
                     lastBookAuthor = bookAuthor
                 if moveToNextWall:
@@ -222,7 +222,7 @@ class Structure:
             signData = minecraft_tools.signData(
                 frontLine1=categoryLabel,
                 frontLine2=firstBookInCabinetYear,
-                frontLine3=f'{bookTools.getAuthorTLA(firstBookInCabinetAuthor)} — {bookTools.getAuthorTLA(lastBookInCabinetAuthor)}',
+                frontLine3=f'{bookTools.getAuthor4LA(firstBookInCabinetAuthor)}–{bookTools.getAuthor4LA(lastBookInCabinetAuthor)}',
                 frontLine4=bookCabinetLocationLabel,
                 frontIsGlowing=True,
                 isWaxed=True,

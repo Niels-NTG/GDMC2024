@@ -58,7 +58,7 @@ def getHeightAt(
         ivec2(0, 0),
         globals.buildVolume.toRect().size - 1
     )
-    if globals.buildVolume.toRect().contains(positionRelativeToWorldSlice):
+    if globals.buildVolume.toRect().contains(pos):
         return heightmap[positionRelativeToWorldSlice.x][positionRelativeToWorldSlice.y]
     return None
 
@@ -127,7 +127,8 @@ def findSuitableArea(
     for subArea in vectorTools.loop2DwithRects(
         begin=area.toRect().begin,
         end=area.toRect().end,
-        stride=volumeRectSize,
+        size=volumeRectSize,
+        stride=volumeRectSize // 4,
     ):
         hasIntersection = False
         if excludeAreas is not None:

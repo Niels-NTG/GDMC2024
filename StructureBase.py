@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import functools
 from copy import deepcopy
 from typing import TYPE_CHECKING, Dict, List, Tuple
 
@@ -83,7 +82,7 @@ class Structure:
     def rotation(self, value: int):
         self._rotation = value % 4
 
-    @functools.cached_property
+    @property
     def box(self) -> Box:
         return Box(
             size=ivec3(
@@ -104,13 +103,24 @@ class Structure:
             )
         )
 
-    @functools.cached_property
+    @property
     def rect(self) -> Rect:
-        return self.box.toRect()
+        return Rect(
+            size=ivec2(
+                self.structureFile.sizeX,
+                self.structureFile.sizeZ
+            )
+        )
 
     @property
     def rectInWorldSpace(self) -> Rect:
-        return self.boxInWorldSpace.toRect()
+        return Rect(
+            offset=ivec2(self.position.x, self.position.z),
+            size=ivec2(
+                self.structureFile.sizeX,
+                self.structureFile.sizeZ
+            )
+        )
 
     @property
     def name(self):
@@ -123,11 +133,6 @@ class Structure:
         otherStructureBox.erode()
         currentBox = self.boxInWorldSpace
         return currentBox.collides(otherStructureBox)
-
-    def isSameType(self, otherStructure: Structure = None) -> bool:
-        if otherStructure:
-            return otherStructure.structureFile == self.structureFile
-        return False
 
     def doPreProcessingSteps(self):
         # noinspection PyTypeChecker

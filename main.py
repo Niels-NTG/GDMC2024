@@ -37,11 +37,6 @@ libraryCategories: List[Dict[str, str]] = [
         'name': 'Astrophysics',
     },
     {
-        'code': 'econ.',
-        'acronym': 'ECON',
-        'name': 'Economics',
-    },
-    {
         'code': 'stat.',
         'acronym': 'STAT',
         'name': 'Statistics',
@@ -50,6 +45,11 @@ libraryCategories: List[Dict[str, str]] = [
         'code': 'physics.',
         'acronym': 'Physics',
         'name': 'Physics',
+    },
+    {
+        'code': 'econ.',
+        'acronym': 'ECON',
+        'name': 'Economics',
     },
 ]
 
@@ -63,7 +63,7 @@ for category in libraryCategories:
     tileSize = ivec3(9, VOLUME_Y_SIZE, 9)
 
     print(f'Finding suitable area to build {category["name"]} library…')
-    area = worldTools.findSuitableArea(ivec2(6, 6) * ivec2(9, 9), libraryRects)
+    area = worldTools.findSuitableArea(ivec2(7, 7) * ivec2(9, 9), libraryRects)
     if area is None:
         print(f'No suitable area found in build area {globals.buildVolume}')
         exit()
@@ -88,7 +88,7 @@ for category in libraryCategories:
         size=volume.size // tileSize
     )
 
-    libraryRects.append(volume.toRect())
+    libraryRects.append(volume.toRect().dilated(10))
 
     surfaceTowerBox = volumeGrid.centeredSubBox(size=ivec3(5, 1, 5))
     surfaceTower = SurfaceTower(
@@ -103,7 +103,7 @@ for category in libraryCategories:
     surfaceY -= VOLUME_Y_SIZE
     volumeRotation += 1
 
-    while surfaceY > 48:
+    while surfaceY > 40:
         if len(books) == 0:
             break
         subSurfaceTower = SubsurfaceTower(
@@ -174,5 +174,6 @@ for category in libraryCategories:
     bottomGarden.place()
 
     cprint(f'Completed construction of {category["name"]} library', 'black', 'on_green')
+    time.sleep(10)
 
 cprint('Completed construction of all libraries', 'black', 'on_green')

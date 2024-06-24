@@ -52,8 +52,7 @@ class SurfaceTower(Structure):
 
     def doPreProcessingSteps(self):
         print('Cutting down trees…')
-        treeCuttingArea = self.rectInWorldSpace.centeredSubRect(self.rect.size + ivec2(20, 20))
-        treeCuttingArea.offset.x -= 10
+        treeCuttingArea = self.rectInWorldSpace.dilated(20)
         self.preProcessingSteps.update(worldTools.getTreeCuttingInstructions(treeCuttingArea))
         foundations: List[ivec3] = []
         for y in range(self.box.size.y):

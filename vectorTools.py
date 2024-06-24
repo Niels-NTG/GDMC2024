@@ -1,7 +1,6 @@
 import functools
 from typing import Iterator
 
-import glm
 import numpy as np
 from glm import ivec3, ivec2
 
@@ -38,36 +37,16 @@ def isRectinRect(rectA: Rect, rectB: Rect) -> bool:
 def loop2DwithRects(
     begin: ivec2 = ivec2(0, 0),
     end: ivec2 = ivec2(0, 0),
+    size: ivec2 = ivec2(1, 1),
     stride: ivec2 = ivec2(1, 1)
 ) -> Iterator[Rect]:
     for x in range(begin.x, end.x, stride.x):
         for y in range(begin.y, end.y, stride.y):
-            newRectOffset = ivec2(x, y)
-            newRectSize = stride
             newRect = Rect(
-                offset=newRectOffset,
-                size=newRectSize
+                offset=ivec2(x, y),
+                size=size
             )
-            newRect.end = glm.min(newRect.end, end)
             yield newRect
-
-
-def loop3DwithBox(
-    outsideBox: Box,
-    stride: ivec3 = ivec3(1, 1, 1),
-    overlap: ivec3 = ivec3(1, 1, 1),
-) -> Iterator[Box]:
-    for x in range(outsideBox.begin.x, outsideBox.end.x, max(stride.x - overlap.x, 1)):
-        for y in range(outsideBox.begin.y, outsideBox.end.y, max(stride.y - overlap.y, 1)):
-            for z in range(outsideBox.begin.z, outsideBox.end.z, max(stride.z - overlap.z, 1)):
-                newBoxOffset = ivec3(x, y, z)
-                newBoxSize = stride
-                newBox = Box(
-                    offset=newBoxOffset,
-                    size=newBoxSize,
-                )
-                newBox.end = glm.min(newBox.end, outsideBox.end)
-                yield newBox
 
 
 def boxPositions(

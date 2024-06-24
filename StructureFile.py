@@ -1,8 +1,6 @@
-import functools
 from pathlib import Path
 
 import nbtlib
-import numpy as np
 from glm import ivec3
 from nbtlib import Compound
 
@@ -46,51 +44,19 @@ class StructureFile:
     def getBlockPropertiesAt(self, pos: ivec3) -> dict:
         return self.getBlockProperties(self.getBlockAt(pos))
 
-    @functools.cached_property
+    @property
     def sizeX(self) -> int:
         return self.nbt["size"][0]
 
-    @functools.cached_property
+    @property
     def sizeY(self) -> int:
         return self.nbt["size"][1]
 
-    @functools.cached_property
+    @property
     def sizeZ(self) -> int:
         return self.nbt["size"][2]
 
-    @functools.cached_property
-    def shortestDimension(self):
-        return np.argmin([np.abs(self.sizeX), np.abs(self.sizeY), np.abs(self.sizeZ)])
-
-    @functools.cached_property
-    def longestDimension(self):
-        return np.argmax([np.abs(self.sizeX), np.abs(self.sizeY), np.abs(self.sizeZ)])
-
-    @functools.cached_property
-    def shortestHorizontalDimension(self) -> int:
-        return np.argmin([np.abs(self.sizeX), np.abs(self.sizeZ)]) * 2
-
-    @functools.cached_property
-    def longestHorizontalDimension(self) -> int:
-        return np.argmax([np.abs(self.sizeX), np.abs(self.sizeZ)]) * 2
-
-    @functools.cached_property
-    def shortestSize(self) -> int:
-        return [self.sizeX, self.sizeY, self.sizeZ][self.shortestDimension]
-
-    @functools.cached_property
-    def longestSize(self) -> int:
-        return [self.sizeX, self.sizeY, self.sizeZ][self.longestDimension]
-
-    @functools.cached_property
-    def shortestHorizontalSize(self) -> int:
-        return [self.sizeX, 0, self.sizeZ][self.shortestHorizontalDimension]
-
-    @functools.cached_property
-    def longestHorizontalSize(self) -> int:
-        return [self.sizeX, 0, self.sizeZ][self.longestHorizontalDimension]
-
-    @functools.cached_property
+    @property
     def centerPivot(self) -> ivec3:
         return ivec3(
             self.sizeX // 2,

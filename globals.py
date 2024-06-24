@@ -10,7 +10,6 @@ global structureFolders
 global defaultAdjacencies
 global defaultStructureWeights
 
-global buildarea
 global heightMaps
 
 global buildVolume
@@ -32,17 +31,14 @@ def initialize():
     defaultStructureWeights = dict()
     setupStructureWeights()
 
-    global buildarea
-    buildarea = interface.getBuildArea()
+    global buildVolume
+    buildVolume = interface.getBuildArea()
 
     global heightMaps
     heightMaps = dict()
     print('Loading height maps…')
     updateHeightMap('MOTION_BLOCKING_NO_PLANTS')
     updateHeightMap('MOTION_BLOCKING')
-
-    global buildVolume
-    buildVolume = buildarea
 
 
 def loadStructureFiles():

@@ -2,7 +2,6 @@ from pathlib import Path
 
 import Adjacency
 from StructureFolder import StructureFolder
-from gdpc.src.gdpc import Editor
 from gdpc.src.gdpc import interface
 
 global rngSeed
@@ -33,18 +32,14 @@ def initialize():
     defaultStructureWeights = dict()
     setupStructureWeights()
 
-    interface.runCommand(
-        'kill @e[type=minecraft:item]'
-    )
-
     global buildarea
     buildarea = interface.getBuildArea()
 
     global heightMaps
     heightMaps = dict()
+    print('Loading height maps…')
     updateHeightMap('MOTION_BLOCKING_NO_PLANTS')
     updateHeightMap('MOTION_BLOCKING')
-    updateHeightMap('OCEAN_FLOOR_NO_PLANTS')
 
     global buildVolume
     buildVolume = buildarea

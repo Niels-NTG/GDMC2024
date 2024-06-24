@@ -1,13 +1,9 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Dict, List
+from typing import Dict, List
 
 import glm
-
-if TYPE_CHECKING:
-    from StructureBase import Structure
-
 import numpy as np
 from glm import ivec2, ivec3
 
@@ -15,8 +11,8 @@ import globals
 import vectorTools
 from gdpc.src.gdpc import lookup
 from gdpc.src.gdpc.block import Block
-from gdpc.src.gdpc.vector_tools import Box, Rect, loop2D
 from gdpc.src.gdpc.interface import getBlocks
+from gdpc.src.gdpc.vector_tools import Box, Rect
 
 DEFAULT_HEIGHTMAP_TYPE: str = 'MOTION_BLOCKING_NO_PLANTS'
 
@@ -123,6 +119,7 @@ def getTreeCuttingInstructions(
 
 def findSuitableArea(
     volumeRectSize: ivec2 = ivec2(55, 55),
+    excludeAreas: List[Rect] | None = None,
 ) -> Rect | None:
     area: Box = globals.buildVolume
     flattestArea = None
@@ -132,7 +129,15 @@ def findSuitableArea(
         end=area.toRect().end,
         stride=volumeRectSize,
     ):
-        gradientOfArea = getSurfaceStandardDeviation(subArea, 'OCEAN_FLOOR_NO_PLANTS')
+        hasIntersection = False
+        if excludeAreas is not None:
+            for otherArea in excludeAreas:
+                if subArea.collides(otherArea):
+                    hasIntersection = True
+                    break
+        if hasIntersection:
+            continue
+        gradientOfArea = getSurfaceStandardDeviation(subArea, 'MOTION_BLOCKING_NO_PLANTS')
         if gradientOfArea[1] < 64 or gradientOfArea[0] > 10:
             continue
         if abs(gradientOfArea[0]) < lowestGradient:

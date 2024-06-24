@@ -47,7 +47,6 @@ def categoryGroup(category: str) -> str:
     # Physics
     if (
         category.startswith('astro-ph') or
-        category.startswith('cond-mat') or
         category.startswith('gr-qc') or
         category.startswith('hep-') or
         category.startswith('nlin') or
@@ -84,7 +83,6 @@ def categoryColor(category: str) -> str:
     # Physics -> dark purple
     if (
         category.startswith('astro-ph') or
-        category.startswith('cond-mat') or
         category.startswith('gr-qc') or
         category.startswith('hep-') or
         category.startswith('nlin') or

@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, List
 
-from glm import ivec3
+from glm import ivec3, ivec2
 
 import globals
 import vectorTools
@@ -51,7 +51,10 @@ class SurfaceTower(Structure):
         return self.offset + (self.tile * ivec3(9, 10, 9))
 
     def doPreProcessingSteps(self):
-        self.preProcessingSteps.update(worldTools.getTreeCuttingInstructions(self.rectInWorldSpace))
+        print('Cutting down trees…')
+        treeCuttingArea = self.rectInWorldSpace.centeredSubRect(self.rect.size + ivec2(20, 20))
+        treeCuttingArea.offset.x -= 10
+        self.preProcessingSteps.update(worldTools.getTreeCuttingInstructions(treeCuttingArea))
         foundations: List[ivec3] = []
         for y in range(self.box.size.y):
             foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(0, -1, 0) + self.position + ivec3(0, -y, 0), ivec3(0, -1, 21) + self.position + ivec3(0, -y, 0)))))
@@ -86,6 +89,7 @@ class SurfaceTower(Structure):
             foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(37, -1, 3) + self.position + ivec3(0, -y, 0), ivec3(25, -1, 0) + self.position + ivec3(0, -y, 0)))))
             foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(21, -1, 0) + self.position + ivec3(0, -y, 0), ivec3(15, -1, 6) + self.position + ivec3(0, -y, 0)))))
             foundations.extend(list(vectorTools.boxPositions(Box.between(ivec3(0, -1, 25) + self.position + ivec3(0, -y, 0), ivec3(3, -1, 37) + self.position + ivec3(0, -y, 0)))))
+        print('Building foundations…')
         for foundation in foundations:
             self.preProcessingSteps[foundation] = Block(id='minecraft:polished_andesite')
 

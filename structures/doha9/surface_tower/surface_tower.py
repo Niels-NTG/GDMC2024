@@ -89,6 +89,7 @@ class SurfaceTower(Structure):
         for foundation in foundations:
             self.preProcessingSteps[foundation] = Block(id='minecraft:polished_andesite')
 
+        # noinspection PyTypeChecker
         placeBlocks(blocks=self.preProcessingSteps.items())
 
     def place(self):

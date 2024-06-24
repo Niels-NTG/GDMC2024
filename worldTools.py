@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, List
 
 import glm
 
@@ -19,32 +19,6 @@ from gdpc.src.gdpc.vector_tools import Box, Rect, loop2D
 from gdpc.src.gdpc.interface import getBlocks
 
 DEFAULT_HEIGHTMAP_TYPE: str = 'MOTION_BLOCKING_NO_PLANTS'
-
-
-def isStructureInsideBuildArea(structure: Structure) -> bool:
-    return isBoxInsideBuildArea(structure.boxInWorldSpace)
-
-
-def isBoxInsideBuildArea(box: Box) -> bool:
-    return vectorTools.isRectinRect(globals.buildarea, box.toRect())
-
-
-def isStructureTouchingSurface(
-    structure: Structure,
-    heightmapType: str = DEFAULT_HEIGHTMAP_TYPE
-) -> bool:
-    return isBoxTouchingSurface(box=structure.boxInWorldSpace, heightmapType=heightmapType)
-
-
-def isBoxTouchingSurface(
-    box: Box,
-    heightmapType: str = DEFAULT_HEIGHTMAP_TYPE
-) -> bool:
-    floorRect = box.toRect()
-    for point in loop2D(floorRect.begin, floorRect.end):
-        if getHeightAt(pos=point, heightmapType=heightmapType) > box.offset.y:
-            return True
-    return False
 
 
 def getSurfaceStandardDeviation(
@@ -93,47 +67,6 @@ def getHeightAt(
     return None
 
 
-def getSurfacePositionAt(
-    pos: ivec3 | ivec2,
-    heightmapType: str = DEFAULT_HEIGHTMAP_TYPE
-) -> ivec3:
-    if isinstance(pos, ivec3):
-        pos = ivec2(pos.x, pos.z)
-    return ivec3(
-        pos.x,
-        getHeightAt(pos=pos, heightmapType=heightmapType),
-        pos.y
-    )
-
-
-def getRandomSurfacePosition(
-    rng=np.random.default_rng(),
-    heightmapType: str = DEFAULT_HEIGHTMAP_TYPE
-) -> ivec3:
-    startPosition = ivec3(
-        rng.integers(globals.buildarea.begin.x, globals.buildarea.end.x),
-        0,
-        rng.integers(globals.buildarea.begin.y, globals.buildarea.end.y)
-    )
-    startPosition.y = getHeightAt(startPosition, heightmapType=heightmapType)
-    return startPosition
-
-
-def getRandomSurfacePositionForBox(
-    box: Box,
-    rng=np.random.default_rng(),
-    heightmapType: str = DEFAULT_HEIGHTMAP_TYPE
-) -> ivec3:
-    box = Box(box.offset, box.size)
-    MAX_ATTEMPTS = 128
-    for _ in range(MAX_ATTEMPTS):
-        pos = getRandomSurfacePosition(rng, heightmapType)
-        box.offset = pos
-        if isBoxInsideBuildArea(box):
-            return pos
-    raise Exception('Could not fit box inside build area')
-
-
 def getSapling(
     block: Block = None
 ) -> Block:
@@ -142,23 +75,6 @@ def getSapling(
         return Block(id='minecraft:mangrove_propagule', states={'stage': '1'})
     if woodType in lookup.WOOD_TYPES:
         return Block(id=f'minecraft:{woodType}_sapling', states={'stage': '1'})
-
-
-def calculateTreeCuttingCost(
-    area: Rect
-) -> int:
-    diffHeightmap = globals.heightMaps['MOTION_BLOCKING_NO_LEAVES'] - \
-                    globals.heightMaps['MOTION_BLOCKING_NO_PLANTS']
-    outerArea = area.centeredSubRect(size=area.size + 10)
-    outerAreaRelativeToBuildArea = Rect(
-        offset=outerArea.offset - globals.buildVolume.toRect().offset,
-        size=outerArea.size
-    )
-    diffHeightmap = diffHeightmap[
-        outerAreaRelativeToBuildArea.begin.x:outerAreaRelativeToBuildArea.end.x,
-        outerAreaRelativeToBuildArea.begin.y:outerAreaRelativeToBuildArea.end.y,
-    ]
-    return int(np.sum(diffHeightmap))
 
 
 def getTreeCuttingInstructions(

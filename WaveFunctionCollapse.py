@@ -20,6 +20,7 @@ from gdpc.src.gdpc import Box
 
 
 class WaveFunctionCollapse:
+    # Implementation of Wave Function Collapse inspired by https://github.com/ScholliYT/MGAIA-Minecraft
 
     stateSpaceBox: Box
     stateSpace: Dict[ivec3, OrderedSet[StructureRotation]]

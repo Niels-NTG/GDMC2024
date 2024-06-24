@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 
 from glm import ivec3, ivec2
 
-import worldTools
 from Adjacency import StructureAdjacency
 from gdpc.src.gdpc.interface import placeStructure, placeBlocks
 from gdpc.src.gdpc.vector_tools import Box, Rect
@@ -132,6 +131,7 @@ class Structure:
         return False
 
     def doPreProcessingSteps(self):
+        # noinspection PyTypeChecker
         placeBlocks(blocks=self.preProcessingSteps.items())
 
     def place(self):

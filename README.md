@@ -8,9 +8,22 @@ The Vault of Immeasurable Knowledge is a massive underground library that contai
 
 After entering the surface access building you are greeted by an atrium that spans the entire depth of the library, The contents of the library are grouped by publication year ranging from 1990 till now. Each year is sorted alphabetically by primary author of the work. Each landing has way finding indicating the range of works on this floor, as well as an index listing the range of works for each cabinet on that floor.
 
-![2024-06-15_16.17.43](./screenshots/2024-06-15_16.17.43.png)![2024-06-14_11.58.45](./screenshots/2024-06-14_11.58.45.png)
+![2024-07-23_22.36.09](./screenshots/2024-07-23_22.36.09.png)
+
+![2024-07-23_22.50.54](./screenshots/2024-07-23_22.50.54.png)
+
+![2024-07-23_22.36.19](./screenshots/2024-07-23_22.36.19.png)
+
+![2024-07-21_20.30.34](./screenshots/2024-07-21_20.30.09.png)
+
+![2024-07-21_21.25.48](./screenshots/2024-07-21_21.25.48.png)
+
+![2024-07-23_22.35.44](./screenshots/2024-07-23_22.35.44.png)
+
+![2024-07-21_21.33.38](./screenshots/2024-07-21_21.33.38.png)![2024-07-21_21.33.43](./screenshots/2024-07-21_21.33.43.png)
 
 ### Setup
+
 This program is designed to work with Minecraft 1.20.2 combined with the [HTTP Interface Forge mod](https://github.com/Niels-NTG/gdmc_http_interface/). The program itself is written for Python 3.11 and requires the packages listed `requirements.txt` (with the exception of `kaggle`, which is only needed to update the dataset). Also don't forget to run `git submodule update --init` in install the custom fork of the `gdpc` package. To start the generator, open a world in Minecraft, run the in-game `/setbuiltarea fromX fromY fromZ toX toY toZ` command and run `main.py`, no CLI arguments required.
 
 ### Method

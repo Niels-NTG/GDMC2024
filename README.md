@@ -9,18 +9,29 @@ The Vault of Immeasurable Knowledge is a massive underground library that contai
 After entering the surface access building you are greeted by an atrium that spans the entire depth of the library, The contents of the library are grouped by publication year ranging from 1990 till now. Each year is sorted alphabetically by primary author of the work. Each landing has way finding indicating the range of works on this floor, as well as an index listing the range of works for each cabinet on that floor.
 
 ![2024-07-23_22.36.09](./screenshots/2024-07-23_22.36.09.png)
+*View up of the central atrium.*
 
 ![2024-07-23_22.50.54](./screenshots/2024-07-23_22.50.54.png)
+*One of many labyrinthine hallways filled with books containing abstracts of real-life scientific papers.*
 
 ![2024-07-23_22.36.19](./screenshots/2024-07-23_22.36.19.png)
 
 ![2024-07-21_20.30.34](./screenshots/2024-07-21_20.30.09.png)
+*Staircase that winds around the central atrium connecting all floors.*
 
 ![2024-07-21_21.25.48](./screenshots/2024-07-21_21.25.48.png)
 
 ![2024-07-23_22.35.44](./screenshots/2024-07-23_22.35.44.png)
+*Small garden located at the bottom of the atrium.*
+
+![2024-07-24_14.51.05](./screenshots/2024-07-24_14.51.05.png)
+*Exterior view of the surface entrance.*
+
+![isometric](./screenshots/isometric.webp)
+*Isometric rendering of the whole structure. Image credit goes to [Arhur van der Staaij](https://github.com/avdstaaij), who created this using his [mcrender](https://github.com/avdstaaij/mcrender) tool.*
 
 ![2024-07-21_21.33.38](./screenshots/2024-07-21_21.33.38.png)![2024-07-21_21.33.43](./screenshots/2024-07-21_21.33.43.png)
+*Book generated based on the metadata of [Context-free multilanguages (1991) by Donald E. Knuth](https://arxiv.org/abs/cs/9301115).*
 
 ### Setup
 

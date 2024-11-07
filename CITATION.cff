@@ -1,0 +1,30 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: GDMC 2024 - Vault of Immeasurable Knowledge
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Niels
+    family-names: Poldervaart
+    orcid: 'https://orcid.org/0009-0008-0766-7592'
+repository-code: 'https://github.com/Niels-NTG/GDMC2024'
+url: 'https://nielspoldervaart.nl/gdmc'
+abstract: >-
+  "Vault of Immeasurable Knowledge", a submission by
+  Niels-NTG for the 2024 Minecraft AI Settlement Generation
+  Challenge
+keywords:
+  - minecraft
+  - PCG
+  - game-AI
+  - procedural-content-generation
+  - architecture
+  - wave-function-collapse
+  - WFC
+  - information-game
+  - library
+license: MIT
